@@ -6,6 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_admin_scaffold/admin_scaffold.dart';
 
+import '../pages/driver_managementApp.dart';
+
 //common users
 //drivers
 //admins
@@ -42,6 +44,11 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer>
           chosenScreen = TripsPage();
         });
         break;
+      case AddDriverUserPage.id: // Navigate to the AddDriverUserPage when selected
+        setState(() {
+          chosenScreen = AddDriverUserPage();
+        });
+        break;
     }
   }
 
@@ -76,6 +83,11 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer>
             title: "Trips",
             route: TripsPage.id,
             icon: CupertinoIcons.location_fill,
+          ),
+          AdminMenuItem( // Rename the menu item to "Driver Management"
+            title: "Driver Management",
+            route: AddDriverUserPage.id, // Assign the route of AddDriverUserScreen
+            icon: Icons.supervisor_account, // You can change the icon as needed
           ),
         ],
         selectedRoute: DriversPage.id,

@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-
-import '../dashboard/forms_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 class AddDriverUserPage extends StatefulWidget {
-  static const String id = "webPageDriverManagement"; // Removed the backslash
+  static const String id = "webPageDriverManagement";
 
-  const AddDriverUserPage({super.key});
+  const AddDriverUserPage({Key? key}) : super(key: key);
 
   @override
   State<AddDriverUserPage> createState() => _AddDriverUserPageState();
 }
 
 class _AddDriverUserPageState extends State<AddDriverUserPage> {
-  final List<Map<String, dynamic>> _driverUsers = []; // List to store added driver users
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
@@ -21,32 +20,50 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _statusController = TextEditingController();
 
-  void _addDriverUser() {
-    setState(() {
-      _driverUsers.add({
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'birthdate': _birthdateController.text,
-        'idNumber': _idNumberController.text,
-        'bodyNumber': _bodyNumberController.text,
-        'email': _emailController.text,
-        'status': _statusController.text,
+  List<Map<String, dynamic>> _driverUsers = []; // Define _driverUsers list
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDriverUsers(); // Call method to fetch driver users from Firestore
+  }
+
+  void _fetchDriverUsers() {
+    _firestore
+        .collection('driverUsers')
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      setState(() {
+        _driverUsers = querySnapshot.docs
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .where((data) => data != null) // Filter out null values
+            .toList();
       });
-      // Clear text fields after adding the user
-      _firstNameController.clear();
-      _lastNameController.clear();
-      _birthdateController.clear();
-      _idNumberController.clear();
-      _bodyNumberController.clear();
-      _emailController.clear();
-      _statusController.clear();
     });
   }
 
-  void _deleteUser(int index) {
-    setState(() {
-      _driverUsers.removeAt(index);
+  void _addDriverUser() async {
+    await _firestore.collection('driverUsers').add({
+      'firstName': _firstNameController.text,
+      'lastName': _lastNameController.text,
+      'birthdate': _birthdateController.text,
+      'idNumber': _idNumberController.text,
+      'bodyNumber': _bodyNumberController.text,
+      'email': _emailController.text,
+      'status': _statusController.text,
     });
+    _fetchDriverUsers(); // Fetch updated list of driver users
+    _clearControllers();
+  }
+
+  void _clearControllers() {
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _birthdateController.clear();
+    _idNumberController.clear();
+    _bodyNumberController.clear();
+    _emailController.clear();
+    _statusController.clear();
   }
 
   @override
@@ -65,15 +82,65 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AddUserPopUp(); // Show the pop-up
+                    return AlertDialog(
+                      title: Text('Add New User'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: _firstNameController,
+                              decoration: InputDecoration(labelText: 'First Name'),
+                            ),
+                            TextField(
+                              controller: _lastNameController,
+                              decoration: InputDecoration(labelText: 'Last Name'),
+                            ),
+                            TextField(
+                              controller: _birthdateController,
+                              decoration: InputDecoration(labelText: 'Birthdate'),
+                            ),
+                            TextField(
+                              controller: _idNumberController,
+                              decoration: InputDecoration(labelText: 'ID Number'),
+                            ),
+                            TextField(
+                              controller: _bodyNumberController,
+                              decoration: InputDecoration(labelText: 'Body Number'),
+                            ),
+                            TextField(
+                              controller: _emailController,
+                              decoration: InputDecoration(labelText: 'Email'),
+                            ),
+                            TextField(
+                              controller: _statusController,
+                              decoration: InputDecoration(labelText: 'Status'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            _addDriverUser();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Add User'),
+                        ),
+                      ],
+                    );
                   },
                 );
               },
               child: Text("+ Add new User"),
             ),
-            SizedBox(height: 16.0),
-            // Form fields for adding driver users
-            // Your existing form fields...
             SizedBox(height: 16.0),
             // Table to display added driver users
             DataTable(
@@ -85,41 +152,26 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
                 DataColumn(label: Text('Body Number')),
                 DataColumn(label: Text('Email')),
                 DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Actions')), // Column for actions (edit/delete)
               ],
-              rows: _driverUsers.asMap().entries.map((entry) {
-                final index = entry.key;
-                final user = entry.value;
-                return DataRow(cells: [
-                  DataCell(Text(user['firstName'])),
-                  DataCell(Text(user['lastName'])),
-                  DataCell(Text(user['birthdate'])),
-                  DataCell(Text(user['idNumber'])),
-                  DataCell(Text(user['bodyNumber'])),
-                  DataCell(Text(user['email'])),
-                  DataCell(Text(user['status'])),
-                  DataCell(Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          // Navigate to edit screen
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          _deleteUser(index); // Delete user
-                        },
-                      ),
-                    ],
-                  )),
-                ]);
-              }).toList(),
+              rows: _buildUserRows(),
             ),
           ],
         ),
       ),
     );
+  }
+
+  List<DataRow> _buildUserRows() {
+    return _driverUsers.map((user) {
+      return DataRow(cells: [
+        DataCell(Text(user['firstName'])),
+        DataCell(Text(user['lastName'])),
+        DataCell(Text(user['birthdate'])),
+        DataCell(Text(user['idNumber'])),
+        DataCell(Text(user['bodyNumber'])),
+        DataCell(Text(user['email'])),
+        DataCell(Text(user['status'])),
+      ]);
+    }).toList();
   }
 }

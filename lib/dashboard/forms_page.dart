@@ -19,27 +19,27 @@ class AddUserPopUp extends StatelessWidget {
         children: [
           TextField(
             controller: _firstNameController,
-            decoration: InputDecoration(labelText: 'First Name'),
+            decoration: const InputDecoration(labelText: 'First Name'),
           ),
           TextField(
             controller: _lastNameController,
-            decoration: InputDecoration(labelText: 'Last Name'),
+            decoration: const InputDecoration(labelText: 'Last Name'),
           ),
           TextField(
             controller: _birthdateController,
-            decoration: InputDecoration(labelText: 'BirthDate'),
+            decoration:const InputDecoration(labelText: 'BirthDate'),
           ),
           TextField(
             controller: _idNumberController,
-            decoration: InputDecoration(labelText: 'ID Number'),
+            decoration:const InputDecoration(labelText: 'ID Number'),
           ),
           TextField(
             controller: _bodyNumberController,
-            decoration: InputDecoration(labelText: 'Body Number'),
+            decoration:const InputDecoration(labelText: 'Body Number'),
           ),
           TextField(
             controller: _emailController,
-            decoration: InputDecoration(labelText: 'Email'),
+            decoration:const InputDecoration(labelText: 'Email'),
           ),
           // Add more text fields for other user information
         ],

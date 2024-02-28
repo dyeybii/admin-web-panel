@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddUserPopUp extends StatelessWidget {
   final TextEditingController _firstNameController = TextEditingController();
@@ -7,7 +8,7 @@ class AddUserPopUp extends StatelessWidget {
   final TextEditingController _idNumberController = TextEditingController();
   final TextEditingController _bodyNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _statusController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore instance
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,7 @@ class AddUserPopUp extends StatelessWidget {
       ),
       actions: [
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             final newUser = {
               'firstName': _firstNameController.text,
               'lastName': _lastNameController.text,
@@ -55,10 +56,17 @@ class AddUserPopUp extends StatelessWidget {
               'email': _emailController.text,
             };
 
-            // Print the new user data for debugging
-            print(newUser);
+            try {
+              // Add user data to Firestore
+              await _firestore.collection('users').add(newUser);
+              print('User added to Firestore: $newUser');
+              // Optionally, show a success message
+            } catch (e) {
+              print('Error adding user to Firestore: $e');
+              // Handle error (e.g., display error message)
+            }
 
-            // Save the user information and close the pop-up
+            // Close the pop-up
             Navigator.of(context).pop();
           },
           child: Text('Save'),

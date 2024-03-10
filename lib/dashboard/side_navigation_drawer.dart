@@ -12,7 +12,7 @@ import '../pages/driver_managementApp.dart';
 //drivers
 //admins
 class SideNavigationDrawer extends StatefulWidget {
-  const SideNavigationDrawer({Key? key}) : super(key: key);
+  const SideNavigationDrawer({super.key});
 
   @override
   State<SideNavigationDrawer> createState() => _SideNavigationDrawerState();
@@ -21,7 +21,7 @@ class SideNavigationDrawer extends StatefulWidget {
 class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
   Widget chosenScreen = Dashboard();
 
-  sendAdminTo(selectedPage) {
+  sendAdminTo(selectedPage) async {
     switch (selectedPage.route) {
       case DriversPage.id:
         setState(() {

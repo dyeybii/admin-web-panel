@@ -11,22 +11,18 @@ import '../pages/driver_managementApp.dart';
 //common users
 //drivers
 //admins
-
 class SideNavigationDrawer extends StatefulWidget {
-  const SideNavigationDrawer({super.key});
+  const SideNavigationDrawer({Key? key}) : super(key: key);
 
   @override
   State<SideNavigationDrawer> createState() => _SideNavigationDrawerState();
 }
 
-class _SideNavigationDrawerState extends State<SideNavigationDrawer>
-{
+class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
   Widget chosenScreen = Dashboard();
 
-  sendAdminTo(selectedPage)
-  {
-    switch(selectedPage.route)
-    {
+  sendAdminTo(selectedPage) {
+    switch (selectedPage.route) {
       case DriversPage.id:
         setState(() {
           chosenScreen = DriversPage();
@@ -44,7 +40,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer>
           chosenScreen = TripsPage();
         });
         break;
-      case AddDriverUserPage.id: // Navigate to the AddDriverUserPage when selected
+      case AddDriverUserPage.id:
         setState(() {
           chosenScreen = AddDriverUserPage();
         });
@@ -53,8 +49,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer>
   }
 
   @override
-  Widget build(BuildContext context)
-  {
+  Widget build(BuildContext context) {
     return AdminScaffold(
       backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
@@ -84,16 +79,26 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer>
             route: TripsPage.id,
             icon: CupertinoIcons.location_fill,
           ),
-          AdminMenuItem( // Rename the menu item to "Driver Management"
+          AdminMenuItem(
             title: "Driver Management",
-            route: AddDriverUserPage.id, // Assign the route of AddDriverUserScreen
-            icon: Icons.supervisor_account, // You can change the icon as needed
+            route: AddDriverUserPage.id,
+            icon: Icons.supervisor_account,
+          ),
+          AdminMenuItem( // Add logout button
+            title: "Logout",
+            route: '/logout',
+            icon: Icons.logout,
           ),
         ],
         selectedRoute: DriversPage.id,
-        onSelected: (selectedPage)
-        {
-          sendAdminTo(selectedPage);
+        onSelected: (selectedPage) {
+          if (selectedPage.route == "/logout") {
+            // Perform logout actions here
+            // For example, navigate to the login page
+            Navigator.pushReplacementNamed(context, '/login');
+          } else {
+            sendAdminTo(selectedPage);
+          }
         },
         header: Container(
           height: 52,

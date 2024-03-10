@@ -35,8 +35,8 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
         .then((QuerySnapshot querySnapshot) {
       setState(() {
         _driverUsers = querySnapshot.docs
+            .where((doc) => doc.exists) // Check if document exists
             .map((doc) => doc.data() as Map<String, dynamic>)
-            .where((data) => data != null) // Filter out null values
             .toList();
       });
     });
@@ -144,7 +144,7 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
             SizedBox(height: 16.0),
             // Table to display added driver users
             DataTable(
-              columns: [
+              columns: const [
                 DataColumn(label: Text('First Name')),
                 DataColumn(label: Text('Last Name')),
                 DataColumn(label: Text('Birthdate')),

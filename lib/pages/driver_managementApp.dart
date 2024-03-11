@@ -70,10 +70,10 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Add Driver User"),
+        title: const Text("Add Driver User"),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -83,7 +83,7 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Add New User'),
+                      title: const Text('Add New User'),
                       content: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,31 +91,31 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
                           children: [
                             TextField(
                               controller: _firstNameController,
-                              decoration: InputDecoration(labelText: 'First Name'),
+                              decoration: const InputDecoration(labelText: 'First Name'),
                             ),
                             TextField(
                               controller: _lastNameController,
-                              decoration: InputDecoration(labelText: 'Last Name'),
+                              decoration: const InputDecoration(labelText: 'Last Name'),
                             ),
                             TextField(
                               controller: _birthdateController,
-                              decoration: InputDecoration(labelText: 'Birthdate'),
+                              decoration: const InputDecoration(labelText: 'Birthdate'),
                             ),
                             TextField(
                               controller: _idNumberController,
-                              decoration: InputDecoration(labelText: 'ID Number'),
+                              decoration: const InputDecoration(labelText: 'ID Number'),
                             ),
                             TextField(
                               controller: _bodyNumberController,
-                              decoration: InputDecoration(labelText: 'Body Number'),
+                              decoration: const InputDecoration(labelText: 'Body Number'),
                             ),
                             TextField(
                               controller: _emailController,
-                              decoration: InputDecoration(labelText: 'Email'),
+                              decoration: const InputDecoration(labelText: 'Email'),
                             ),
                             TextField(
                               controller: _statusController,
-                              decoration: InputDecoration(labelText: 'Status'),
+                              decoration: const InputDecoration(labelText: 'Status'),
                             ),
                           ],
                         ),
@@ -125,36 +125,46 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('Cancel'),
+                          child: const Text('Cancel'),
                         ),
                         ElevatedButton(
                           onPressed: () {
                             _addDriverUser();
                             Navigator.of(context).pop();
                           },
-                          child: Text('Add User'),
+                          child: const Text('Add User'),
                         ),
                       ],
                     );
                   },
                 );
               },
-              child: Text("+ Add new User"),
+              child: const Text("+ Add new User"),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             // Table to display added driver users
-            DataTable(
-              columns: const [
-                DataColumn(label: Text('First Name')),
-                DataColumn(label: Text('Last Name')),
-                DataColumn(label: Text('Birthdate')),
-                DataColumn(label: Text('ID Number')),
-                DataColumn(label: Text('Body Number')),
-                DataColumn(label: Text('Email')),
-                DataColumn(label: Text('Status')),
-              ],
-              rows: _buildUserRows(),
+      SizedBox(height: 16.0),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6, // Adjust the height as needed
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('First Name')),
+                    DataColumn(label: Text('Last Name')),
+                    DataColumn(label: Text('Birthdate')),
+                    DataColumn(label: Text('ID Number')),
+                    DataColumn(label: Text('Body Number')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Status')),
+                  ],
+                  rows: _buildUserRows(),
+                ),
+              ),
             ),
+          ),
           ],
         ),
       ),

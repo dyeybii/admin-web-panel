@@ -1,146 +1,126 @@
-import 'package:admin_web_panel/dashboard/dashboard.dart';
+import 'package:flutter/material.dart';
+import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/trips_page.dart';
 import 'package:admin_web_panel/pages/users_page.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_admin_scaffold/admin_scaffold.dart';
+import 'package:admin_web_panel/pages/driver_managementApp.dart';
+import 'package:admin_web_panel/login.dart'; // Import your login page
 
-import '../pages/driver_managementApp.dart';
-
-//common users
-//drivers
-//admins
 class SideNavigationDrawer extends StatefulWidget {
-  const SideNavigationDrawer({super.key});
+  const SideNavigationDrawer({Key? key}) : super(key: key);
 
   @override
   State<SideNavigationDrawer> createState() => _SideNavigationDrawerState();
 }
 
 class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
-  Widget chosenScreen = Dashboard();
+  String selectedRoute = Dashboard.id;
 
-  sendAdminTo(selectedPage) async {
-    switch (selectedPage.route) {
-      case DriversPage.id:
-        setState(() {
-          chosenScreen = DriversPage();
-        });
-        break;
-
-      case UsersPage.id:
-        setState(() {
-          chosenScreen = UsersPage();
-        });
-        break;
-
-      case TripsPage.id:
-        setState(() {
-          chosenScreen = TripsPage();
-        });
-        break;
-      case AddDriverUserPage.id:
-        setState(() {
-          chosenScreen = AddDriverUserPage();
-        });
-        break;
-    }
+  void logout() {
+    Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return AdminScaffold(
-      backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+    Widget chosenScreen;
+    switch (selectedRoute) {
+      case Dashboard.id:
+        chosenScreen = Dashboard();
+        break;
+      case DriversPage.id:
+        chosenScreen = DriversPage();
+        break;
+      case UsersPage.id:
+        chosenScreen = UsersPage();
+        break;
+      case TripsPage.id:
+        chosenScreen = TripsPage();
+        break;
+      case AddDriverUserPage.id:
+        chosenScreen = AddDriverUserPage();
+        break;
+      default:
+        chosenScreen = Dashboard();
+    }
+
+    return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent.shade700,
-        title: const Text(
-          "Admin Web Panel",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        title: const Text("TRI.CO"),
       ),
-      sideBar: SideBar(
-        items: const [
-          AdminMenuItem(
-            title: "Drivers",
-            route: DriversPage.id,
-            icon: CupertinoIcons.car_detailed,
-          ),
-          AdminMenuItem(
-            title: "Users",
-            route: UsersPage.id,
-            icon: CupertinoIcons.person_2_fill,
-          ),
-          AdminMenuItem(
-            title: "Trips",
-            route: TripsPage.id,
-            icon: CupertinoIcons.location_fill,
-          ),
-          AdminMenuItem(
-            title: "Driver Management",
-            route: AddDriverUserPage.id,
-            icon: Icons.supervisor_account,
-          ),
-          AdminMenuItem( // Add logout button
-            title: "Logout",
-            route: '/logout',
-            icon: Icons.logout,
-          ),
-        ],
-        selectedRoute: DriversPage.id,
-        onSelected: (selectedPage) {
-          if (selectedPage.route == "/logout") {
-            // Perform logout actions here
-            // For example, navigate to the login page
-            Navigator.pushReplacementNamed(context, '/login');
-          } else {
-            sendAdminTo(selectedPage);
-          }
-        },
-        header: Container(
-          height: 52,
-          width: double.infinity,
-          color: Colors.blue.shade500,
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.accessibility,
-                color: Colors.white,
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
               ),
-              SizedBox(
-                width: 10,
+              child: const Center(
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
               ),
-              Icon(
-                Icons.settings,
-                color: Colors.white,
-              ),
-            ],
-          ),
-        ),
-        footer: Container(
-          height: 52,
-          width: double.infinity,
-          color: Colors.blue.shade500,
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.admin_panel_settings_outlined,
-                color: Colors.white,
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              Icon(
-                Icons.computer,
-                color: Colors.white,
-              ),
-            ],
-          ),
+            ),
+            ListTile(
+              title: Text('Dashboard'),
+              leading: Icon(Icons.dashboard),
+              onTap: () {
+                setState(() {
+                  selectedRoute = Dashboard.id;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Drivers'),
+              leading: Icon(Icons.directions_car),
+              onTap: () {
+                setState(() {
+                  selectedRoute = DriversPage.id;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Users'),
+              leading: Icon(Icons.person),
+              onTap: () {
+                setState(() {
+                  selectedRoute = UsersPage.id;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Trips'),
+              leading: Icon(Icons.location_on),
+              onTap: () {
+                setState(() {
+                  selectedRoute = TripsPage.id;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Driver Management'),
+              leading: Icon(Icons.supervisor_account),
+              onTap: () {
+                setState(() {
+                  selectedRoute = AddDriverUserPage.id;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('Logout'),
+              leading: Icon(Icons.logout),
+              onTap: logout,
+            ),
+          ],
         ),
       ),
       body: chosenScreen,

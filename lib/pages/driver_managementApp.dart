@@ -143,7 +143,7 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
             ),
             const SizedBox(height: 16.0),
             // Table to display added driver users
-      SizedBox(height: 16.0),
+      const SizedBox(height: 16.0),
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.6, // Adjust the height as needed
             child: SingleChildScrollView(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // Add this import
 
 class LoginPage extends StatefulWidget {
   static const String id = '/login'; // Define the route identifier
@@ -16,9 +15,11 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(); // Create GoogleSignIn instance
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _showPassword = false; // Track whether to show password or not
+  bool _loading = false;
+  String _errorMessage = '';
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +74,18 @@ class _LoginPageState extends State<LoginPage> {
                             const SizedBox(height: 20.0),
                             TextFormField(
                               controller: _passwordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(
+                              obscureText: !_showPassword, // Toggle password visibility
+                              decoration: InputDecoration(
                                 labelText: 'Password',
-                                border: OutlineInputBorder(),
+                                border: const OutlineInputBorder(),
+                                suffixIcon: IconButton(
+                                  icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                                  onPressed: () {
+                                    setState(() {
+                                      _showPassword = !_showPassword;
+                                    });
+                                  },
+                                ),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -94,16 +103,21 @@ class _LoginPageState extends State<LoginPage> {
                               onPressed: () {
                                 _signInWithEmailAndPassword();
                               },
-                              child: const Text('Login'),
+                              child: _loading
+                                  ? CircularProgressIndicator() // Show loading indicator
+                                  : const Text('Login'),
                             ),
-                            const SizedBox(height: 10.0), // Add spacing
-                            OutlinedButton.icon(
-                              icon: const Icon(Icons.login),
-                              label: const Text('Sign in with Google'),
-                              onPressed: () {
-                                _signInWithGoogle();
-                              },
-                            ),
+                            if (_errorMessage.isNotEmpty) // Show error message if it's not empty
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Text(
+                                  _errorMessage,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -128,40 +142,31 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signInWithEmailAndPassword() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _loading = true; // Start loading indicator
+        _errorMessage = ''; // Clear previous error message
+      });
+
       try {
-        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        await _auth.signInWithEmailAndPassword(
           email: _usernameController.text,
           password: _passwordController.text,
         );
-        print('User ${userCredential.user!.uid} signed in');
+        print('User ${_auth.currentUser!.uid} signed in');
         Navigator.pushReplacementNamed(context, '/dashboard');
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-          print('No user found for that email.');
-        } else if (e.code == 'wrong-password') {
-          print('Wrong password provided for that user.');
-        }
+        setState(() {
+          _loading = false; // Stop loading indicator
+          _errorMessage = 'Please check your password and account name and try again.';
+        });
+        print('Error signing in: $e');
       } catch (e) {
-        print(e);
+        setState(() {
+          _loading = false; // Stop loading indicator
+          _errorMessage = 'An unexpected error occurred. Please try again later.';
+        });
+        print('Error signing in: $e');
       }
-    }
-  }
-
-  Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
-
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      print('User ${userCredential.user!.uid} signed in with Google');
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } catch (e) {
-      print(e);
     }
   }
 }

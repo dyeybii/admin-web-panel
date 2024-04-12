@@ -2,8 +2,44 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:excel/excel.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+
+// Define the DriversAccount class
+class DriversAccount {
+  final String address;
+  final String birthdate;
+  final String bodyNumber;
+  final String email;
+  final String emergencyContact;
+  final String firstName;
+  final String idNumber;
+  final String lastName;
+
+  DriversAccount({
+    required this.address,
+    required this.birthdate,
+    required this.bodyNumber,
+    required this.email,
+    required this.emergencyContact,
+    required this.firstName,
+    required this.idNumber,
+    required this.lastName,
+  });
+
+  factory DriversAccount.fromJson(Map<String, dynamic> json) {
+    return DriversAccount(
+      address: json['address'] ?? '',
+      birthdate: json['birthdate'] ?? '',
+      bodyNumber: json['bodyNumber'] ?? '',
+      email: json['email'] ?? '',
+      emergencyContact: json['emergencyContact'] ?? '',
+      firstName: json['firstName'] ?? '',
+      idNumber: json['idNumber'] ?? '',
+      lastName: json['lastName'] ?? '',
+    );
+  }
+}
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -16,6 +52,7 @@ class DriversPage extends StatefulWidget {
 
 class _DriversPageState extends State<DriversPage> {
   late List<DriversAccount> driversAccountList;
+  final database = FirebaseDatabase.instance.ref();
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
@@ -220,7 +257,7 @@ class _DriversPageState extends State<DriversPage> {
                           ),
                         ),
                         actions: [
-                          Container(
+                          SizedBox(
                             width: 200,
                             child: ElevatedButton(
                               onPressed: () {
@@ -341,7 +378,7 @@ class _DriversPageState extends State<DriversPage> {
                   GridColumn(
                       columnName: 'email', label: const Text('Email')),
                   GridColumn(
-                      columnName: 'birthdate', label: const Text('Birthdate')),
+                      columnName: 'birthdate', label: const Text('Birth date')),
                   GridColumn(
                       columnName: 'address', label: const Text('Address')),
                   GridColumn(
@@ -366,21 +403,41 @@ class _DriversPageState extends State<DriversPage> {
 
       List<DriversAccount> driversAccountList = [];
 
-      Map<dynamic, dynamic> values =
-          dataSnapshot.value as Map<dynamic, dynamic>? ?? {};
-      values.forEach((key, value) {
-        if (value != null && value is Map<String, dynamic>) {
-          driversAccountList.add(DriversAccount.fromJson(value));
-        } else {
-          print('Invalid data found for key $key');
-        }
-      });
+      // Check if dataSnapshot.value is not null and is of the expected type Map<dynamic, dynamic>
+      if (dataSnapshot.value != null &&
+          dataSnapshot.value is Map<dynamic, dynamic>) {
+        final dataMap = dataSnapshot.value as Map<dynamic, dynamic>;
 
-      print("Data mapped successfully: $driversAccountList");
+        // Iterate over each driver account entry
+        dataMap.forEach((key, value) {
+          // Skip processing if the key doesn't start with "-"
+          if (!key.startsWith("-")) {
+            print("Skipping key: $key");
+            return;
+          }
+
+          // Convert each driver account data to DriversAccount object
+          if (value is Map<String, dynamic>) {
+            DriversAccount driverAccount = DriversAccount.fromJson(value);
+            driversAccountList.add(driverAccount);
+          } else {
+            print("Invalid data found for key $key");
+          }
+        });
+
+        // Print the retrieved data (optional)
+        driversAccountList.forEach((driver) {
+          print("Driver ID: ${driver.idNumber}");
+          print("Name: ${driver.firstName} ${driver.lastName}");
+          // Print other details as needed
+        });
+      } else {
+        print('Data snapshot value is null or not a Map<dynamic, dynamic>');
+      }
 
       return driversAccountList;
-    } catch (e) {
-      print('Error fetching data from Firebase: $e');
+    } catch (error) {
+      print('Error generating drivers account list: $error');
       return [];
     }
   }
@@ -442,56 +499,6 @@ class _DriversPageState extends State<DriversPage> {
   }
 }
 
-class DriversAccount {
-  factory DriversAccount.fromJson(Map<String, dynamic> json) {
-    try {
-      return DriversAccount(
-        firstName: json['firstName']?.toString() ?? '',
-        lastName: json['lastName']?.toString() ?? '',
-        idNumber: json['idNumber']?.toString() ?? '',
-        bodyNumber: json['bodyNumber']?.toString() ?? '',
-        email: json['email']?.toString() ?? '',
-        birthdate: json['birthdate']?.toString() ?? '',
-        address: json['address']?.toString() ?? '',
-        emergencyContact: json['emergencyContact']?.toString() ?? '',
-      );
-    } catch (e) {
-      print('Error parsing driver account data: $e');
-      return DriversAccount.empty();
-    }
-  }
-
-  DriversAccount({
-    required this.firstName,
-    required this.lastName,
-    required this.idNumber,
-    required this.bodyNumber,
-    required this.email,
-    required this.birthdate,
-    required this.address,
-    required this.emergencyContact,
-  });
-
-  DriversAccount.empty()
-      : firstName = '',
-        lastName = '',
-        idNumber = '',
-        bodyNumber = '',
-        email = '',
-        birthdate = '',
-        address = '',
-        emergencyContact = '';
-
-  final String firstName;
-  final String lastName;
-  final String idNumber;
-  final String bodyNumber;
-  final String email;
-  final String birthdate;
-  final String address;
-  final String emergencyContact;
-}
-
 class DriversDataSource extends DataGridSource {
   DriversDataSource(this.driversAccountList) {
     buildDataGridRows();
@@ -514,7 +521,7 @@ class DriversDataSource extends DataGridSource {
         DataGridCell<String>(
             columnName: 'email', value: data.email.toString()),
         DataGridCell<String>(
-            columnName: 'birthdate', value: data.birthdate.toString()),
+            columnName: 'birth date', value: data.birthdate.toString()),
         DataGridCell<String>(
             columnName: 'address', value: data.address.toString()),
         DataGridCell<String>(

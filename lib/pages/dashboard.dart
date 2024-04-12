@@ -20,7 +20,7 @@ class _TripsPageState extends State<Dashboard> {
       body:  Center(
         
         child: Text(
-        "TripsPage",
+        "Dashboard here",
         style: TextStyle(
           color: Colors.blueAccent,
           fontSize: 24

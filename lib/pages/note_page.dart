@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
-class TripsPage extends StatefulWidget
+class NotePage extends StatefulWidget
 {
   static const String id = "\webPageTrips";
 
-  const TripsPage({super.key});
+  const NotePage({super.key});
 
   @override
-  State<TripsPage> createState() => _TripsPageState();
+  State<NotePage> createState() => _NotePageState();
 }
 
-class _TripsPageState extends State<TripsPage> {
+class _NotePageState extends State<NotePage> {
   @override
   Widget build(BuildContext context)
   {
     return const Scaffold(
       body:  Center(
         child: Text(
-        "TripsPage",
+        "Notes for admin",
         style: TextStyle(
           color: Colors.blueAccent,
           fontSize: 24

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/note_page.dart';
-import 'package:admin_web_panel/pages/users_page.dart';
+import 'package:admin_web_panel/pages/passenger_page.dart';
 import 'package:admin_web_panel/pages/driver_managementApp.dart';
 import 'package:admin_web_panel/login.dart'; 
 
@@ -34,7 +34,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
         chosenScreen = const UsersPage();
         break;
       case NotePage.id:
-        chosenScreen = const NotePage();
+        chosenScreen = NotePage(key: UniqueKey());
         break;
       case AddDriverUserPage.id:
         chosenScreen = const AddDriverUserPage();

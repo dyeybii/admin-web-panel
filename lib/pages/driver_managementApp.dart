@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 class AddDriverUserPage extends StatefulWidget {
   static const String id = "webPageDriverManagement";
@@ -7,181 +6,18 @@ class AddDriverUserPage extends StatefulWidget {
   const AddDriverUserPage({Key? key}) : super(key: key);
 
   @override
-  State<AddDriverUserPage> createState() => _AddDriverUserPageState();
+  _AddDriverUserPageState createState() => _AddDriverUserPageState();
 }
 
 class _AddDriverUserPageState extends State<AddDriverUserPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _birthdateController = TextEditingController();
-  final TextEditingController _idNumberController = TextEditingController();
-  final TextEditingController _bodyNumberController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _statusController = TextEditingController();
-
-  List<Map<String, dynamic>> _driverUsers = []; // Define _driverUsers list
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchDriverUsers(); // Call method to fetch driver users from Firestore
-  }
-
-  void _fetchDriverUsers() {
-    _firestore
-        .collection('driverUsers')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      setState(() {
-        _driverUsers = querySnapshot.docs
-            .where((doc) => doc.exists) // Check if document exists
-            .map((doc) => doc.data() as Map<String, dynamic>)
-            .toList();
-      });
-    });
-  }
-
-  void _addDriverUser() async {
-    await _firestore.collection('driverUsers').add({
-      'firstName': _firstNameController.text,
-      'lastName': _lastNameController.text,
-      'birthdate': _birthdateController.text,
-      'idNumber': _idNumberController.text,
-      'bodyNumber': _bodyNumberController.text,
-      'email': _emailController.text,
-      'status': _statusController.text,
-    });
-    _fetchDriverUsers(); // Fetch updated list of driver users
-    _clearControllers();
-  }
-
-  void _clearControllers() {
-    _firstNameController.clear();
-    _lastNameController.clear();
-    _birthdateController.clear();
-    _idNumberController.clear();
-    _bodyNumberController.clear();
-    _emailController.clear();
-    _statusController.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text("Add Driver User"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Add New User'),
-                      content: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextField(
-                              controller: _firstNameController,
-                              decoration: const InputDecoration(labelText: 'First Name'),
-                            ),
-                            TextField(
-                              controller: _lastNameController,
-                              decoration: const InputDecoration(labelText: 'Last Name'),
-                            ),
-                            TextField(
-                              controller: _birthdateController,
-                              decoration: const InputDecoration(labelText: 'Birthdate'),
-                            ),
-                            TextField(
-                              controller: _idNumberController,
-                              decoration: const InputDecoration(labelText: 'ID Number'),
-                            ),
-                            TextField(
-                              controller: _bodyNumberController,
-                              decoration: const InputDecoration(labelText: 'Body Number'),
-                            ),
-                            TextField(
-                              controller: _emailController,
-                              decoration: const InputDecoration(labelText: 'Email'),
-                            ),
-                            TextField(
-                              controller: _statusController,
-                              decoration: const InputDecoration(labelText: 'Status'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            _addDriverUser();
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Add User'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Text("+ Add new User"),
-            ),
-            const SizedBox(height: 16.0),
-            // Table to display added driver users
-      const SizedBox(height: 16.0),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6, // Adjust the height as needed
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('First Name')),
-                    DataColumn(label: Text('Last Name')),
-                    DataColumn(label: Text('Birthdate')),
-                    DataColumn(label: Text('ID Number')),
-                    DataColumn(label: Text('Body Number')),
-                    DataColumn(label: Text('Email')),
-                    DataColumn(label: Text('Status')),
-                  ],
-                  rows: _buildUserRows(),
-                ),
-              ),
-            ),
-          ),
-          ],
-        ),
-      ),
+      body: Center(),
     );
-  }
-
-  List<DataRow> _buildUserRows() {
-    return _driverUsers.map((user) {
-      return DataRow(cells: [
-        DataCell(Text(user['firstName'])),
-        DataCell(Text(user['lastName'])),
-        DataCell(Text(user['birthdate'])),
-        DataCell(Text(user['idNumber'])),
-        DataCell(Text(user['bodyNumber'])),
-        DataCell(Text(user['email'])),
-        DataCell(Text(user['status'])),
-      ]);
-    }).toList();
   }
 }

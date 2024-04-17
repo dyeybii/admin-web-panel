@@ -17,7 +17,7 @@ class _UsersPageState extends State<UsersPage> {
     return const Scaffold(
       body:  Center(
         child: Text(
-            "UsersPage",
+            "Passengers data",
             style: TextStyle(
                 color: Colors.blueAccent,
                 fontSize: 24

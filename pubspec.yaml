@@ -42,6 +42,7 @@ dependencies:
   excel: ^4.0.3
   path_provider: ^2.1.2
   syncfusion_flutter_xlsio: ^25.1.38
+  google_fonts: ^6.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

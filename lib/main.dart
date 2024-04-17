@@ -7,14 +7,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(
     options: const FirebaseOptions(
-  apiKey: "AIzaSyBOgKFFQrKMhW9pBiexDyM_D9hXeE2775s",
-  authDomain: "passenger-signuplogin.firebaseapp.com",
-  databaseURL: "https://passenger-signuplogin-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "passenger-signuplogin",
-  storageBucket: "passenger-signuplogin.appspot.com",
-  messagingSenderId: "755339267599",
-  appId: "1:755339267599:web:9b9ae57201f3e945e01d7a",
-  measurementId: "G-V6S05YXR5D"
+  apiKey: "AIzaSyC1813klIMjrdxnH_MxTgfd7bASkNcu0Ic",
+  authDomain: "trico-admin-panel.firebaseapp.com",
+  databaseURL: "https://trico-admin-panel-default-rtdb.firebaseio.com",
+  projectId: "trico-admin-panel",
+  storageBucket: "trico-admin-panel.appspot.com",
+  messagingSenderId: "925740452995",
+  appId: "1:925740452995:web:96401cc26c6fd09842dfb6",
+  measurementId: "G-JYX1EM4G93"
      ));
   runApp(MyApp());
 }

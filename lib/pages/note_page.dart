@@ -1,4 +1,5 @@
 import 'package:admin_web_panel/widgets/note_card.dart';
+import 'package:admin_web_panel/widgets/note_reader.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,10 +21,22 @@ class _NotePageState extends State<NotePage> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: const Text("Admin notes"),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                // Add your functionality here
+              },
+              child: const Text(
+                "Add Notes",
+                style: TextStyle(
+                    color: Color.fromARGB(
+                        255, 0, 0, 0)), // Adjust text color as needed
+              ),
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -37,7 +50,8 @@ class _NotePageState extends State<NotePage> {
               ),
               const SizedBox(height: 20.0),
               StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection("Notes").snapshots(),
+                stream:
+                    FirebaseFirestore.instance.collection("Notes").snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -50,9 +64,25 @@ class _NotePageState extends State<NotePage> {
                       child: ListView.builder(
                         itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
+                          final note = snapshot.data!.docs[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16.0),
-                            child: noteCard(context, () {}, snapshot.data!.docs[index]),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        NoteReaderScreen(note),
+                                  ),
+                                );
+                              },
+                              child: noteCard(
+                                context,
+                                () {}, // Placeholder onTap function
+                                note,
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -61,7 +91,8 @@ class _NotePageState extends State<NotePage> {
                     return Center(
                       child: Text(
                         "There are no Notes",
-                        style: GoogleFonts.nunito(color: const Color(0xFFFFFFFF)),
+                        style:
+                            GoogleFonts.nunito(color: const Color(0xFFFFFFFF)),
                       ),
                     );
                   }

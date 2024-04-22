@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_note_form.dart';
 
-Widget noteCard(BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
+Widget noteCard(
+    BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
   final data = doc?.data() as Map<String, dynamic>?;
 
   if (data != null) {
@@ -38,6 +39,7 @@ Widget noteCard(BuildContext context, Function()? onTap, QueryDocumentSnapshot? 
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit),
+                        tooltip: "Edit",
                         onPressed: () {
                           if (doc != null) {
                             showDialog(
@@ -53,6 +55,7 @@ Widget noteCard(BuildContext context, Function()? onTap, QueryDocumentSnapshot? 
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
+                        tooltip: "Delete",
                         onPressed: () async {
                           if (doc != null) {
                             try {

@@ -107,7 +107,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _firstNameController,
                                     decoration: const InputDecoration(
                                       labelText: 'First Name',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -125,7 +126,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _lastNameController,
                                     decoration: const InputDecoration(
                                       labelText: 'Last Name',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -144,7 +146,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _idNumberController,
                                     decoration: const InputDecoration(
                                       labelText: 'ID Number',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -163,7 +166,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _bodyNumberController,
                                     decoration: const InputDecoration(
                                       labelText: 'Body Number',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -181,7 +185,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _emailController,
                                     decoration: const InputDecoration(
                                       labelText: 'Email',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -200,7 +205,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _birthdateController,
                                     decoration: const InputDecoration(
                                       labelText: 'Birthdate',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -218,7 +224,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _addressController,
                                     decoration: const InputDecoration(
                                       labelText: 'Address',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -237,7 +244,8 @@ class _DriversPageState extends State<DriversPage> {
                                     controller: _emergencyContactController,
                                     decoration: const InputDecoration(
                                       labelText: 'Emergency Contact',
-                                      labelStyle: TextStyle(color: Colors.white),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
                                       enabledBorder: UnderlineInputBorder(
                                         borderSide:
                                             BorderSide(color: Colors.white),
@@ -276,8 +284,7 @@ class _DriversPageState extends State<DriversPage> {
                                     'address': _addressController.text,
                                     'emergencyContact':
                                         _emergencyContactController.text,
-                                  })
-                                      .then((_) {
+                                  }).then((_) {
                                     _firstNameController.clear();
                                     _lastNameController.clear();
                                     _idNumberController.clear();
@@ -287,11 +294,9 @@ class _DriversPageState extends State<DriversPage> {
                                     _addressController.clear();
                                     _emergencyContactController.clear();
                                     Navigator.of(context).pop();
-                                  })
-                                      .catchError((error) {
+                                  }).catchError((error) {
                                     print('Error adding user: $error');
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text('Failed to add user.'),
                                       ),
@@ -374,9 +379,9 @@ class _DriversPageState extends State<DriversPage> {
                   GridColumn(
                       columnName: 'idNumber', label: const Text('ID Number')),
                   GridColumn(
-                      columnName: 'bodyNumber', label: const Text('Body Number')),
-                  GridColumn(
-                      columnName: 'email', label: const Text('Email')),
+                      columnName: 'bodyNumber',
+                      label: const Text('Body Number')),
+                  GridColumn(columnName: 'email', label: const Text('Email')),
                   GridColumn(
                       columnName: 'birthdate', label: const Text('Birth date')),
                   GridColumn(
@@ -518,8 +523,7 @@ class DriversDataSource extends DataGridSource {
             columnName: 'idNumber', value: data.idNumber.toString()),
         DataGridCell<String>(
             columnName: 'bodyNumber', value: data.bodyNumber.toString()),
-        DataGridCell<String>(
-            columnName: 'email', value: data.email.toString()),
+        DataGridCell<String>(columnName: 'email', value: data.email.toString()),
         DataGridCell<String>(
             columnName: 'birth date', value: data.birthdate.toString()),
         DataGridCell<String>(

@@ -311,6 +311,7 @@ class _DriversPageState extends State<DriversPage> {
                           ),
                           ElevatedButton(
                             onPressed: () {
+                              
                               _firstNameController.clear();
                               _lastNameController.clear();
                               _idNumberController.clear();

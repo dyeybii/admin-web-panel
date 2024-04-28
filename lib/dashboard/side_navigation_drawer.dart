@@ -17,7 +17,8 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
   String selectedRoute = Dashboard.id;
 
   void logout() {
-    Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
+    Navigator.pushNamedAndRemoveUntil(
+        context, LoginPage.id, (route) => false);
   }
 
   @override
@@ -45,91 +46,96 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("TRI.CO",style: TextStyle(
-          color: Colors.black,
-          fontSize: 20
-          ),),
-        
+        title: const Text(
+          "TRI.CO",
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
       body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // Adjust alignment
         children: <Widget>[
           Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Menu'
-                      ,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
+            child: Container(
+              width: 240, // Specify drawer width
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Menu',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                ListTile(
-                  title: const Text('Dashboard'),
-                  leading: const Icon(Icons.dashboard),
-                  onTap: () {
-                    setState(() {
-                      selectedRoute = Dashboard.id;
-                    });
-                  },
-                ),
-                ListTile(
-                  title: const Text('Drivers'),
-                  leading: const SizedBox(
-  width: 24, // Specify the desired width
-  height: 24, // Specify the desired height
-  child: Image(
-    image: AssetImage('images/tricycle_icon.png'),
-  ),
-),
-                  onTap: () {
-                    setState(() {
-                      selectedRoute = DriversPage.id;
-                    });
-                  },
-                ),
-                ListTile(
-                  title: const Text('Passenger'),
-                  leading: const Icon(Icons.person),
-                  onTap: () {
-                    setState(() {
-                      selectedRoute = UsersPage.id;
-                    });
-                  },
-                ),
-                ListTile(
-                  title: const Text('Notes'),
-                  leading: const Icon(Icons.edit_note),
-                  onTap: () {
-                    setState(() {
-                      selectedRoute = NotePage.id;
-                    });
-                  },
-                ),
-                ListTile(
-                  title: const Text('Driver Management'),
-                  leading: const Icon(Icons.supervisor_account),
-                  onTap: () {
-                    setState(() {
-                      selectedRoute = AddDriverUserPage.id;
-                    });
-                  },
-                ),
-                ListTile(
-                  title: const Text('Logout'),
-                  leading: const Icon(Icons.logout),
-                  onTap: logout,
-                ),
-              ],
+                  ListTile(
+                    title: const Text('Dashboard'),
+                    leading: const Icon(Icons.dashboard),
+                    onTap: () {
+                      setState(() {
+                        selectedRoute = Dashboard.id;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Drivers'),
+                    leading: const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Image(
+                        image: AssetImage('images/tricycle_icon.png'),
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectedRoute = DriversPage.id;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Passenger'),
+                    leading: const Icon(Icons.person),
+                    onTap: () {
+                      setState(() {
+                        selectedRoute = UsersPage.id;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Notes'),
+                    leading: const Icon(Icons.edit_note),
+                    onTap: () {
+                      setState(() {
+                        selectedRoute = NotePage.id;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Driver Management'),
+                    leading: const Icon(Icons.supervisor_account),
+                    onTap: () {
+                      setState(() {
+                        selectedRoute = AddDriverUserPage.id;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    title: const Text('Logout'),
+                    leading: const Icon(Icons.logout),
+                    onTap: logout,
+                  ),
+                ],
+              ),
             ),
           ),
           const VerticalDivider(),

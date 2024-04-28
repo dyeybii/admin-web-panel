@@ -17,7 +17,7 @@ class _AddDriverUserPageState extends State<AddDriverUserPage> {
         automaticallyImplyLeading: false,
         title: const Text("Add Driver User"),
       ),
-      body: Center(),
+      body: const Center(),
     );
   }
 }

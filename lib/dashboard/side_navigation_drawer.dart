@@ -6,7 +6,6 @@ import 'package:admin_web_panel/pages/passenger_page.dart';
 import 'package:admin_web_panel/pages/driver_managementApp.dart';
 import 'package:admin_web_panel/login.dart';
 
-
 class WebAdminPanel extends StatefulWidget {
   const WebAdminPanel({Key? key}) : super(key: key);
 
@@ -17,7 +16,33 @@ class WebAdminPanel extends StatefulWidget {
 class _WebAdminPanelState extends State<WebAdminPanel> {
   String? selectedRoute = Dashboard.id;
 
-  void logout() {
+  Future<void> _confirmLogout() async {
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      _logout();
+    }
+  }
+
+  void _logout() {
     Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
   }
 
@@ -49,6 +74,12 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
             fontSize: 20,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _confirmLogout,
+          ),
+        ],
         automaticallyImplyLeading: false,
       ),
       body: Row(

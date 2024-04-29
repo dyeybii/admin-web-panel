@@ -7,6 +7,8 @@ class DriversAccount {
   final String firstName;
   final String idNumber;
   final String lastName;
+  final String codingScheme;
+  final String tag;
 
   DriversAccount({
     required this.address,
@@ -17,6 +19,8 @@ class DriversAccount {
     required this.firstName,
     required this.idNumber,
     required this.lastName,
+    required this.codingScheme,
+    required this.tag,
   });
 
   factory DriversAccount.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,8 @@ class DriversAccount {
       firstName: json['firstName'] ?? '',
       idNumber: json['idNumber'] ?? '',
       lastName: json['lastName'] ?? '',
+      codingScheme: json['codingScheme'] ?? '',
+      tag: json['tag'] ?? '',
     );
   }
 }

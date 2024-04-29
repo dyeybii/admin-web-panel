@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/edit_note_form.dart';
 import 'package:admin_web_panel/widgets/note_reader.dart';
-import 'package:admin_web_panel/widgets/add_note_form.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:math';
 import 'package:intl/intl.dart';
+
 
 class NotePage extends StatefulWidget {
   static const String id = "\webPageTrips";
@@ -23,11 +24,15 @@ class _NotePageState extends State<NotePage> {
         throw Exception('Title and content cannot be empty');
       }
 
+      // Generate a random color_id between 1 and 7
+      final random = Random();
+      final colorId = random.nextInt(7) + 1;
+
       await FirebaseFirestore.instance.collection('Notes').add({
         'note_title': title,
         'creation_date': creationDate,
         'note_content': content,
-        'color_id': 0, // Set a default color_id if needed
+        'color_id': colorId,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +79,11 @@ class _NotePageState extends State<NotePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(data["note_title"], style: Appstyle.mainTitle),
+                    Text(
+                      data["note_title"],
+                      style: Appstyle.mainTitle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     Row(
                       children: [
                         IconButton(
@@ -99,10 +108,30 @@ class _NotePageState extends State<NotePage> {
                           tooltip: "Delete",
                           onPressed: () async {
                             if (doc != null) {
-                              try {
-                                await FirebaseFirestore.instance.collection("Notes").doc(doc.id).delete();
-                              } catch (e) {
-                                print("Error deleting document: $e");
+                              bool confirmDelete = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text("Confirm Delete"),
+                                  content: Text("Are you sure you want to delete this note?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: Text("Delete"),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirmDelete == true) {
+                                try {
+                                  await FirebaseFirestore.instance.collection("Notes").doc(doc.id).delete();
+                                } catch (e) {
+                                  print("Error deleting document: $e");
+                                }
                               }
                             }
                           },
@@ -112,7 +141,10 @@ class _NotePageState extends State<NotePage> {
                   ],
                 ),
                 const SizedBox(height: 4.0),
-                Text(DateFormat.yMMMd().format(data["creation_date"].toDate()), style: Appstyle.dateTitle),
+                Text(
+                  DateFormat.yMMMd().format(data["creation_date"].toDate()),
+                  style: Appstyle.dateTitle,
+                ),
                 const SizedBox(height: 4.0),
                 Text(
                   data["note_content"] ?? '',
@@ -143,9 +175,7 @@ class _NotePageState extends State<NotePage> {
                 showDialog(
                   context: context,
                   builder: (context) => AddNoteForm(
-                    onSubmit: (noteTitle, creationDate, noteContent) {
-                      _addNote(noteTitle, creationDate, noteContent);
-                    },
+                    onSubmit: _addNote,
                   ),
                 );
               },
@@ -222,6 +252,88 @@ class _NotePageState extends State<NotePage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class AddNoteForm extends StatefulWidget {
+  final void Function(String, Timestamp, String) onSubmit;
+
+  const AddNoteForm({
+    Key? key,
+    required this.onSubmit,
+  }) : super(key: key);
+
+  @override
+  _AddNoteFormState createState() => _AddNoteFormState();
+}
+
+class _AddNoteFormState extends State<AddNoteForm> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Note'),
+      content: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(labelText: 'Title'),
+                maxLines: 1,
+                style: const TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextField(
+                controller: _contentController,
+                decoration: const InputDecoration(labelText: 'Content'),
+                maxLines: 5,
+                style: const TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final title = _titleController.text.trim();
+            final content = _contentController.text.trim();
+            final creationDate = Timestamp.fromDate(DateTime.now());
+
+            if (title.isNotEmpty && content.isNotEmpty) {
+              widget.onSubmit(title, creationDate, content);
+              _titleController.clear();
+              _contentController.clear();
+              Navigator.pop(context);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Title and content cannot be empty'),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+          child: const Text('Add'),
+        ),
+      ],
     );
   }
 }

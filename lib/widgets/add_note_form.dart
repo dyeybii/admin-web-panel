@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'dart:math';
 
 class NotesScreen extends StatefulWidget {
   @override
@@ -10,14 +10,18 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   void _addNote(String title, Timestamp creationDate, String content) async {
     try {
-      if (title.isEmpty || content.isEmpty) {
+      if (title.trim().isEmpty || content.trim().isEmpty) {
         throw Exception('Title and content cannot be empty');
       }
+
+      final random = Random();
+      final colorId = random.nextInt(7) + 1;
 
       await FirebaseFirestore.instance.collection('notes').add({
         'title': title,
         'creationDate': creationDate,
         'content': content,
+        'color_id': colorId,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -26,12 +30,13 @@ class _NotesScreenState extends State<NotesScreen> {
           duration: Duration(seconds: 2),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error saving note: $e');
+      print('Stacktrace: $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error saving note: $e'),
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -86,11 +91,32 @@ class _AddNoteFormState extends State<AddNoteForm> {
           children: [
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                labelStyle: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            const SizedBox(height: 16.0),
             TextField(
               controller: _contentController,
-              decoration: const InputDecoration(labelText: 'Content'),
+              decoration: const InputDecoration(
+                labelText: 'Content here',
+                labelStyle: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: const TextStyle(
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: null,
             ),
           ],

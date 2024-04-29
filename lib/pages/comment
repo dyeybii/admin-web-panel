@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+
+class AdminForm extends StatelessWidget {
+  final void Function(Map<String, String>) onSubmit;
+
+  const AdminForm({Key? key, required this.onSubmit}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.blue,
+      title: const Text(
+        'Add New Member',
+        style: TextStyle(color: Colors.white),
+      ),
+      content: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Your form fields here
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        SizedBox(
+          width: 200,
+          child: ElevatedButton(
+            onPressed: () {
+              // Validate form and submit data
+              final Map<String, String> formData = {
+                'firstName': 'John',
+                'lastName': 'Doe',
+                // Add other form field values here
+              };
+              onSubmit(formData);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Add'),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
+}

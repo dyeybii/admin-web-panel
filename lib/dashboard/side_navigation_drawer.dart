@@ -4,50 +4,46 @@ import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/note_page.dart';
 import 'package:admin_web_panel/pages/passenger_page.dart';
 import 'package:admin_web_panel/pages/driver_managementApp.dart';
-import 'package:admin_web_panel/login.dart'; 
+import 'package:admin_web_panel/login.dart';
 
-class SideNavigationDrawer extends StatefulWidget {
-  const SideNavigationDrawer({Key? key}) : super(key: key);
+
+class WebAdminPanel extends StatefulWidget {
+  const WebAdminPanel({Key? key}) : super(key: key);
 
   @override
-  State<SideNavigationDrawer> createState() => _SideNavigationDrawerState();
+  State<WebAdminPanel> createState() => _WebAdminPanelState();
 }
 
-class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
-  String selectedRoute = Dashboard.id;
+class _WebAdminPanelState extends State<WebAdminPanel> {
+  String? selectedRoute = Dashboard.id;
 
   void logout() {
-    Navigator.pushNamedAndRemoveUntil(
-        context, LoginPage.id, (route) => false);
+    Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
+  }
+
+  Widget _getSelectedScreen() {
+    switch (selectedRoute) {
+      case Dashboard.id:
+        return const Dashboard();
+      case DriversPage.id:
+        return const DriversPage();
+      case UsersPage.id:
+        return const UsersPage();
+      case NotePage.id:
+        return NotePage(key: UniqueKey());
+      case AddDriverUserPage.id:
+        return const AddDriverUserPage();
+      default:
+        return const Dashboard();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget chosenScreen;
-    switch (selectedRoute) {
-      case Dashboard.id:
-        chosenScreen = const Dashboard();
-        break;
-      case DriversPage.id:
-        chosenScreen = const DriversPage();
-        break;
-      case UsersPage.id:
-        chosenScreen = const UsersPage();
-        break;
-      case NotePage.id:
-        chosenScreen = NotePage(key: UniqueKey());
-        break;
-      case AddDriverUserPage.id:
-        chosenScreen = const AddDriverUserPage();
-        break;
-      default:
-        chosenScreen = const Dashboard();
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "TRI.CO",
+          "TRI.CO Admin Panel",
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -56,94 +52,51 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
         automaticallyImplyLeading: false,
       ),
       body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start, // Adjust alignment
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Drawer(
-            child: Container(
-              width: 240, // Specify drawer width
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Menu',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Dashboard'),
-                    leading: const Icon(Icons.dashboard),
-                    onTap: () {
-                      setState(() {
-                        selectedRoute = Dashboard.id;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Drivers'),
-                    leading: const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Image(
-                        image: AssetImage('images/tricycle_icon.png'),
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedRoute = DriversPage.id;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Passenger'),
-                    leading: const Icon(Icons.person),
-                    onTap: () {
-                      setState(() {
-                        selectedRoute = UsersPage.id;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Notes'),
-                    leading: const Icon(Icons.edit_note),
-                    onTap: () {
-                      setState(() {
-                        selectedRoute = NotePage.id;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Driver Management'),
-                    leading: const Icon(Icons.supervisor_account),
-                    onTap: () {
-                      setState(() {
-                        selectedRoute = AddDriverUserPage.id;
-                      });
-                    },
-                  ),
-                  ListTile(
-                    title: const Text('Logout'),
-                    leading: const Icon(Icons.logout),
-                    onTap: logout,
-                  ),
-                ],
-              ),
+          Container(
+            width: 240,
+            color: const Color(0xFF3B3F9E),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                const SizedBox(height: 20.0),
+                _buildListTile('Dashboard', Icons.dashboard, Dashboard.id),
+                _buildListTile('Drivers', 'images/tricycle_icon.png', DriversPage.id),
+                _buildListTile('Passenger', Icons.person, UsersPage.id),
+                _buildListTile('Notes', Icons.edit_note, NotePage.id),
+                _buildListTile('Driver Management', Icons.supervisor_account, AddDriverUserPage.id),
+              ],
             ),
           ),
           const VerticalDivider(),
           Expanded(
-            child: chosenScreen,
+            child: _getSelectedScreen(),
           ),
         ],
       ),
+    );
+  }
+
+  ListTile _buildListTile(String title, dynamic leadingIcon, String? routeId, {VoidCallback? onTap}) {
+    return ListTile(
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16.0,
+        ),
+      ),
+      leading: leadingIcon is IconData ? Icon(leadingIcon, color: Colors.white) : Image.asset(leadingIcon, width: 24, height: 24, color: Colors.white),
+      onTap: () {
+        if (routeId != null) {
+          setState(() {
+            selectedRoute = routeId;
+          });
+        }
+        if (onTap != null) onTap();
+      },
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
     );
   }
 }

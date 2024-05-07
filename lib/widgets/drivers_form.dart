@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -12,7 +13,7 @@ class DriversForm extends StatefulWidget {
   final TextEditingController emergencyContactController;
   final TextEditingController codingSchemeController;
   final TextEditingController tagController;
-  final Function(String)? onRoleSelected;
+  final void Function(String?)? onRoleSelected;
   final Function()? onAddPressed;
 
   const DriversForm({
@@ -36,7 +37,8 @@ class DriversForm extends StatefulWidget {
 }
 
 class _DriversFormState extends State<DriversForm> {
-  String? _selectedRole = '';
+  String? _selectedRole;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -154,18 +156,18 @@ class _DriversFormState extends State<DriversForm> {
             'Role',
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
           ),
-          RadioListTile<String>(
+          RadioListTile<String?>(
             title: const Text('Member', style: TextStyle(color: Colors.black)),
             value: 'member',
             groupValue: _selectedRole,
             onChanged: (value) {
               setState(() {
                 _selectedRole = value;
-                widget.onRoleSelected?.call(value!);
+                widget.onRoleSelected?.call(value);
               });
             },
           ),
-          RadioListTile<String>(
+          RadioListTile<String?>(
             title:
                 const Text('Operator', style: TextStyle(color: Colors.black)),
             value: 'operator',
@@ -173,9 +175,49 @@ class _DriversFormState extends State<DriversForm> {
             onChanged: (value) {
               setState(() {
                 _selectedRole = value;
-                widget.onRoleSelected?.call(value!);
+                widget.onRoleSelected?.call(value);
               });
             },
+          ),
+          const SizedBox(height: 16.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8.0),
+              ElevatedButton(
+                onPressed: () async {
+                  if (widget.formKey.currentState!.validate()) {
+                    try {
+                      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+                        email: widget.emailController.text,
+                        password: widget.birthdateController.text,
+                      );
+
+                      print('User created: ${userCredential.user?.email}');
+
+                      if (widget.onAddPressed != null) {
+                        widget.onAddPressed!();
+                      }
+                    } on FirebaseAuthException catch (e) {
+                      if (e.code == 'weak-password') {
+                        print('The password provided is too weak.');
+                      } else if (e.code == 'email-already-in-use') {
+                        print('The account already exists for that email.');
+                      }
+                    } catch (e) {
+                      print('Error: $e');
+                    }
+                  }
+                },
+                child: const Text('Add Driver & Create Account'),
+              ),
+            ],
           ),
         ],
       ),

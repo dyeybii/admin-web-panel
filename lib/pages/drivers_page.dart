@@ -28,7 +28,6 @@ class _DriversPageState extends State<DriversPage> {
       TextEditingController();
   final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
-  String _selectedRole = '';
 
   @override
   void initState() {
@@ -63,7 +62,18 @@ class _DriversPageState extends State<DriversPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add Member'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Add Member'),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
           content: SingleChildScrollView(
             child: DriversForm(
               formKey: _formKey,
@@ -78,44 +88,11 @@ class _DriversPageState extends State<DriversPage> {
               codingSchemeController: _codingSchemeController,
               tagController: _tagController,
               onRoleSelected: (role) {
-                setState(() {
-                  _selectedRole = role;
-                  _tagController.text = role;
-                });
+                _tagController.text = role!;
               },
               onAddPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  // Extracting data from text controllers
-                  String firstName = _firstNameController.text;
-                  String lastName = _lastNameController.text;
-                  String idNumber = _idNumberController.text;
-                  String bodyNumber = _bodyNumberController.text;
-                  String email = _emailController.text;
-                  String birthdate = _birthdateController.text;
-                  String address = _addressController.text;
-                  String emergencyContact = _emergencyContactController.text;
-                  String codingScheme = _codingSchemeController.text;
-                  String tag = _tagController.text;
-
-                  // Adding member to Firestore
-                  FirebaseFirestore.instance.collection('DriversAccount').add({
-                    'firstName': firstName,
-                    'lastName': lastName,
-                    'idNumber': idNumber,
-                    'bodyNumber': bodyNumber,
-                    'email': email,
-                    'birthdate': birthdate,
-                    'address': address,
-                    'emergencyContact': emergencyContact,
-                    'codingScheme': codingScheme,
-                    'tag': tag,
-                  }).then((value) {
-                    print('Member added to Firestore');
-                    Navigator.of(context).pop();
-                  }).catchError((error) {
-                    print('Error adding member to Firestore: $error');
-                    // Handle error if needed
-                  });
+                  _addMemberToFirestore();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -126,61 +103,54 @@ class _DriversPageState extends State<DriversPage> {
               },
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  // Extracting data from text controllers
-                  String firstName = _firstNameController.text;
-                  String lastName = _lastNameController.text;
-                  String idNumber = _idNumberController.text;
-                  String bodyNumber = _bodyNumberController.text;
-                  String email = _emailController.text;
-                  String birthdate = _birthdateController.text;
-                  String address = _addressController.text;
-                  String emergencyContact = _emergencyContactController.text;
-                  String codingScheme = _codingSchemeController.text;
-                  String tag = _tagController.text;
-
-                  // Adding member to Firestore
-                  FirebaseFirestore.instance.collection('DriversAccount').add({
-                    'firstName': firstName,
-                    'lastName': lastName,
-                    'idNumber': idNumber,
-                    'bodyNumber': bodyNumber,
-                    'email': email,
-                    'birthdate': birthdate,
-                    'address': address,
-                    'emergencyContact': emergencyContact,
-                    'codingScheme': codingScheme,
-                    'tag': tag,
-                  }).then((value) {
-                    print('Member added to Firestore');
-                    Navigator.of(context).pop();
-                  }).catchError((error) {
-                    print('Error adding member to Firestore: $error');
-                    // Handle error if needed
-                  });
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all required fields.'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Add Member'),
-            ),
-          ],
         );
       },
     );
+  }
+
+  void _addMemberToFirestore() {
+    // Extracting data from text controllers
+    String? firstName =
+        _firstNameController.text.isNotEmpty ? _firstNameController.text : null;
+    String? lastName =
+        _lastNameController.text.isNotEmpty ? _lastNameController.text : null;
+    String? idNumber =
+        _idNumberController.text.isNotEmpty ? _idNumberController.text : null;
+    String? bodyNumber = _bodyNumberController.text.isNotEmpty
+        ? _bodyNumberController.text
+        : null;
+    String? email =
+        _emailController.text.isNotEmpty ? _emailController.text : null;
+    String? birthdate =
+        _birthdateController.text.isNotEmpty ? _birthdateController.text : null;
+    String? address =
+        _addressController.text.isNotEmpty ? _addressController.text : null;
+    String? emergencyContact = _emergencyContactController.text.isNotEmpty
+        ? _emergencyContactController.text
+        : null;
+    String? codingScheme = _codingSchemeController.text.isNotEmpty
+        ? _codingSchemeController.text
+        : null;
+    String tag = _tagController.text.isNotEmpty ? _tagController.text : '';
+
+    // Adding member to Firestore
+    FirebaseFirestore.instance.collection('DriversAccount').add({
+      'firstName': firstName,
+      'lastName': lastName,
+      'idNumber': idNumber,
+      'bodyNumber': bodyNumber,
+      'email': email,
+      'birthdate': birthdate,
+      'address': address,
+      'emergencyContact': emergencyContact,
+      'codingScheme': codingScheme,
+      'tag': tag,
+    }).then((value) {
+      print('Member added to Firestore');
+      Navigator.of(context).pop();
+    }).catchError((error) {
+      print('Error adding member to Firestore: $error');
+    });
   }
 
   @override

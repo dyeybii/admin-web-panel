@@ -3,7 +3,7 @@ import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/note_page.dart';
 import 'package:admin_web_panel/pages/passenger_page.dart';
-import 'package:admin_web_panel/pages/driver_managementApp.dart';
+import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/login.dart';
 
 class WebAdminPanel extends StatefulWidget {
@@ -56,8 +56,8 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         return const UsersPage();
       case NotePage.id:
         return NotePage(key: UniqueKey());
-      case AddDriverUserPage.id:
-        return const AddDriverUserPage();
+      case FareMatrixPage.id:
+        return const FareMatrixPage();
       default:
         return const Dashboard();
     }
@@ -93,14 +93,15 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               children: <Widget>[
                 const SizedBox(height: 20.0),
                 _buildListTile('Dashboard', Icons.dashboard, Dashboard.id),
-                _buildListTile('Drivers', 'images/tricycle_icon.png', DriversPage.id),
+                _buildListTile(
+                    'Drivers', 'images/tricycle_icon.png', DriversPage.id),
                 _buildListTile('Passenger', Icons.person, UsersPage.id),
                 _buildListTile('Notes', Icons.edit_note, NotePage.id),
-                _buildListTile('Driver Management', Icons.supervisor_account, AddDriverUserPage.id),
+                _buildListTile(
+                    'Fare Matrix', 'images/Peso_sign.png', FareMatrixPage.id),
               ],
             ),
           ),
-          const VerticalDivider(),
           Expanded(
             child: _getSelectedScreen(),
           ),
@@ -109,25 +110,36 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     );
   }
 
-  ListTile _buildListTile(String title, dynamic leadingIcon, String? routeId, {VoidCallback? onTap}) {
-    return ListTile(
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16.0,
+  Widget _buildListTile(String title, dynamic leadingIcon, String? routeId) {
+    bool isSelected = selectedRoute == routeId;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedRoute = routeId;
+        });
+      },
+      child: Container(
+        color: isSelected ? Colors.white : const Color(0xFF3B3F9E),
+        child: ListTile(
+          title: Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white,
+              fontSize: 16.0,
+            ),
+          ),
+          leading: leadingIcon is IconData
+              ? Icon(leadingIcon,
+                  color: isSelected ? const Color(0xFF3B3F9E) : Colors.white)
+              : Image.asset(leadingIcon,
+                  width: 24,
+                  height: 24,
+                  color: isSelected ? const Color(0xFF3B3F9E) : Colors.white),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         ),
       ),
-      leading: leadingIcon is IconData ? Icon(leadingIcon, color: Colors.white) : Image.asset(leadingIcon, width: 24, height: 24, color: Colors.white),
-      onTap: () {
-        if (routeId != null) {
-          setState(() {
-            selectedRoute = routeId;
-          });
-        }
-        if (onTap != null) onTap();
-      },
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
     );
   }
 }

@@ -47,7 +47,7 @@ for (var driver in driversAccountList) {
       AnchorElement(
           href:
               'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
-        ..setAttribute('download', 'Output.xlsx')
+        ..setAttribute('download', 'Drivers Information.xlsx')
         ..click();
     } else {
       final String path = (await getApplicationSupportDirectory()).path;

@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 
-class AddDriverUserPage extends StatefulWidget {
+class FareMatrixPage extends StatefulWidget {
   static const String id = "webPageDriverManagement";
 
-  const AddDriverUserPage({Key? key}) : super(key: key);
+  const FareMatrixPage({Key? key}) : super(key: key);
 
   @override
-  _AddDriverUserPageState createState() => _AddDriverUserPageState();
+  _FareMatrixPageState createState() => _FareMatrixPageState();
 }
 
-class _AddDriverUserPageState extends State<AddDriverUserPage> {
+class _FareMatrixPageState extends State<FareMatrixPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text("Add Driver User"),
+        title: const Text("Fare matrix"),
       ),
       body: const Center(),
     );
   }
 }
+
+

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class FormValidation {
   static String? validateForm(
     String firstName,
@@ -18,7 +16,7 @@ class FormValidation {
         idNumber.isEmpty ||
         bodyNumber.isEmpty ||
         email.isEmpty ||
-        !validateEmail(email) || // Validate email format
+        !validateEmail(email) || 
         birthdate.isEmpty ||
         address.isEmpty ||
         emergencyContact.isEmpty ||
@@ -26,7 +24,7 @@ class FormValidation {
         tag.isEmpty) {
       return 'Please fill in all fields and provide a valid email address.';
     }
-    return null; // Return null if the form is valid
+    return null;
   }
 
   static bool validateEmail(String email) {

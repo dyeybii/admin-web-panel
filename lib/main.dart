@@ -6,16 +6,15 @@ import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-  apiKey: "AIzaSyC1813klIMjrdxnH_MxTgfd7bASkNcu0Ic",
-  authDomain: "trico-admin-panel.firebaseapp.com",
-  databaseURL: "https://trico-admin-panel-default-rtdb.firebaseio.com",
-  projectId: "trico-admin-panel",
-  storageBucket: "trico-admin-panel.appspot.com",
-  messagingSenderId: "925740452995",
-  appId: "1:925740452995:web:96401cc26c6fd09842dfb6",
-  measurementId: "G-JYX1EM4G93"
-  ));
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyC1813klIMjrdxnH_MxTgfd7bASkNcu0Ic",
+          authDomain: "trico-admin-panel.firebaseapp.com",
+          databaseURL: "https://trico-admin-panel-default-rtdb.firebaseio.com",
+          projectId: "trico-admin-panel",
+          storageBucket: "trico-admin-panel.appspot.com",
+          messagingSenderId: "925740452995",
+          appId: "1:925740452995:web:96401cc26c6fd09842dfb6",
+          measurementId: "G-JYX1EM4G93"));
   runApp(MyApp());
 }
 

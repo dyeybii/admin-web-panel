@@ -22,9 +22,9 @@ class DataGridStyles {
       label: Container(
         padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 16.0),
         alignment: Alignment.center,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Color(0xFFF7F8FA),
-          borderRadius: BorderRadius.circular(10.0), // Add this line
+        
         ),
         child: Text(
           label,

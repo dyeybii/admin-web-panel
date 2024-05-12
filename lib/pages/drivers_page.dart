@@ -156,28 +156,38 @@ class _DriversPageState extends State<DriversPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Members and Operators'),
-          automaticallyImplyLeading: false,
-          actions: [
-            ElevatedButton(
-              onPressed: _showAddMemberDialog,
-              child: const Text('Add Member'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () {
-                ExcelDownloader.downloadExcel(context, _driversAccountList);
-              },
-              child: const Text('Download Excel'),
-            ),
-          ],
-        ),
-        body: _driversAccountList.isNotEmpty
-            ? DriverTable(driversAccountList: _driversAccountList)
-            : const Center(child: CircularProgressIndicator()),
+        child: Scaffold(
+      appBar: AppBar(
+        title: const Text('Members and Operators'),
+        automaticallyImplyLeading: false,
+        actions: [
+          ElevatedButton(
+            onPressed: _showAddMemberDialog,
+            child: const Text('Add Member'),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            onPressed: () {
+              ExcelDownloader.downloadExcel(context, _driversAccountList);
+            },
+            child: const Text('Download Excel'),
+          ),
+        ],
       ),
-    );
+      body: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('DriversAccount')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final List<DriversAccount> driversList = snapshot.data!.docs
+                .map((doc) =>
+                    DriversAccount.fromJson(doc.data() as Map<String, dynamic>))
+                .toList();
+            return DriverTable(driversAccountList: driversList);
+          }),
+    ));
   }
 }

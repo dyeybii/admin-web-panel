@@ -31,7 +31,6 @@ class DriversForm extends StatefulWidget {
     required this.onRoleSelected,
     required this.onAddPressed,
   });
-  
 
   @override
   _DriversFormState createState() => _DriversFormState();
@@ -55,107 +54,116 @@ class _DriversFormState extends State<DriversForm> {
       _selectedRole = null;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: Padding(
-        padding: EdgeInsets.all(20.0),
+      child: Container(
+        padding: const EdgeInsets.all(200.0),
         child: Form(
           key: widget.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 65,
+                    backgroundImage:AssetImage('images/default_avatar.png') ,
+                  )
+                ],
+              ),
               ElevatedButton.icon(
                 onPressed: () {
                   // Implement image upload functionality
                 },
-                icon: Icon(Icons.upload),
-                label: Text('Upload Profile'),
+                icon: const Icon(Icons.upload),
+                label: const Text('Upload Profile'),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               TextFormField(
                 controller: widget.firstNameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'First Name',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 controller: widget.lastNameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Last Name',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 maxLength: 4,
                 maxLines: null, // Allow multiple lines
                 controller: widget.idNumberController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'ID Number',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 maxLength: 4,
                 maxLines: null, // Allow multiple lines
                 controller: widget.bodyNumberController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Body Number',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 controller: widget.birthdateController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Date of Birth',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               TextFormField(
                 maxLength: 3,
                 maxLines: null, // Allow multiple lines
                 controller: widget.codingSchemeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Coding Scheme',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 maxLines: null, // Allow multiple lines
                 controller: widget.addressController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Address',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 maxLength: 11,
                 maxLines: null, // Allow multiple lines
                 controller: widget.emergencyContactController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Emergency Contact #',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 10.0),
+              const SizedBox(height: 10.0),
               TextFormField(
                 controller: widget.emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 20.0),
-              Text(
+              const SizedBox(height: 20.0),
+              const Text(
                 'Role',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -181,7 +189,7 @@ class _DriversFormState extends State<DriversForm> {
                   });
                 },
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -190,9 +198,9 @@ class _DriversFormState extends State<DriversForm> {
                       resetFormFields();
                       Navigator.of(context).pop();
                     },
-                    child: Text('Cancel'),
+                    child: const Text('Cancel'),
                   ),
-                  SizedBox(width: 10.0),
+                  const SizedBox(width: 10.0),
                   ElevatedButton(
                     onPressed: () async {
                       if (widget.formKey.currentState!.validate()) {
@@ -219,7 +227,7 @@ class _DriversFormState extends State<DriversForm> {
                         }
                       }
                     },
-                    child: Text('Add Driver & Create Account'),
+                    child: const Text('Add Driver & Create Account'),
                   ),
                 ],
               ),

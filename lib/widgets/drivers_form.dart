@@ -39,20 +39,44 @@ class DriversForm extends StatefulWidget {
 class _DriversFormState extends State<DriversForm> {
   String? _selectedRole;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   void resetFormFields() {
-    widget.firstNameController.clear();
-    widget.lastNameController.clear();
-    widget.idNumberController.clear();
-    widget.bodyNumberController.clear();
-    widget.emailController.clear();
-    widget.birthdateController.clear();
-    widget.addressController.clear();
-    widget.emergencyContactController.clear();
-    widget.codingSchemeController.clear();
-    widget.tagController.clear();
+    final controllers = [
+      widget.firstNameController,
+      widget.lastNameController,
+      widget.idNumberController,
+      widget.bodyNumberController,
+      widget.emailController,
+      widget.birthdateController,
+      widget.addressController,
+      widget.emergencyContactController,
+      widget.codingSchemeController,
+      widget.tagController,
+    ];
+
+    for (var controller in controllers) {
+      controller.clear();
+    }
+
     setState(() {
       _selectedRole = null;
     });
+  }
+
+  Future<void> _selectBirthdate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        widget.birthdateController.text =
+            picked.toIso8601String().split('T').first;
+      });
+    }
   }
 
   @override
@@ -60,114 +84,155 @@ class _DriversFormState extends State<DriversForm> {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: Container(
-        padding: const EdgeInsets.all(200.0),
+        padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
         child: Form(
           key: widget.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 65,
-                    backgroundImage:AssetImage('images/default_avatar.png') ,
-                  )
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Implement image upload functionality
-                },
-                icon: const Icon(Icons.upload),
-                label: const Text('Upload Profile'),
-              ),
+              buildProfilePicture(),
+              const SizedBox(height: 30.0),
+              buildUploadButton(),
               const SizedBox(height: 20.0),
-              TextFormField(
-                controller: widget.firstNameController,
-                decoration: const InputDecoration(
-                  labelText: 'First Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              TextFormField(
-                controller: widget.lastNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Last Name',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              TextFormField(
-                maxLength: 4,
-                maxLines: null, // Allow multiple lines
-                controller: widget.idNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'ID Number',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              TextFormField(
-                maxLength: 4,
-                maxLines: null, // Allow multiple lines
-                controller: widget.bodyNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Body Number',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              TextFormField(
-                controller: widget.birthdateController,
-                decoration: const InputDecoration(
-                  labelText: 'Date of Birth',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              buildFormFields(),
               const SizedBox(height: 20.0),
-              TextFormField(
-                maxLength: 3,
-                maxLines: null, // Allow multiple lines
-                controller: widget.codingSchemeController,
-                decoration: const InputDecoration(
-                  labelText: 'Coding Scheme',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              buildFormButtons(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildProfilePicture() {
+    return Center(
+      child: Stack(
+        children: [
+          const CircleAvatar(
+            radius: 50,
+            backgroundImage: AssetImage('images/default_avatar.png'),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: IconButton(
+              onPressed: () {
+                // Add your onPressed logic here
+              },
+              icon: const Icon(Icons.add_a_photo),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildUploadButton() {
+    return SizedBox(
+      width: 8.0, // Set a fixed width for the button
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Implement image upload functionality
+        },
+        icon: const Icon(Icons.upload),
+        label: const Text('Upload Profile'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(100, 20),
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextField(TextEditingController controller, String labelText,
+      {int? maxLength}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: const OutlineInputBorder(),
+      ),
+      maxLength: maxLength,
+      maxLines: null,
+    );
+  }
+
+  Widget buildFormFields() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              buildTextField(widget.firstNameController, 'First Name'),
+              const SizedBox(height: 10.0, width: 500),
+              buildTextField(widget.lastNameController, 'Last Name'),
+              const SizedBox(height: 10.0, width: 500),
+              buildTextField(widget.idNumberController, 'ID Number',
+                  maxLength: 4),
+              const SizedBox(height: 10.0, width: 500),
+              buildTextField(widget.bodyNumberController, 'Body Number',
+                  maxLength: 4),
+              const SizedBox(height: 10.0, width: 500),
+              buildBirthdateField(),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20.0),
+        const VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Colors.grey,
+        ),
+        const SizedBox(width: 20.0),
+        Expanded(
+          child: Column(
+            children: [
+              buildTextField(widget.codingSchemeController, 'Coding Scheme',
+                  maxLength: 3),
               const SizedBox(height: 10.0),
-              TextFormField(
-                maxLines: null, // Allow multiple lines
-                controller: widget.addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              buildTextField(widget.addressController, 'Address'),
               const SizedBox(height: 10.0),
-              TextFormField(
-                maxLength: 11,
-                maxLines: null, // Allow multiple lines
-                controller: widget.emergencyContactController,
-                decoration: const InputDecoration(
-                  labelText: 'Emergency Contact #',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              buildTextField(
+                  widget.emergencyContactController, 'Emergency Contact #',
+                  maxLength: 11),
               const SizedBox(height: 10.0),
-              TextFormField(
-                controller: widget.emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 20.0),
-              const Text(
-                'Role',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              RadioListTile<String?>(
+              buildTextField(widget.emailController, 'Email'),
+              const SizedBox(height: 10.0),
+              buildRoleSelection(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildBirthdateField() {
+    return GestureDetector(
+      onTap: _selectBirthdate,
+      child: AbsorbPointer(
+        child: TextFormField(
+          controller: widget.birthdateController,
+          decoration: const InputDecoration(
+            labelText: 'Date of Birth',
+            border: OutlineInputBorder(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildRoleSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Role',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: RadioListTile<String?>(
                 title: const Text('Member'),
                 value: 'member',
                 groupValue: _selectedRole,
@@ -178,7 +243,9 @@ class _DriversFormState extends State<DriversForm> {
                   });
                 },
               ),
-              RadioListTile<String?>(
+            ),
+            Expanded(
+              child: RadioListTile<String?>(
                 title: const Text('Operator'),
                 value: 'operator',
                 groupValue: _selectedRole,
@@ -189,52 +256,52 @@ class _DriversFormState extends State<DriversForm> {
                   });
                 },
               ),
-              const SizedBox(height: 20.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      resetFormFields();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 10.0),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (widget.formKey.currentState!.validate()) {
-                        try {
-                          UserCredential userCredential =
-                              await _auth.createUserWithEmailAndPassword(
-                            email: widget.emailController.text,
-                            password: widget.birthdateController.text,
-                          );
-
-                          print('User created: ${userCredential.user?.email}');
-
-                          if (widget.onAddPressed != null) {
-                            widget.onAddPressed!();
-                          }
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'weak-password') {
-                            print('The password provided is too weak.');
-                          } else if (e.code == 'email-already-in-use') {
-                            print('The account already exists for that email.');
-                          }
-                        } catch (e) {
-                          print('Error: $e');
-                        }
-                      }
-                    },
-                    child: const Text('Add Driver & Create Account'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget buildFormButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          onPressed: () {
+            resetFormFields();
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel'),
+        ),
+        const SizedBox(width: 10.0),
+        ElevatedButton(
+          onPressed: () async {
+            if (widget.formKey.currentState!.validate()) {
+              try {
+                UserCredential userCredential =
+                    await _auth.createUserWithEmailAndPassword(
+                  email: widget.emailController.text,
+                  password: widget.birthdateController.text,
+                );
+
+                print('User created: ${userCredential.user?.email}');
+
+                if (widget.onAddPressed != null) {
+                  widget.onAddPressed!();
+                }
+              } on FirebaseAuthException catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(e.message ?? 'An error occurred')),
+                );
+              } catch (e) {
+                print('Error: $e');
+              }
+            }
+          },
+          child: const Text('Add Driver & Create Account'),
+        ),
+      ],
     );
   }
 }

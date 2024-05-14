@@ -65,7 +65,7 @@ class _DriversPageState extends State<DriversPage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Add Member'),
+              const Text('Add Driver'),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {

@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 import 'package:intl/intl.dart';
 
-
 class NotePage extends StatefulWidget {
   static const String id = "\webPageTrips";
 
@@ -52,12 +51,15 @@ class _NotePageState extends State<NotePage> {
     }
   }
 
-  Widget noteCard(BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
+  Widget noteCard(
+      BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
     final data = doc?.data() as Map<String, dynamic>?;
 
     if (data != null) {
       final colorId = data['color_id'] as int?;
-      final color = colorId != null && colorId >= 0 && colorId < Appstyle.cardsColor.length
+      final color = colorId != null &&
+              colorId >= 0 &&
+              colorId < Appstyle.cardsColor.length
           ? Appstyle.cardsColor[colorId]
           : Colors.grey;
 
@@ -112,14 +114,17 @@ class _NotePageState extends State<NotePage> {
                                 context: context,
                                 builder: (context) => AlertDialog(
                                   title: Text("Confirm Delete"),
-                                  content: Text("Are you sure you want to delete this note?"),
+                                  content: Text(
+                                      "Are you sure you want to delete this note?"),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, false),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
                                       child: Text("Cancel"),
                                     ),
                                     TextButton(
-                                      onPressed: () => Navigator.pop(context, true),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
                                       child: Text("Delete"),
                                     ),
                                   ],
@@ -128,7 +133,10 @@ class _NotePageState extends State<NotePage> {
 
                               if (confirmDelete == true) {
                                 try {
-                                  await FirebaseFirestore.instance.collection("Notes").doc(doc.id).delete();
+                                  await FirebaseFirestore.instance
+                                      .collection("Notes")
+                                      .doc(doc.id)
+                                      .delete();
                                 } catch (e) {
                                   print("Error deleting document: $e");
                                 }
@@ -203,7 +211,8 @@ class _NotePageState extends State<NotePage> {
               ),
               const SizedBox(height: 20.0),
               StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection("Notes").snapshots(),
+                stream:
+                    FirebaseFirestore.instance.collection("Notes").snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -224,7 +233,8 @@ class _NotePageState extends State<NotePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => NoteReaderScreen(note),
+                                    builder: (context) =>
+                                        NoteReaderScreen(note),
                                   ),
                                 );
                               },
@@ -242,7 +252,8 @@ class _NotePageState extends State<NotePage> {
                     return Center(
                       child: Text(
                         "There are no Notes",
-                        style: GoogleFonts.nunito(color: const Color(0xFFFFFFFF)),
+                        style:
+                            GoogleFonts.nunito(color: const Color(0xFFFFFFFF)),
                       ),
                     );
                   }
@@ -281,26 +292,31 @@ class _AddNoteFormState extends State<AddNoteForm> {
           constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width * 0.8,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-                maxLines: 1,
-                style: const TextStyle(
-                  overflow: TextOverflow.ellipsis,
+          child: SizedBox(
+            height: 350,
+            width: 1000,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration (labelText: 'Title' , border: OutlineInputBorder()),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              TextField(
-                controller: _contentController,
-                decoration: const InputDecoration(labelText: 'Content'),
-                maxLines: 5,
-                style: const TextStyle(
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 10.0,),
+                TextField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(labelText: 'Content' , border: OutlineInputBorder()),
+                  maxLines: 10,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

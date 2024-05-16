@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/note_page.dart';
-import 'package:admin_web_panel/pages/passenger_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/login.dart';
 
@@ -52,8 +51,6 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         return const Dashboard();
       case DriversPage.id:
         return const DriversPage();
-      case UsersPage.id:
-        return const UsersPage();
       case NotePage.id:
         return NotePage(key: UniqueKey());
       case FareMatrixPage.id:
@@ -95,7 +92,6 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
                 _buildListTile('Dashboard', Icons.dashboard, Dashboard.id),
                 _buildListTile(
                     'Drivers', 'images/tricycle_icon.png', DriversPage.id),
-                _buildListTile('Passenger', Icons.person, UsersPage.id),
                 _buildListTile('Notes', Icons.edit_note, NotePage.id),
                 _buildListTile(
                     'Fare Matrix', 'images/Peso_sign.png', FareMatrixPage.id),

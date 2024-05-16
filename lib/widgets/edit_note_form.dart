@@ -40,18 +40,29 @@ class _EditNoteFormState extends State<EditNoteForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Edit Note'),
+      title: const Text('Edit Note'),
       content: Form(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(width: 2.0),
+                ),
+              ),
             ),
+            const SizedBox(height: 10), // Added SizedBox for spacing
             TextFormField(
               controller: _contentController,
-              decoration: InputDecoration(labelText: 'Content'),
+              decoration: const InputDecoration(
+                labelText: 'Content',
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(width: 2.0),
+                ),
+              ),
             ),
           ],
         ),
@@ -61,7 +72,7 @@ class _EditNoteFormState extends State<EditNoteForm> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -81,7 +92,7 @@ class _EditNoteFormState extends State<EditNoteForm> {
               print("Error updating data: $e");
             }
           },
-          child: Text('Save'),
+          child: const Text('Save'),
         ),
       ],
     );

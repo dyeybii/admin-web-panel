@@ -79,6 +79,33 @@ class _DriversFormState extends State<DriversForm> {
     }
   }
 
+  Future<void> _showAlertDialog(String message) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(message),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -127,21 +154,17 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  Widget buildUploadButton() {
-    return SizedBox(
-      width: 8.0, // Set a fixed width for the button
-      child: ElevatedButton.icon(
-        onPressed: () {
-          // Implement image upload functionality
-        },
-        icon: const Icon(Icons.upload),
-        label: const Text('Upload Profile'),
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(100, 20),
-        ),
-      ),
-    );
-  }
+Widget buildUploadButton() {
+  return ElevatedButton.icon(
+    onPressed: () {
+      // Implement image upload functionality
+    },
+    icon: const Icon(Icons.upload),
+    label: const Text('Upload Profile'),
+  );
+}
+
+
 
   Widget buildTextField(TextEditingController controller, String labelText,
       {int? maxLength}) {
@@ -156,55 +179,51 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  Widget buildFormFields() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            children: [
-              buildTextField(widget.firstNameController, 'First Name'),
-              const SizedBox(height: 10.0, width: 500),
-              buildTextField(widget.lastNameController, 'Last Name'),
-              const SizedBox(height: 10.0, width: 500),
-              buildTextField(widget.idNumberController, 'ID Number',
-                  maxLength: 4),
-              const SizedBox(height: 10.0, width: 500),
-              buildTextField(widget.bodyNumberController, 'Body Number',
-                  maxLength: 4),
-              const SizedBox(height: 10.0, width: 500),
-              buildBirthdateField(),
-            ],
-          ),
+Widget buildFormFields() {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        child: Column(
+          children: [
+            buildTextField(widget.firstNameController, 'First Name'),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.lastNameController, 'Last Name'),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.idNumberController, 'ID Number', maxLength: 4),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.bodyNumberController, 'Body Number', maxLength: 4),
+            const SizedBox(height: 10.0),
+            buildBirthdateField(),
+          ],
         ),
-        const SizedBox(width: 20.0),
-        const VerticalDivider(
-          width: 1,
-          thickness: 1,
-          color: Colors.grey,
+      ),
+      const SizedBox(width: 20.0),
+      const VerticalDivider(
+        width: 1,
+        thickness: 1,
+        color: Colors.grey,
+      ),
+      const SizedBox(width: 20.0),
+      Expanded(
+        child: Column(
+          children: [
+            buildTextField(widget.codingSchemeController, 'Coding Scheme', maxLength: 3),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.addressController, 'Address'),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.emergencyContactController, 'Emergency Contact #', maxLength: 11),
+            const SizedBox(height: 10.0),
+            buildTextField(widget.emailController, 'Email'),
+            const SizedBox(height: 10.0),
+            buildRoleSelection(),
+          ],
         ),
-        const SizedBox(width: 20.0),
-        Expanded(
-          child: Column(
-            children: [
-              buildTextField(widget.codingSchemeController, 'Coding Scheme',
-                  maxLength: 3),
-              const SizedBox(height: 10.0),
-              buildTextField(widget.addressController, 'Address'),
-              const SizedBox(height: 10.0),
-              buildTextField(
-                  widget.emergencyContactController, 'Emergency Contact #',
-                  maxLength: 11),
-              const SizedBox(height: 10.0),
-              buildTextField(widget.emailController, 'Email'),
-              const SizedBox(height: 10.0),
-              buildRoleSelection(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   Widget buildBirthdateField() {
     return GestureDetector(
@@ -291,9 +310,7 @@ class _DriversFormState extends State<DriversForm> {
                   widget.onAddPressed!();
                 }
               } on FirebaseAuthException catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(e.message ?? 'An error occurred')),
-                );
+                _showAlertDialog(e.message ?? 'An error occurred');
               } catch (e) {
                 print('Error: $e');
               }

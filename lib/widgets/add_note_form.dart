@@ -92,6 +92,7 @@ class _AddNoteFormState extends State<AddNoteForm> {
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Title',
                 labelStyle: TextStyle(
                   fontSize: 24.0,
@@ -104,14 +105,16 @@ class _AddNoteFormState extends State<AddNoteForm> {
               ),
             ),
             const SizedBox(height: 16.0),
-            TextField(
+             TextField(
               controller: _contentController,
               decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Content here',
                 labelStyle: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
                 ),
+                
               ),
               style: const TextStyle(
                 fontSize: 24.0,

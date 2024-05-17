@@ -14,31 +14,36 @@ class ExcelDownloader {
     final Workbook workbook = Workbook();
     final Worksheet sheet = workbook.worksheets[0];
 
-sheet.getRangeByName('A1').setText('First Name');
-sheet.getRangeByName('B1').setText('Last Name');
-sheet.getRangeByName('C1').setText('Date of Birth');
-sheet.getRangeByName('D1').setText('ID Number');
-sheet.getRangeByName('E1').setText('Body Number');
-sheet.getRangeByName('F1').setText('Coding Scheme');
-sheet.getRangeByName('G1').setText('Address');
-sheet.getRangeByName('H1').setText('Contact #');
-sheet.getRangeByName('I1').setText('Email');
-sheet.getRangeByName('J1').setText('Tag');
+    sheet.getRangeByName('A1').setText('First Name');
+    sheet.getRangeByName('B1').setText('Last Name');
+    sheet.getRangeByName('C1').setText('Date of Birth');
+    sheet.getRangeByName('D1').setText('ID Number');
+    sheet.getRangeByName('E1').setText('Body Number');
+    sheet.getRangeByName('F1').setText('Coding Scheme');
+    sheet.getRangeByName('G1').setText('Address');
+    sheet.getRangeByName('H1').setText('Contact #');
+    sheet.getRangeByName('I1').setText('Email');
+    sheet.getRangeByName('J1').setText('Tag');
 
-int row = 2;
-for (var driver in driversAccountList) {
-  sheet.getRangeByIndex(row, 1).setText(driver.firstName);
-  sheet.getRangeByIndex(row, 2).setText(driver.lastName);
-  sheet.getRangeByIndex(row, 3).setText(driver.birthdate);
-  sheet.getRangeByIndex(row, 4).setText(driver.idNumber);
-  sheet.getRangeByIndex(row, 5).setText(driver.bodyNumber);
-  sheet.getRangeByIndex(row, 6).setText(driver.codingScheme);
-  sheet.getRangeByIndex(row, 7).setText(driver.address);
-  sheet.getRangeByIndex(row, 8).setText(driver.emergencyContact);
-  sheet.getRangeByIndex(row, 9).setText(driver.email);
-  sheet.getRangeByIndex(row, 10).setText(driver.tag);
-  row++;
-}
+    int row = 2;
+    for (var driver in driversAccountList) {
+      sheet.getRangeByIndex(row, 1).setText(driver.firstName);
+      sheet.getRangeByIndex(row, 2).setText(driver.lastName);
+      sheet.getRangeByIndex(row, 3).setText(driver.birthdate);
+      sheet.getRangeByIndex(row, 4).setText(driver.idNumber);
+      sheet.getRangeByIndex(row, 5).setText(driver.bodyNumber);
+      sheet.getRangeByIndex(row, 6).setText(driver.codingScheme);
+      sheet.getRangeByIndex(row, 7).setText(driver.address);
+      sheet.getRangeByIndex(row, 8).setText(driver.emergencyContact);
+      sheet.getRangeByIndex(row, 9).setText(driver.email);
+      sheet.getRangeByIndex(row, 10).setText(driver.tag);
+      row++;
+    }
+
+    // Auto-Fit columns
+    for (int col = 1; col <= 10; col++) {
+      sheet.autoFitColumn(col);
+    }
 
     final List<int> bytes = workbook.saveAsStream();
     workbook.dispose();

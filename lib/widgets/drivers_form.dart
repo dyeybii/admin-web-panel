@@ -112,19 +112,23 @@ class _DriversFormState extends State<DriversForm> {
       scrollDirection: Axis.vertical,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
-        child: Form(
-          key: widget.formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              buildProfilePicture(),
-              const SizedBox(height: 30.0),
-              buildUploadButton(),
-              const SizedBox(height: 20.0),
-              buildFormFields(),
-              const SizedBox(height: 20.0),
-              buildFormButtons(),
-            ],
+        child: Container(
+          height: 650.0,
+          width: 900.0,
+          child: Form(
+            key: widget.formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                buildProfilePicture(),
+                const SizedBox(height: 30.0),
+                buildUploadButton(),
+                const SizedBox(height: 20.0),
+                buildFormFields(),
+                const SizedBox(height: 20.0),
+                buildFormButtons(),
+              ],
+            ),
           ),
         ),
       ),

@@ -22,6 +22,8 @@ class EditNoteForm extends StatefulWidget {
 class _EditNoteFormState extends State<EditNoteForm> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -37,11 +39,41 @@ class _EditNoteFormState extends State<EditNoteForm> {
     super.dispose();
   }
 
+  Future<void> _updateNote() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      String newTitle = _titleController.text;
+      String newContent = _contentController.text;
+
+      try {
+        await FirebaseFirestore.instance
+            .collection("Notes")
+            .doc(widget.noteId)
+            .update({
+          "note_title": newTitle,
+          "note_content": newContent,
+        });
+        Navigator.pop(context);
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating data: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Note'),
       content: Form(
+        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -53,8 +85,14 @@ class _EditNoteFormState extends State<EditNoteForm> {
                   borderSide: BorderSide(width: 2.0),
                 ),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
             ),
-            const SizedBox(height: 10), // Added SizedBox for spacing
+            const SizedBox(height: 10),
             TextFormField(
               controller: _contentController,
               decoration: const InputDecoration(
@@ -63,6 +101,12 @@ class _EditNoteFormState extends State<EditNoteForm> {
                   borderSide: BorderSide(width: 2.0),
                 ),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter content';
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -74,26 +118,12 @@ class _EditNoteFormState extends State<EditNoteForm> {
           },
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: () async {
-            String newTitle = _titleController.text;
-            String newContent = _contentController.text;
-
-            try {
-              await FirebaseFirestore.instance
-                  .collection("Notes")
-                  .doc(widget.noteId)
-                  .update({
-                "note_title": newTitle,
-                "note_content": newContent,
-              });
-              Navigator.pop(context);
-            } catch (e) {
-              print("Error updating data: $e");
-            }
-          },
-          child: const Text('Save'),
-        ),
+        _isLoading
+            ? CircularProgressIndicator()
+            : ElevatedButton(
+                onPressed: _updateNote,
+                child: const Text('Save'),
+              ),
       ],
     );
   }

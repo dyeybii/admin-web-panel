@@ -2,8 +2,8 @@ import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
+import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class DriversPage extends StatefulWidget {
@@ -160,7 +160,6 @@ class _DriversPageState extends State<DriversPage> {
         print('Driver added with ID: ${docRef.id}');
       }).catchError((error) {
         print('Error adding driver data to Firestore: $error');
-        // Handle the error as appropriate, e.g., log it or notify the user
       });
     }
   }
@@ -203,39 +202,5 @@ class _DriversPageState extends State<DriversPage> {
             return DriverTable(driversAccountList: driversList);
           }),
     ));
-  }
-}
-
-class BatchUpload extends StatelessWidget {
-  final Function(List<Map<String, dynamic>>) onUpload;
-
-  const BatchUpload({Key? key, required this.onUpload}) : super(key: key);
-
-  void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['xlsx', 'csv'],
-    );
-
-    if (result != null) {
-      // Handle file upload logic here
-      // For example, parse the file and convert to a list of maps
-      List<Map<String, dynamic>> data = await parseFile(result.files.single);
-      onUpload(data);
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> parseFile(PlatformFile file) async {
-    // Implement your file parsing logic here
-    // This is a placeholder for the actual file parsing implementation
-    return [];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: _pickFile,
-      child: const Text('Batch Upload'),
-    );
   }
 }

@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+import 'package:admin_web_panel/widgets/utils.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -37,8 +41,29 @@ class DriversForm extends StatefulWidget {
 }
 
 class _DriversFormState extends State<DriversForm> {
+  Uint8List? _image;
   String? _selectedRole;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> selectImage() async {
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.image);
+
+    if (result != null) {
+      if (result.files.single.extension == 'png' ||
+          result.files.single.extension == 'jpg') {
+        setState(() {
+          _image = result.files.single.bytes;
+        });
+      } else {
+        // Show error message if file type is not supported
+        _showAlertDialog('Only PNG and JPG files are supported.');
+      }
+    } else {
+      // User canceled file picker
+      print('User canceled image selection.');
+    }
+  }
 
   void resetFormFields() {
     final controllers = [
@@ -114,7 +139,7 @@ class _DriversFormState extends State<DriversForm> {
         padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
         child: Container(
           height: 650.0,
-          width: 900.0,
+          width: 800.0,
           child: Form(
             key: widget.formKey,
             child: Column(
@@ -139,16 +164,21 @@ class _DriversFormState extends State<DriversForm> {
     return Center(
       child: Stack(
         children: [
-          const CircleAvatar(
-            radius: 50,
-            backgroundImage: AssetImage('images/default_avatar.png'),
-          ),
+          _image != null
+              ? CircleAvatar(
+                  radius: 50,
+                  backgroundImage: MemoryImage(_image!),
+                )
+              : const CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage('images/default_avatar.png'),
+                ),
           Positioned(
             bottom: 0,
             right: 0,
             child: IconButton(
               onPressed: () {
-                // Add your onPressed logic here
+                selectImage();
               },
               icon: const Icon(Icons.add_a_photo),
             ),
@@ -158,17 +188,13 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-Widget buildUploadButton() {
-  return ElevatedButton.icon(
-    onPressed: () {
-      // Implement image upload functionality
-    },
-    icon: const Icon(Icons.upload),
-    label: const Text('Upload Profile'),
-  );
-}
-
-
+  Widget buildUploadButton() {
+    return ElevatedButton.icon(
+      onPressed: () {},
+      icon: const Icon(Icons.upload),
+      label: const Text('Upload Profile'),
+    );
+  }
 
   Widget buildTextField(TextEditingController controller, String labelText,
       {int? maxLength}) {

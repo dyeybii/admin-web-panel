@@ -1,9 +1,9 @@
 import 'dart:typed_data';
-import 'package:admin_web_panel/widgets/utils.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart';
+
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -17,8 +17,10 @@ class DriversForm extends StatefulWidget {
   final TextEditingController emergencyContactController;
   final TextEditingController codingSchemeController;
   final TextEditingController tagController;
+  final TextEditingController driverPhotoController;
   final void Function(String?)? onRoleSelected;
   final Function()? onAddPressed;
+  final Function()? onEditPressed; // Make it optional
 
   const DriversForm({
     required this.formKey,
@@ -32,8 +34,10 @@ class DriversForm extends StatefulWidget {
     required this.emergencyContactController,
     required this.codingSchemeController,
     required this.tagController,
+    required this.driverPhotoController,
     required this.onRoleSelected,
     required this.onAddPressed,
+    this.onEditPressed,
   });
 
   @override
@@ -56,7 +60,7 @@ class _DriversFormState extends State<DriversForm> {
           _image = result.files.single.bytes;
         });
       } else {
-        // Show error message if file type is not supported
+        // Show error message if file type is not supporteds
         _showAlertDialog('Only PNG and JPG files are supported.');
       }
     } else {
@@ -138,7 +142,7 @@ class _DriversFormState extends State<DriversForm> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
         child: Container(
-          height: 650.0,
+          height: 600.0,
           width: 800.0,
           child: Form(
             key: widget.formKey,
@@ -147,8 +151,6 @@ class _DriversFormState extends State<DriversForm> {
               children: [
                 buildProfilePicture(),
                 const SizedBox(height: 30.0),
-                buildUploadButton(),
-                const SizedBox(height: 20.0),
                 buildFormFields(),
                 const SizedBox(height: 20.0),
                 buildFormButtons(),
@@ -188,13 +190,7 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  Widget buildUploadButton() {
-    return ElevatedButton.icon(
-      onPressed: () {},
-      icon: const Icon(Icons.upload),
-      label: const Text('Upload Profile'),
-    );
-  }
+
 
   Widget buildTextField(TextEditingController controller, String labelText,
       {int? maxLength}) {
@@ -312,43 +308,53 @@ Widget buildFormFields() {
     );
   }
 
-  Widget buildFormButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () {
-            resetFormFields();
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cancel'),
-        ),
-        const SizedBox(width: 10.0),
-        ElevatedButton(
-          onPressed: () async {
-            if (widget.formKey.currentState!.validate()) {
-              try {
-                UserCredential userCredential =
-                    await _auth.createUserWithEmailAndPassword(
-                  email: widget.emailController.text,
-                  password: widget.birthdateController.text,
-                );
+Widget buildFormButtons() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      TextButton(
+        onPressed: () {
+          resetFormFields();
+          Navigator.of(context).pop();
+        },
+        child: const Text('Cancel'),
+      ),
+      const SizedBox(width: 10.0),
+      ElevatedButton(
+        onPressed: () async {
+          if (widget.formKey.currentState!.validate()) {
+            try {
+              UserCredential userCredential =
+                  await _auth.createUserWithEmailAndPassword(
+                email: widget.emailController.text,
+                password: widget.birthdateController.text,
+              );
 
-                print('User created: ${userCredential.user?.email}');
+              print('User created: ${userCredential.user?.email}');
 
-                if (widget.onAddPressed != null) {
-                  widget.onAddPressed!();
-                }
-              } on FirebaseAuthException catch (e) {
-                _showAlertDialog(e.message ?? 'An error occurred');
-              } catch (e) {
-                print('Error: $e');
+              if (widget.onAddPressed != null) {
+                widget.onAddPressed!();
               }
+            } on FirebaseAuthException catch (e) {
+              _showAlertDialog(e.message ?? 'An error occurred');
+            } catch (e) {
+              print('Error: $e');
             }
-          },
-          child: const Text('Add Driver & Create Account'),
-        ),
-      ],
-    );
-  }
+          }
+        },
+        child: const Text('Add Driver & Create Account'),
+      ),
+      const SizedBox(width: 10.0),
+      IconButton( // Add edit icon button
+        icon: Icon(Icons.edit),
+        onPressed: () {
+          if (widget.onEditPressed != null) {
+            widget.onEditPressed!();
+          }
+        },
+      ),
+    ],
+  );
+}
+
 }

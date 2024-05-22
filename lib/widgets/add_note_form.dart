@@ -1,69 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math';
-
-class NotesScreen extends StatefulWidget {
-  @override
-  _NotesScreenState createState() => _NotesScreenState();
-}
-
-class _NotesScreenState extends State<NotesScreen> {
-  void _addNote(String title, Timestamp creationDate, String content) async {
-    try {
-      if (title.trim().isEmpty || content.trim().isEmpty) {
-        throw Exception('Title and content cannot be empty');
-      }
-
-      final random = Random();
-      final colorId = random.nextInt(7) + 1;
-
-      await FirebaseFirestore.instance.collection('notes').add({
-        'title': title,
-        'creationDate': creationDate,
-        'content': content,
-        'color_id': colorId,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Note added successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e, stackTrace) {
-      print('Error saving note: $e');
-      print('Stacktrace: $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving note: $e'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notes'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => AddNoteForm(
-                onSubmit: _addNote,
-              ),
-            );
-          },
-          child: const Text('Add Note'),
-        ),
-      ),
-    );
-  }
-}
 
 class AddNoteForm extends StatefulWidget {
   final void Function(String, Timestamp, String) onSubmit;
@@ -86,49 +22,43 @@ class _AddNoteFormState extends State<AddNoteForm> {
     return AlertDialog(
       title: const Text('Add Note'),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Title',
-                labelStyle: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: SizedBox(
+            height: 350,
+            width: 1000,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              style: const TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-             TextField(
-              controller: _contentController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Content here',
-                labelStyle: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 10.0,),
+                TextField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(labelText: 'Content', border: OutlineInputBorder()),
+                  maxLines: 10,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                
-              ),
-              style: const TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: null,
+              ],
             ),
-          ],
+          ),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () {
             Navigator.pop(context);
+            
           },
           child: const Text('Cancel'),
         ),

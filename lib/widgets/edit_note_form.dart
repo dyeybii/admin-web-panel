@@ -22,7 +22,6 @@ class EditNoteForm extends StatefulWidget {
 class _EditNoteFormState extends State<EditNoteForm> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
-  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   @override
@@ -40,31 +39,36 @@ class _EditNoteFormState extends State<EditNoteForm> {
   }
 
   Future<void> _updateNote() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
+    final newTitle = _titleController.text.trim();
+    final newContent = _contentController.text.trim();
+
+    if (newTitle.isEmpty || newContent.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Title and content cannot be empty'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection("Notes").doc(widget.noteId).update({
+        "note_title": newTitle,
+        "note_content": newContent,
       });
-
-      String newTitle = _titleController.text;
-      String newContent = _contentController.text;
-
-      try {
-        await FirebaseFirestore.instance
-            .collection("Notes")
-            .doc(widget.noteId)
-            .update({
-          "note_title": newTitle,
-          "note_content": newContent,
-        });
-        Navigator.pop(context);
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error updating data: $e")),
-        );
-      }
+      Navigator.pop(context);
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating note: $e")),
+      );
     }
   }
 
@@ -72,43 +76,37 @@ class _EditNoteFormState extends State<EditNoteForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Note'),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
+      content: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: SizedBox(
+            height: 350,
+            width: 1000,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+                  maxLines: 1,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: _contentController,
-              decoration: const InputDecoration(
-                labelText: 'Content',
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(width: 2.0),
+                const SizedBox(height: 10.0,),
+                TextField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(labelText: 'Content', border: OutlineInputBorder()),
+                  maxLines: 10,
+                  style: const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter content';
-                }
-                return null;
-              },
+              ],
             ),
-          ],
+          ),
         ),
       ),
       actions: [

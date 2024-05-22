@@ -1,22 +1,21 @@
-import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'edit_note_form.dart';
+import 'package:admin_web_panel/Style/appstyle.dart';
+import 'package:admin_web_panel/widgets/edit_note_form.dart';
 import 'package:intl/intl.dart';
 
-
-Widget noteCard(
-    BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
+Widget noteCard(BuildContext context, Function()? onTap, QueryDocumentSnapshot? doc) {
   final data = doc?.data() as Map<String, dynamic>?;
 
   if (data != null) {
     final colorId = data['color_id'] as int?;
-    final color = colorId != null && colorId >= 0 && colorId < Appstyle.cardsColor.length
+    final color = colorId != null &&
+            colorId >= 0 &&
+            colorId < Appstyle.cardsColor.length
         ? Appstyle.cardsColor[colorId]
         : Colors.grey;
 
     final noteId = doc?.id ?? "";
-
     return InkWell(
       onTap: onTap,
       child: SizedBox(
@@ -34,7 +33,11 @@ Widget noteCard(
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(data["note_title"], style: Appstyle.mainTitle),
+                  Text(
+                    data["note_title"],
+                    style: Appstyle.mainTitle,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   Row(
                     children: [
                       IconButton(
@@ -55,23 +58,26 @@ Widget noteCard(
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         tooltip: "Delete",
                         onPressed: () async {
                           if (doc != null) {
                             bool confirmDelete = await showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                title: Text("Confirm Delete"),
-                                content: Text("Are you sure you want to delete this note?"),
+                                title: const Text("Confirm Delete"),
+                                content: const Text(
+                                    "Are you sure you want to delete this note?"),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: Text("Cancel"),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text("Cancel"),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: Text("Delete"),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text("Delete"),
                                   ),
                                 ],
                               ),
@@ -79,10 +85,11 @@ Widget noteCard(
 
                             if (confirmDelete == true) {
                               try {
-                                await FirebaseFirestore.instance.collection("Notes").doc(doc.id).delete();
-                                // Document successfully deleted
+                                await FirebaseFirestore.instance
+                                    .collection("Notes")
+                                    .doc(doc.id)
+                                    .delete();
                               } catch (e) {
-                                // Error deleting document
                                 print("Error deleting document: $e");
                               }
                             }
@@ -94,7 +101,10 @@ Widget noteCard(
                 ],
               ),
               const SizedBox(height: 4.0),
-              Text(DateFormat.yMMMd().format(data["creation_date"].toDate()), style: Appstyle.dateTitle),
+              Text(
+                DateFormat.yMMMd().format(data["creation_date"].toDate()),
+                style: Appstyle.dateTitle,
+              ),
               const SizedBox(height: 4.0),
               Text(
                 data["note_content"] ?? '',

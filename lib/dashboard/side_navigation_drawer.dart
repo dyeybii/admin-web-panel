@@ -60,25 +60,60 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "TRI.CO Admin Panel",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "TRI.CO",
+                style: TextStyle(
+                  color: Colors.indigo,
+                  fontSize: 60,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _confirmLogout,
+          SizedBox(
+            width: 20,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Admin Panel",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  "COTODA",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-        automaticallyImplyLeading: false,
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: _confirmLogout,
+        ),
+      ],
+      automaticallyImplyLeading: false,
+    ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -127,13 +162,13 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
           ),
           leading: leadingIcon is IconData
               ? Icon(leadingIcon,
-                  color: isSelected ? const Color(0xFF3B3F9E) : Colors.white)
+              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white)
               : Image.asset(leadingIcon,
-                  width: 24,
-                  height: 24,
-                  color: isSelected ? const Color(0xFF3B3F9E) : Colors.white),
+              width: 24,
+              height: 24,
+              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white),
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+          const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         ),
       ),
     );

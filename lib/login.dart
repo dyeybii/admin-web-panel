@@ -41,27 +41,31 @@ class _LoginPageState extends State<LoginPage> {
 
             return Padding(
               padding: EdgeInsets.all(padding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Stack(
                 children: [
-                  Flexible(
-                    child: Container(
-                      width: isSmallScreen ? double.infinity : containerSize,
-                      padding: const EdgeInsets.all(20.0),
-                      child: SingleChildScrollView(
-                        child: _buildLoginForm(isSmallScreen),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          width: isSmallScreen ? double.infinity : containerSize,
+                          padding: const EdgeInsets.all(20.0),
+                          child: SingleChildScrollView(
+                            child: _buildLoginForm(isSmallScreen),
+                          ),
+                        ),
                       ),
-                    ),
+                      if (!isSmallScreen) const SizedBox(width: 20.0),
+                      if (!isSmallScreen)
+                        Flexible(
+                          child: Image.asset(
+                            'images/LOGO.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                    ],
                   ),
-                  if (!isSmallScreen) const SizedBox(width: 20.0),
-                  if (!isSmallScreen)
-                    Flexible(
-                      child: Image.asset(
-                        'images/LOGO.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
                 ],
               ),
             );

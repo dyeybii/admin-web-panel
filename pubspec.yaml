@@ -48,7 +48,8 @@ dependencies:
   open_file: ^3.3.2
   file_picker: ^8.0.3
   image_picker: ^1.1.1
-
+  fl_chart: ^0.68.0
+  firebase_storage: ^11.7.6
 dev_dependencies:
   flutter_test:
     sdk: flutter

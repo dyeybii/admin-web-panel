@@ -25,10 +25,14 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _emergencyContactController = TextEditingController();
+  final TextEditingController _emergencyContactController =
+      TextEditingController();
   final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
+  final TextEditingController _phoneNumberController =
+      TextEditingController(); // Added
+  final TextEditingController _uidController = TextEditingController();
 
   @override
   void initState() {
@@ -51,7 +55,8 @@ class _DriversPageState extends State<DriversPage> {
     QuerySnapshot snapshot =
         await FirebaseFirestore.instance.collection('DriversAccount').get();
     for (var doc in snapshot.docs) {
-      driversList.add(DriversAccount.fromJson(doc.data() as Map<String, dynamic>));
+      driversList
+          .add(DriversAccount.fromJson(doc.data() as Map<String, dynamic>));
     }
 
     return driversList;
@@ -87,7 +92,9 @@ class _DriversPageState extends State<DriversPage> {
               emergencyContactController: _emergencyContactController,
               codingSchemeController: _codingSchemeController,
               tagController: _tagController,
-              driverPhotoController: _driverPhotoController, 
+              driverPhotoController: _driverPhotoController,
+              phoneNumberController: _phoneNumberController, // Added
+              uidController: _uidController, // Added
               onRoleSelected: (role) {
                 _tagController.text = role!;
               },
@@ -109,19 +116,21 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
-  void _addMemberToFirestore() {
-    // Extracting data from text controllers
-    String? firstName = _firstNameController.text.isNotEmpty ? _firstNameController.text : null;
-    String? lastName = _lastNameController.text.isNotEmpty ? _lastNameController.text : null;
-    String? idNumber = _idNumberController.text.isNotEmpty ? _idNumberController.text : null;
-    String? bodyNumber = _bodyNumberController.text.isNotEmpty ? _bodyNumberController.text : null;
-    String? email = _emailController.text.isNotEmpty ? _emailController.text : null;
-    String? birthdate = _birthdateController.text.isNotEmpty ? _birthdateController.text : null;
-    String? address = _addressController.text.isNotEmpty ? _addressController.text : null;
-    String? emergencyContact = _emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : null;
-    String? codingScheme = _codingSchemeController.text.isNotEmpty ? _codingSchemeController.text : null;
-    String tag = _tagController.text.isNotEmpty ? _tagController.text : '';
-    String? driverPhoto = _driverPhotoController.text.isNotEmpty ? _driverPhotoController.text : null; // Get driver photo
+void _addMemberToFirestore() {
+  // Extracting data from text controllers
+  String? firstName = _firstNameController.text.isNotEmpty ? _firstNameController.text : null;
+  String? lastName = _lastNameController.text.isNotEmpty ? _lastNameController.text : null;
+  String? idNumber = _idNumberController.text.isNotEmpty ? _idNumberController.text : null;
+  String? bodyNumber = _bodyNumberController.text.isNotEmpty ? _bodyNumberController.text : null;
+  String? email = _emailController.text.isNotEmpty ? _emailController.text : null;
+  String? birthdate = _birthdateController.text.isNotEmpty ? _birthdateController.text : null;
+  String? address = _addressController.text.isNotEmpty ? _addressController.text : null;
+  String? emergencyContact = _emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : null;
+  String? codingScheme = _codingSchemeController.text.isNotEmpty ? _codingSchemeController.text : null;
+  String tag = _tagController.text.isNotEmpty ? _tagController.text : '';
+  String? driverPhoto = _driverPhotoController.text.isNotEmpty ? _driverPhotoController.text : null; // Get driver photo
+  String? phoneNumber = _phoneNumberController.text.isNotEmpty ? _phoneNumberController.text : null; // Added
+  String? uid = _uidController.text.isNotEmpty ? _uidController.text : null;  // Added
 
     // Adding member to Firestore
     FirebaseFirestore.instance.collection('DriversAccount').add({
@@ -136,6 +145,8 @@ class _DriversPageState extends State<DriversPage> {
       'codingScheme': codingScheme,
       'tag': tag,
       'driverPhoto': driverPhoto,
+      'phoneNumber': phoneNumber,
+      'uid': uid,
     }).then((value) {
       print('Member added to Firestore');
       Navigator.of(context).pop();
@@ -144,15 +155,7 @@ class _DriversPageState extends State<DriversPage> {
     });
   }
 
-  void _handleBatchUpload(List<Map<String, dynamic>> data) {
-    for (var driverData in data) {
-      FirebaseFirestore.instance.collection('DriversAccount').add(driverData).then((docRef) {
-        print('Driver added with ID: ${docRef.id}');
-      }).catchError((error) {
-        print('Error adding driver data to Firestore: $error');
-      });
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -178,14 +181,17 @@ class _DriversPageState extends State<DriversPage> {
           ],
         ),
         body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('DriversAccount').snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('DriversAccount')
+              .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
             final List<DriversAccount> driversList = snapshot.data!.docs
-              .map((doc) => DriversAccount.fromJson(doc.data() as Map<String, dynamic>))
-              .toList();
+                .map((doc) =>
+                    DriversAccount.fromJson(doc.data() as Map<String, dynamic>))
+                .toList();
             return DriverTable(driversAccountList: driversList);
           },
         ),
@@ -193,3 +199,15 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 }
+  void _handleBatchUpload(List<Map<String, dynamic>> data) {
+    for (var driverData in data) {
+      FirebaseFirestore.instance
+          .collection('DriversAccount')
+          .add(driverData)
+          .then((docRef) {
+        print('Driver added with ID: ${docRef.id}');
+      }).catchError((error) {
+        print('Error adding driver data to Firestore: $error');
+      });
+    }
+  }

@@ -1,15 +1,15 @@
-import 'package:admin_web_panel/Style/data_grid_styles.dart';
-import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:admin_web_panel/Style/data_grid_styles.dart';
+import 'package:admin_web_panel/widgets/drivers_account.dart';
+import 'package:admin_web_panel/widgets/edit_drivers_form.dart';
 
 class DriverTable extends StatefulWidget {
   final List<DriversAccount> driversAccountList;
 
-  const DriverTable({Key? key, required this.driversAccountList})
-      : super(key: key);
+  const DriverTable({Key? key, required this.driversAccountList}) : super(key: key);
 
   @override
   _DriverTableState createState() => _DriverTableState();
@@ -19,10 +19,24 @@ class _DriverTableState extends State<DriverTable> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  void _addDataToFirebase(DriversAccount newData) async {
+    try {
+      await _firestore.collection('DriversAccount').add(newData.toJson());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data added successfully')),
+      );
+    } catch (e) {
+      print('Error adding data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding data: $e')),
+      );
+    }
+  }
+
   void _deleteData(DriversAccount data) async {
     try {
-      // Delete data from Firestore
-      QuerySnapshot querySnapshot = await _firestore.collection('DriversAccount')
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('DriversAccount')
           .where('firstName', isEqualTo: data.firstName)
           .where('lastName', isEqualTo: data.lastName)
           .where('idNumber', isEqualTo: data.idNumber)
@@ -30,8 +44,6 @@ class _DriverTableState extends State<DriverTable> {
 
       if (querySnapshot.docs.isNotEmpty) {
         await _firestore.collection('DriversAccount').doc(querySnapshot.docs.first.id).delete();
-
-        // Delete user from Firebase Authentication
         User? user = await _auth.currentUser;
         if (user != null) {
           await user.delete();
@@ -39,32 +51,93 @@ class _DriverTableState extends State<DriverTable> {
         } else {
           print('User not found in Firebase Authentication');
         }
-
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data deleted successfully'),
-          ),
+          const SnackBar(content: Text('Data deleted successfully')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Data not found'),
-          ),
+          const SnackBar(content: Text('Data not found')),
         );
       }
     } catch (e) {
       print('Error deleting data: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting data: $e'),
-        ),
+        SnackBar(content: Text('Error deleting data: $e')),
       );
     }
   }
 
-  void _editData(Map<String, dynamic> data) {
-    // Dito functionality ng Edit
-    print('Editing data: $data');
+void _editData(DriversAccount data) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit Driver Data'),
+        content: EditDriverForm(
+          driverId: data.driverId,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          idNumber: data.idNumber,
+          bodyNumber: data.bodyNumber,
+          email: data.email,
+          birthdate: data.birthdate,
+          address: data.address,
+          emergencyContact: data.emergencyContact,
+          codingScheme: data.codingScheme,
+          tag: data.tag,
+          driverPhoto: data.driverPhoto,
+          role: data.role,
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _updateDataInFirebase(data);
+              Navigator.of(context).pop();
+            },
+            child: Text('Save'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+  void _updateDataInFirebase(DriversAccount newData) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('DriversAccount')
+          .where('firstName', isEqualTo: newData.firstName)
+          .where('lastName', isEqualTo: newData.lastName)
+          .where('idNumber', isEqualTo: newData.idNumber)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        await _firestore
+            .collection('DriversAccount')
+            .doc(querySnapshot.docs.first.id)
+            .update(newData.toJson());
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data not found')),
+        );
+      }
+    } catch (e) {
+      print('Error updating data: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating data: $e')),
+      );
+    }
   }
 
   @override
@@ -109,7 +182,7 @@ class _DriverDataSource extends DataGridSource {
 
   final List<DriversAccount> source;
   final Function(DriversAccount) deleteData;
-  final Function(Map<String, dynamic>) editData;
+  final Function(DriversAccount) editData;
   final BuildContext context;
   List<DataGridRow> dataGridRows = [];
 
@@ -155,7 +228,7 @@ class _DriverDataSource extends DataGridSource {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
-              editData(data.toJson());
+              editData(data);
             },
           ),
         ],
@@ -200,7 +273,7 @@ class _DriverDataSource extends DataGridSource {
 
                 if (confirmDelete == true) {
                   deleteData(data);
-                  
+
                   source.removeWhere((d) => d.firstName == data.firstName && d.lastName == data.lastName && d.idNumber == data.idNumber);
                   _buildDataGridRows();
                   notifyListeners();

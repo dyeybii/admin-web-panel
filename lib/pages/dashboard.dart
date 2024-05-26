@@ -53,7 +53,7 @@ class _DashboardState extends State<Dashboard> {
                 child: Container(
                   height: 300,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(60.0),
                     border: Border.all(
                       color: Colors.black,
@@ -71,16 +71,18 @@ class _DashboardState extends State<Dashboard> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: Colors.grey,
                           ),
                         ),
                         Divider(
-                          color: Colors.black,
+                          color: Colors.grey,
                           thickness: 2,
                           indent: 100,
                           endIndent: 100,
                         ),
+
                       ],
+                      
                     ),
                   ),
                 ),
@@ -92,10 +94,10 @@ class _DashboardState extends State<Dashboard> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
-                        height: 500,
-                        width: 600,
+                        height: 300,
+                        width: 625,
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 173, 0, 0),
+                          color: Colors.grey[200],//CONTAINER COLOR
                           borderRadius: BorderRadius.circular(60.0),
                           border: Border.all(
                             color: Colors.black,
@@ -113,11 +115,11 @@ class _DashboardState extends State<Dashboard> {
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                               Divider(
-                                color: Colors.white,
+                                color: Colors.grey,
                                 thickness: 2,
                                 indent: 100,
                                 endIndent: 100,
@@ -130,10 +132,10 @@ class _DashboardState extends State<Dashboard> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
-                        height: 500,
-                        width: 600,
+                        height: 300,
+                        width: 625,
                         decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 173, 0, 0),
+                          color: Colors.grey[200],//CONTAINER COLOR
                           borderRadius: BorderRadius.circular(60.0),
                           border: Border.all(
                             color: Colors.black,
@@ -147,15 +149,15 @@ class _DashboardState extends State<Dashboard> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Daily Rides',
+                                'Riders Rating',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                 ),
                               ),
                               Divider(
-                                color: Colors.white,
+                                color: Colors.grey,
                                 thickness: 2,
                                 indent: 100,
                                 endIndent: 100,
@@ -191,11 +193,11 @@ class _DashboardState extends State<Dashboard> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Colors.grey,
                           ),
                         ),
                         const Divider(
-                          color: Colors.white,
+                          color: Colors.grey,
                           thickness: 2,
                           indent: 100,
                           endIndent: 100,

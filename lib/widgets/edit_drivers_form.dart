@@ -1,84 +1,179 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class EditDriverForm extends StatefulWidget {
-  final GlobalKey<FormState> formKey;
-  final TextEditingController firstNameController;
-  final TextEditingController lastNameController;
-  final TextEditingController idNumberController;
-  final TextEditingController bodyNumberController;
-  final TextEditingController emailController;
-  final TextEditingController birthdateController;
-  final TextEditingController addressController;
-  final TextEditingController emergencyContactController;
-  final TextEditingController codingSchemeController;
-  final TextEditingController tagController;
-  final TextEditingController driverPhotoController;
-  final void Function(String?)? onRoleSelected;
-  final Function()? onSavePressed;
-  final Function()? onCancelPressed;
+  final String driverId;
+  final String firstName;
+  final String lastName;
+  final String idNumber;
+  final String bodyNumber;
+  final String email;
+  final String birthdate;
+  final String address;
+  final String emergencyContact;
+  final String codingScheme;
+  final String tag;
+  final String driverPhoto;
+  final String role;
 
   const EditDriverForm({
-    required this.formKey,
-    required this.firstNameController,
-    required this.lastNameController,
-    required this.idNumberController,
-    required this.bodyNumberController,
-    required this.emailController,
-    required this.birthdateController,
-    required this.addressController,
-    required this.emergencyContactController,
-    required this.codingSchemeController,
-    required this.tagController,
-    required this.driverPhotoController,
-    required this.onRoleSelected,
-    required this.onSavePressed,
-    required this.onCancelPressed,
-  });
+    Key? key,
+    required this.driverId,
+    required this.firstName,
+    required this.lastName,
+    required this.idNumber,
+    required this.bodyNumber,
+    required this.email,
+    required this.birthdate,
+    required this.address,
+    required this.emergencyContact,
+    required this.codingScheme,
+    required this.tag,
+    required this.driverPhoto,
+    required this.role,
+  }) : super(key: key);
 
   @override
   _EditDriverFormState createState() => _EditDriverFormState();
 }
 
+
 class _EditDriverFormState extends State<EditDriverForm> {
-  Uint8List? _image;
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _idNumberController;
+  late TextEditingController _bodyNumberController;
+  late TextEditingController _emailController;
+  late TextEditingController _birthdateController;
+  late TextEditingController _addressController;
+  late TextEditingController _emergencyContactController;
+  late TextEditingController _codingSchemeController;
+  late TextEditingController _tagController;
+  late TextEditingController _driverPhotoController;
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  String? _selectedRole;
 
-  Future<void> selectImage() async {
-    final result = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
+  @override
+  void initState() {
+    super.initState();
+    _firstNameController = TextEditingController(text: widget.firstName);
+    _lastNameController = TextEditingController(text: widget.lastName);
+    _idNumberController = TextEditingController(text: widget.idNumber);
+    _bodyNumberController = TextEditingController(text: widget.bodyNumber);
+    _emailController = TextEditingController(text: widget.email);
+    _birthdateController = TextEditingController(text: widget.birthdate);
+    _addressController = TextEditingController(text: widget.address);
+    _emergencyContactController = TextEditingController(text: widget.emergencyContact);
+    _codingSchemeController = TextEditingController(text: widget.codingScheme);
+    _tagController = TextEditingController(text: widget.tag);
+    _driverPhotoController = TextEditingController(text: widget.driverPhoto);
+    _selectedRole = widget.role;
+  }
 
-    if (result != null) {
-      final bytes = await result.readAsBytes();
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _idNumberController.dispose();
+    _bodyNumberController.dispose();
+    _emailController.dispose();
+    _birthdateController.dispose();
+    _addressController.dispose();
+    _emergencyContactController.dispose();
+    _codingSchemeController.dispose();
+    _tagController.dispose();
+    _driverPhotoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updateDriver() async {
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _image = bytes;
+        _isLoading = true;
       });
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('driversAccount')
+            .doc(widget.driverId)
+            .update({
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
+          'idNumber': _idNumberController.text,
+          'bodyNumber': _bodyNumberController.text,
+          'email': _emailController.text,
+          'birthdate': _birthdateController.text,
+          'address': _addressController.text,
+          'emergencyContact': _emergencyContactController.text,
+          'codingScheme': _codingSchemeController.text,
+          'tag': _tagController.text,
+          'driverPhoto': _driverPhotoController.text,
+          'role': _selectedRole,
+        });
+
+        await FirebaseDatabase.instance
+            .ref('driversAccount/${widget.driverId}')
+            .update({
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
+          'idNumber': _idNumberController.text,
+          'bodyNumber': _bodyNumberController.text,
+          'email': _emailController.text,
+          'birthdate': _birthdateController.text,
+          'address': _addressController.text,
+          'emergencyContact': _emergencyContactController.text,
+          'codingScheme': _codingSchemeController.text,
+          'tag': _tagController.text,
+          'driverPhoto': _driverPhotoController.text,
+          'role': _selectedRole,
+        });
+
+        Navigator.pop(context);
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating data: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
-        child: Container(
-          height: 600.0,
-          width: 800.0,
-          child: Form(
-            key: widget.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                buildProfilePicture(),
-                const SizedBox(height: 30.0),
-                buildFormFields(),
-                const SizedBox(height: 20.0),
-                buildFormButtons(),
-              ],
-            ),
+    return AlertDialog(
+     
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              buildProfilePicture(),
+              const SizedBox(height: 30.0),
+              buildFormFields(),
+              const SizedBox(height: 20.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  _isLoading
+                      ? CircularProgressIndicator()
+                      : ElevatedButton(
+                          onPressed: _updateDriver,
+                          child: const Text('Save'),
+                        ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -89,10 +184,10 @@ class _EditDriverFormState extends State<EditDriverForm> {
     return Center(
       child: Stack(
         children: [
-          _image != null
+          _driverPhotoController.text.isNotEmpty
               ? CircleAvatar(
                   radius: 50,
-                  backgroundImage: MemoryImage(_image!),
+                  backgroundImage: NetworkImage(_driverPhotoController.text),
                 )
               : const CircleAvatar(
                   radius: 50,
@@ -102,7 +197,9 @@ class _EditDriverFormState extends State<EditDriverForm> {
             bottom: 0,
             right: 0,
             child: IconButton(
-              onPressed: selectImage,
+              onPressed: () {
+                selectImage();
+              },
               icon: const Icon(Icons.add_a_photo),
             ),
           ),
@@ -111,31 +208,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
     );
   }
 
-  Widget buildFormFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildTextField(widget.firstNameController, 'First Name'),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.lastNameController, 'Last Name'),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.idNumberController, 'ID Number', maxLength: 4),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.bodyNumberController, 'Body Number', maxLength: 4),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.codingSchemeController, 'Coding Scheme', maxLength: 3),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.addressController, 'Address'),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.emergencyContactController, 'Emergency Contact #', maxLength: 11),
-        const SizedBox(height: 10.0),
-        buildTextField(widget.emailController, 'Email'),
-        const SizedBox(height: 10.0),
-        buildBirthdateField(),
-        const SizedBox(height: 10.0),
-        buildRoleSelection(),
-      ],
-    );
+  Future<void> selectImage() async {
+    // Your implementation for selecting image
   }
 
   Widget buildTextField(TextEditingController controller, String labelText,
@@ -148,33 +222,44 @@ class _EditDriverFormState extends State<EditDriverForm> {
       ),
       maxLength: maxLength,
       maxLines: null,
-      validator: (value) {
-        if (value!.isEmpty) {
-          return '$labelText is required';
-        }
-        return null;
-      },
     );
   }
 
-  Widget buildBirthdateField() {
-    return GestureDetector(
-      onTap: _selectBirthdate,
-      child: AbsorbPointer(
-        child: TextFormField(
-          controller: widget.birthdateController,
-          decoration: const InputDecoration(
-            labelText: 'Date of Birth',
-            border: OutlineInputBorder(),
+  Widget buildFormFields() {
+    return Column(
+      children: [
+        buildTextField(_firstNameController, 'First Name'),
+        const SizedBox(height: 10.0),
+        buildTextField(_lastNameController, 'Last Name'),
+        const SizedBox(height: 10.0),
+        buildTextField(_idNumberController, 'ID Number', maxLength: 4),
+        const SizedBox(height: 10.0),
+        buildTextField(_bodyNumberController, 'Body Number', maxLength: 4),
+        const SizedBox(height: 10.0),
+        GestureDetector(
+          onTap: _selectBirthdate,
+          child: AbsorbPointer(
+            child: TextFormField(
+              controller: _birthdateController,
+              decoration: const InputDecoration(
+                labelText: 'Date of Birth',
+                border: OutlineInputBorder(),
+              ),
+            ),
           ),
-          validator: (value) {
-            if (value!.isEmpty) {
-              return 'Date of Birth is required';
-            }
-            return null;
-          },
         ),
-      ),
+        const SizedBox(height: 10.0),
+        buildTextField(_codingSchemeController, 'Coding Scheme', maxLength: 3),
+        const SizedBox(height: 10.0),
+        buildTextField(_addressController, 'Address'),
+        const SizedBox(height: 10.0),
+        buildTextField(_emergencyContactController, 'Emergency Contact #', maxLength: 11),
+        const SizedBox(height: 10.0),
+        buildTextField(_emailController, 'Email'),
+        const SizedBox(height: 10.0),
+        buildRoleSelection(),
+        const SizedBox(height: 20.0),
+      ],
     );
   }
 
@@ -188,8 +273,9 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
     if (picked != null) {
       setState(() {
-        widget.birthdateController.text =
-            picked.toIso8601String().split('T').first;
+        // Format the date as MMDDYYYY
+        String formattedDate = "${picked.month.toString().padLeft(2, '0')}${picked.day.toString().padLeft(2, '0')}${picked.year}";
+        _birthdateController.text = formattedDate;
       });
     }
   }
@@ -208,10 +294,10 @@ class _EditDriverFormState extends State<EditDriverForm> {
               child: RadioListTile<String?>(
                 title: const Text('Member'),
                 value: 'member',
-                groupValue: widget.tagController.text,
+                groupValue: _selectedRole,
                 onChanged: (value) {
                   setState(() {
-                    widget.onRoleSelected?.call(value);
+                    _selectedRole = value;
                   });
                 },
               ),
@@ -220,10 +306,10 @@ class _EditDriverFormState extends State<EditDriverForm> {
               child: RadioListTile<String?>(
                 title: const Text('Operator'),
                 value: 'operator',
-                groupValue: widget.tagController.text,
+                groupValue: _selectedRole,
                 onChanged: (value) {
                   setState(() {
-                    widget.onRoleSelected?.call(value);
+                    _selectedRole = value;
                   });
                 },
               ),
@@ -233,22 +319,4 @@ class _EditDriverFormState extends State<EditDriverForm> {
       ],
     );
   }
-
-  Widget buildFormButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: widget.onCancelPressed,
-          child: const Text('Cancel'),
-        ),
-        const SizedBox(width: 10.0),
-        ElevatedButton(
-          onPressed: widget.onSavePressed,
-          child: const Text('Save'),
-        ),
-      ],
-    );
-  }
 }
-

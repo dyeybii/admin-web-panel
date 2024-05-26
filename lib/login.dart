@@ -49,7 +49,8 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Flexible(
                         child: Container(
-                          width: isSmallScreen ? double.infinity : containerSize,
+                          width:
+                              isSmallScreen ? double.infinity : containerSize,
                           padding: const EdgeInsets.all(20.0),
                           child: SingleChildScrollView(
                             child: _buildLoginForm(isSmallScreen),
@@ -75,54 +76,93 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildLoginForm(bool isSmallScreen) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'TRI.CO',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: isSmallScreen ? 40 : 74,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF2E3192),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20.0),
-          _buildTextField(
-            controller: _usernameController,
-            labelText: 'Username',
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your username';
-              }
-              return null;
-            },
-            onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
-          ),
-          const SizedBox(height: 20.0),
-          _buildPasswordField(onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
-          const SizedBox(height: 20.0),
-          _buildLoginButton(),
-          if (_errorMessage.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                _errorMessage,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+Widget _buildLoginForm(bool isSmallScreen) {
+  return Form(
+    key: _formKey,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'TRI.CO',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: isSmallScreen ? 40 : 74,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF2E3192),
+                  ),
+                  textAlign: TextAlign.center,
                 ),
+              ],
+            ),
+            SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Administration',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: isSmallScreen ? 20 : 30,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 176, 176, 176),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'Panel',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: isSmallScreen ? 20 : 30,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 176, 176, 176),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+        const SizedBox(height: 20.0),
+        _buildTextField(
+          controller: _usernameController,
+          labelText: 'Username',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your username';
+            }
+            return null;
+          },
+          onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
+        ),
+        const SizedBox(height: 20.0),
+        _buildPasswordField(
+            onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
+        const SizedBox(height: 20.0),
+        _buildLoginButton(),
+        if (_errorMessage.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              _errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -170,8 +210,10 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginButton() {
     return ElevatedButton(
       style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 46, 49, 146)),
-        foregroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 255, 255, 255)),
+        backgroundColor: MaterialStateProperty.all<Color>(
+            const Color.fromARGB(255, 46, 49, 146)),
+        foregroundColor: MaterialStateProperty.all<Color>(
+            const Color.fromARGB(255, 255, 255, 255)),
       ),
       onPressed: _signInWithEmailAndPassword,
       child: _loading ? const CircularProgressIndicator() : const Text('Login'),
@@ -195,13 +237,15 @@ class _LoginPageState extends State<LoginPage> {
       } on FirebaseAuthException catch (e) {
         setState(() {
           _loading = false;
-          _errorMessage = 'Please check your password and account name and try again.';
+          _errorMessage =
+              'Please check your password and account name and try again.';
         });
         print('Error signing in: $e');
       } catch (e) {
         setState(() {
           _loading = false;
-          _errorMessage = 'An unexpected error occurred. Please try again later.';
+          _errorMessage =
+              'An unexpected error occurred. Please try again later.';
         });
         print('Error signing in: $e');
       }

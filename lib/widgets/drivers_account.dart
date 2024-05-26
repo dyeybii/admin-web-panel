@@ -1,5 +1,6 @@
 class DriversAccount {
-  final String id;
+  final String uid;
+  final String driverId; // New property
   final String firstName;
   final String lastName;
   final String idNumber;
@@ -10,9 +11,13 @@ class DriversAccount {
   final String emergencyContact;
   final String codingScheme;
   final String tag;
+  final String driverPhoto;
+  final String role;
+   // New property
 
   DriversAccount({
-    required this.id,
+    required this.uid,
+    required this.driverId, // Updated constructor
     required this.firstName,
     required this.lastName,
     required this.idNumber,
@@ -23,11 +28,14 @@ class DriversAccount {
     required this.emergencyContact,
     required this.codingScheme,
     required this.tag,
+    required this.driverPhoto, // Updated constructor
+    required this.role,
   });
 
   factory DriversAccount.fromJson(Map<String, dynamic> json) {
     return DriversAccount(
-      id: json['id'] ?? '',
+      uid: json['id'] ?? '',
+      driverId: json['driverId'] ?? '', // Updated factory method
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       idNumber: json['idNumber'] ?? '',
@@ -38,12 +46,15 @@ class DriversAccount {
       emergencyContact: json['emergencyContact'] ?? '',
       codingScheme: json['codingScheme'] ?? '',
       tag: json['tag'] ?? '',
+      driverPhoto: json['driverPhoto'] ?? '', // Updated factory method
+      role: json['role'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'id': uid,
+      'driverId': driverId, // Updated toJson method
       'firstName': firstName,
       'lastName': lastName,
       'idNumber': idNumber,
@@ -54,6 +65,7 @@ class DriversAccount {
       'emergencyContact': emergencyContact,
       'codingScheme': codingScheme,
       'tag': tag,
+      'driverPhoto': driverPhoto, // Updated toJson method
     };
   }
 }

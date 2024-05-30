@@ -39,35 +39,37 @@ class _LoginPageState extends State<LoginPage> {
             double containerSize = constraints.maxWidth - (padding * 6);
             bool isSmallScreen = constraints.maxWidth < 600;
 
-            return Padding(
-              padding: EdgeInsets.all(padding),
-              child: Stack(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Container(
-                          width:
-                              isSmallScreen ? double.infinity : containerSize,
-                          padding: const EdgeInsets.all(20.0),
-                          child: SingleChildScrollView(
-                            child: _buildLoginForm(isSmallScreen),
-                          ),
-                        ),
-                      ),
-                      if (!isSmallScreen) const SizedBox(width: 20.0),
-                      if (!isSmallScreen)
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(padding),
+                child: Stack(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
                         Flexible(
-                          child: Image.asset(
-                            'images/LOGO.png',
-                            fit: BoxFit.contain,
+                          child: Container(
+                            width:
+                                isSmallScreen ? double.infinity : containerSize,
+                            padding: const EdgeInsets.all(20.0),
+                            child: SingleChildScrollView(
+                              child: _buildLoginForm(isSmallScreen),
+                            ),
                           ),
                         ),
-                    ],
-                  ),
-                ],
+                        if (!isSmallScreen) const SizedBox(width: 20.0),
+                        if (!isSmallScreen)
+                          Flexible(
+                            child: Image.asset(
+                              'images/LOGO.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -76,93 +78,92 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-Widget _buildLoginForm(bool isSmallScreen) {
-  return Form(
-    key: _formKey,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'TRI.CO',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: isSmallScreen ? 40 : 74,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF2E3192),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildLoginForm(bool isSmallScreen) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'Administration',
+                    'TRI.CO',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: isSmallScreen ? 20 : 30,
+                      fontSize: isSmallScreen ? 40 : 74,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 176, 176, 176),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    'Panel',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: isSmallScreen ? 20 : 30,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 176, 176, 176),
+                      color: const Color(0xFF2E3192),
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20.0),
-        _buildTextField(
-          controller: _usernameController,
-          labelText: 'Username',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your username';
-            }
-            return null;
-          },
-          onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
-        ),
-        const SizedBox(height: 20.0),
-        _buildPasswordField(
-            onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
-        const SizedBox(height: 20.0),
-        _buildLoginButton(),
-        if (_errorMessage.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              _errorMessage,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+              SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Administration',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: isSmallScreen ? 20 : 30,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 176, 176, 176),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      'Panel',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: isSmallScreen ? 20 : 30,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 176, 176, 176),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20.0),
+          _buildTextField(
+            controller: _usernameController,
+            labelText: 'Username',
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your username';
+              }
+              return null;
+            },
+            onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
+          ),
+          const SizedBox(height: 20.0),
+          _buildPasswordField(
+              onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
+          const SizedBox(height: 20.0),
+          _buildLoginButton(),
+          if (_errorMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                _errorMessage,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,

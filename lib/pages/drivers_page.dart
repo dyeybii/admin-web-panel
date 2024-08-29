@@ -5,6 +5,7 @@ import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -25,14 +26,11 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _emergencyContactController =
-      TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
-  final TextEditingController _phoneNumberController =
-      TextEditingController(); // Added
-  final TextEditingController _uidController = TextEditingController();
+  final TextEditingController _uidController = TextEditingController(); // Add this line
 
   @override
   void initState() {
@@ -89,18 +87,17 @@ class _DriversPageState extends State<DriversPage> {
               emailController: _emailController,
               birthdateController: _birthdateController,
               addressController: _addressController,
-              emergencyContactController: _emergencyContactController,
+              phoneNumberController: _phoneNumberController,
               codingSchemeController: _codingSchemeController,
               tagController: _tagController,
-              driverPhotoController: _driverPhotoController,
-              phoneNumberController: _phoneNumberController, // Added
-              uidController: _uidController, // Added
+              driver_photosController: _driverPhotoController,
+              uidController: _uidController, // Add this line
               onRoleSelected: (role) {
                 _tagController.text = role!;
               },
               onAddPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _addMemberToFirestore();
+                  _addMemberToFirebaseAndFirestore();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -116,46 +113,44 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
-void _addMemberToFirestore() {
-  // Extracting data from text controllers
-  String? firstName = _firstNameController.text.isNotEmpty ? _firstNameController.text : null;
-  String? lastName = _lastNameController.text.isNotEmpty ? _lastNameController.text : null;
-  String? idNumber = _idNumberController.text.isNotEmpty ? _idNumberController.text : null;
-  String? bodyNumber = _bodyNumberController.text.isNotEmpty ? _bodyNumberController.text : null;
-  String? email = _emailController.text.isNotEmpty ? _emailController.text : null;
-  String? birthdate = _birthdateController.text.isNotEmpty ? _birthdateController.text : null;
-  String? address = _addressController.text.isNotEmpty ? _addressController.text : null;
-  String? emergencyContact = _emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : null;
-  String? codingScheme = _codingSchemeController.text.isNotEmpty ? _codingSchemeController.text : null;
-  String tag = _tagController.text.isNotEmpty ? _tagController.text : '';
-  String? driverPhoto = _driverPhotoController.text.isNotEmpty ? _driverPhotoController.text : null; // Get driver photo
-  String? phoneNumber = _phoneNumberController.text.isNotEmpty ? _phoneNumberController.text : null; // Added
-  String? uid = _uidController.text.isNotEmpty ? _uidController.text : null;  // Added
+  Future<void> _addMemberToFirebaseAndFirestore() async {
+    try {
+      // Create a new user in Firebase Authentication
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text,
+        password: 'defaultPassword', // Ideally, use a secure method to generate this
+      );
 
-    // Adding member to Firestore
-    FirebaseFirestore.instance.collection('DriversAccount').add({
-      'firstName': firstName,
-      'lastName': lastName,
-      'idNumber': idNumber,
-      'bodyNumber': bodyNumber,
-      'email': email,
-      'birthdate': birthdate,
-      'address': address,
-      'emergencyContact': emergencyContact,
-      'codingScheme': codingScheme,
-      'tag': tag,
-      'driverPhoto': driverPhoto,
-      'phoneNumber': phoneNumber,
-      'uid': uid,
-    }).then((value) {
-      print('Member added to Firestore');
-      Navigator.of(context).pop();
-    }).catchError((error) {
-      print('Error adding member to Firestore: $error');
-    });
+      String uid = userCredential.user!.uid;
+
+      // Add user data to Firestore with the same uid
+      FirebaseFirestore.instance.collection('DriversAccount').doc(uid).set({
+        'uid': uid,
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'idNumber': _idNumberController.text,
+        'bodyNumber': _bodyNumberController.text,
+        'email': _emailController.text,
+        'birthdate': _birthdateController.text,
+        'address': _addressController.text,
+        'phoneNumber': _phoneNumberController.text,
+        'codingScheme': _codingSchemeController.text,
+        'tag': _tagController.text,
+        'driverPhoto': _driverPhotoController.text,
+      }).then((value) {
+        print('Member added to Firestore');
+        Navigator.of(context).pop();
+      });
+    } catch (e) {
+      print('Error adding member to Firebase or Firestore: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+        ),
+      );
+    }
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +193,7 @@ void _addMemberToFirestore() {
       ),
     );
   }
-}
+
   void _handleBatchUpload(List<Map<String, dynamic>> data) {
     for (var driverData in data) {
       FirebaseFirestore.instance
@@ -211,3 +206,4 @@ void _addMemberToFirestore() {
       });
     }
   }
+}

@@ -8,10 +8,10 @@ class DriversAccount {
   final String email;
   final String birthdate;
   final String address;
-  final String emergencyContact;
+  final String phoneNumber;
   final String codingScheme;
   final String tag;
-  final String driverPhoto;
+  final String driver_photos;
   final String role;
    // New property
 
@@ -25,10 +25,10 @@ class DriversAccount {
     required this.email,
     required this.birthdate,
     required this.address,
-    required this.emergencyContact,
+    required this.phoneNumber,
     required this.codingScheme,
     required this.tag,
-    required this.driverPhoto, // Updated constructor
+    required this.driver_photos, // Updated constructor
     required this.role,
   });
 
@@ -43,10 +43,10 @@ class DriversAccount {
       email: json['email'] ?? '',
       birthdate: json['birthdate'] ?? '',
       address: json['address'] ?? '',
-      emergencyContact: json['emergencyContact'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
       codingScheme: json['codingScheme'] ?? '',
       tag: json['tag'] ?? '',
-      driverPhoto: json['driverPhoto'] ?? '', // Updated factory method
+      driver_photos: json['driver_photos'] ?? '', // Updated factory method
       role: json['role'] ?? '',
     );
   }
@@ -62,10 +62,10 @@ class DriversAccount {
       'email': email,
       'birthdate': birthdate,
       'address': address,
-      'emergencyContact': emergencyContact,
+      'phoneNumber': phoneNumber,
       'codingScheme': codingScheme,
       'tag': tag,
-      'driverPhoto': driverPhoto, // Updated toJson method
+      'driver_photos': driver_photos, // Updated toJson method
     };
   }
 }

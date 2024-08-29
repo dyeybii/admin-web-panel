@@ -14,11 +14,11 @@ class DriversForm extends StatefulWidget {
   final TextEditingController emailController;
   final TextEditingController birthdateController;
   final TextEditingController addressController;
-  final TextEditingController emergencyContactController;
+  final TextEditingController phoneNumberController;
   final TextEditingController codingSchemeController;
   final TextEditingController tagController;
-  final TextEditingController driverPhotoController;
-  final TextEditingController phoneNumberController;
+  final TextEditingController driver_photosController;
+
   final TextEditingController uidController;
   final void Function(String?)? onRoleSelected;
   final Function()? onAddPressed;
@@ -33,11 +33,10 @@ class DriversForm extends StatefulWidget {
     required this.emailController,
     required this.birthdateController,
     required this.addressController,
-    required this.emergencyContactController,
+    required this.phoneNumberController,
     required this.codingSchemeController,
     required this.tagController,
-    required this.driverPhotoController,
-    required this.phoneNumberController,
+    required this.driver_photosController,
     required this.uidController,
     required this.onRoleSelected,
     required this.onAddPressed,
@@ -93,7 +92,7 @@ class _DriversFormState extends State<DriversForm> {
       widget.emailController,
       widget.birthdateController,
       widget.addressController,
-      widget.emergencyContactController,
+      widget.phoneNumberController,
       widget.codingSchemeController,
       widget.tagController,
     ];
@@ -254,7 +253,7 @@ class _DriversFormState extends State<DriversForm> {
               const SizedBox(height: 10.0),
               buildTextField(widget.addressController, 'Address'),
               const SizedBox(height: 10.0),
-              buildTextField(widget.emergencyContactController, 'Emergency Contact #', maxLength: 11),
+              buildTextField(widget.phoneNumberController, 'Cellphone Number', maxLength: 11),
               const SizedBox(height: 10.0),
               buildTextField(widget.emailController, 'Email'),
               const SizedBox(height: 10.0),
@@ -351,7 +350,7 @@ class _DriversFormState extends State<DriversForm> {
                   String? downloadURL = await uploadImage(
                       _image!, 'driverPhoto_${userCredential.user?.uid}.${_imageFileName!.split('.').last}');
                   if (downloadURL != null) {
-                    widget.driverPhotoController.text = downloadURL;
+                    widget.driver_photosController.text = downloadURL;
                   } else {
                     _showAlertDialog('Image upload failed. Please try again.');
                     return;
@@ -366,7 +365,7 @@ class _DriversFormState extends State<DriversForm> {
                   context: context,
                   birthdate: widget.birthdateController.text,
                   bodyNumber: widget.bodyNumberController.text,
-                  driverPhoto: widget.driverPhotoController.text,
+                  driverPhoto: widget.driver_photosController.text,
                   email: widget.emailController.text,
                   firstName: widget.firstNameController.text,
                   idNumber: widget.idNumberController.text,

@@ -11,7 +11,7 @@ class EditDriverForm extends StatefulWidget {
   final String email;
   final String birthdate;
   final String address;
-  final String emergencyContact;
+  final String phoneNumber;
   final String codingScheme;
   final String tag;
   final String driverPhoto;
@@ -27,7 +27,7 @@ class EditDriverForm extends StatefulWidget {
     required this.email,
     required this.birthdate,
     required this.address,
-    required this.emergencyContact,
+    required this.phoneNumber,
     required this.codingScheme,
     required this.tag,
     required this.driverPhoto,
@@ -47,7 +47,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
   late TextEditingController _emailController;
   late TextEditingController _birthdateController;
   late TextEditingController _addressController;
-  late TextEditingController _emergencyContactController;
+  late TextEditingController _phoneNumberController;
   late TextEditingController _codingSchemeController;
   late TextEditingController _tagController;
   late TextEditingController _driverPhotoController;
@@ -65,7 +65,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _emailController = TextEditingController(text: widget.email);
     _birthdateController = TextEditingController(text: widget.birthdate);
     _addressController = TextEditingController(text: widget.address);
-    _emergencyContactController = TextEditingController(text: widget.emergencyContact);
+    _phoneNumberController = TextEditingController(text: widget.phoneNumber);
     _codingSchemeController = TextEditingController(text: widget.codingScheme);
     _tagController = TextEditingController(text: widget.tag);
     _driverPhotoController = TextEditingController(text: widget.driverPhoto);
@@ -81,7 +81,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _emailController.dispose();
     _birthdateController.dispose();
     _addressController.dispose();
-    _emergencyContactController.dispose();
+    _phoneNumberController.dispose();
     _codingSchemeController.dispose();
     _tagController.dispose();
     _driverPhotoController.dispose();
@@ -106,7 +106,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
           'email': _emailController.text,
           'birthdate': _birthdateController.text,
           'address': _addressController.text,
-          'emergencyContact': _emergencyContactController.text,
+          'phoneNumber': _phoneNumberController.text,
           'codingScheme': _codingSchemeController.text,
           'tag': _tagController.text,
           'driverPhoto': _driverPhotoController.text,
@@ -123,7 +123,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
           'email': _emailController.text,
           'birthdate': _birthdateController.text,
           'address': _addressController.text,
-          'emergencyContact': _emergencyContactController.text,
+          'phoneNumber': _phoneNumberController.text,
           'codingScheme': _codingSchemeController.text,
           'tag': _tagController.text,
           'driverPhoto': _driverPhotoController.text,
@@ -253,7 +253,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
         const SizedBox(height: 10.0),
         buildTextField(_addressController, 'Address'),
         const SizedBox(height: 10.0),
-        buildTextField(_emergencyContactController, 'Emergency Contact #', maxLength: 11),
+        buildTextField(_phoneNumberController, 'Phone Number', maxLength: 11),
         const SizedBox(height: 10.0),
         buildTextField(_emailController, 'Email'),
         const SizedBox(height: 10.0),

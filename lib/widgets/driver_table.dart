@@ -1,15 +1,16 @@
+import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:admin_web_panel/Style/data_grid_styles.dart';
-import 'package:admin_web_panel/widgets/drivers_account.dart';
-import 'package:admin_web_panel/widgets/edit_drivers_form.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 
 class DriverTable extends StatefulWidget {
   final List<DriversAccount> driversAccountList;
 
-  const DriverTable({Key? key, required this.driversAccountList}) : super(key: key);
+  const DriverTable({Key? key, required this.driversAccountList})
+      : super(key: key);
 
   @override
   _DriverTableState createState() => _DriverTableState();
@@ -17,172 +18,282 @@ class DriverTable extends StatefulWidget {
 
 class _DriverTableState extends State<DriverTable> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  void _addDataToFirebase(DriversAccount newData) async {
-    try {
-      await _firestore.collection('DriversAccount').add(newData.toJson());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data added successfully')),
-      );
-    } catch (e) {
-      print('Error adding data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding data: $e')),
-      );
-    }
-  }
-
-  void _deleteData(DriversAccount data) async {
-    try {
-      QuerySnapshot querySnapshot = await _firestore
-          .collection('DriversAccount')
-          .where('firstName', isEqualTo: data.firstName)
-          .where('lastName', isEqualTo: data.lastName)
-          .where('idNumber', isEqualTo: data.idNumber)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        await _firestore.collection('DriversAccount').doc(querySnapshot.docs.first.id).delete();
-        User? user = await _auth.currentUser;
-        if (user != null) {
-          await user.delete();
-          print('User deleted from Firebase Authentication');
-        } else {
-          print('User not found in Firebase Authentication');
-        }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data deleted successfully')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data not found')),
-        );
-      }
-    } catch (e) {
-      print('Error deleting data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting data: $e')),
-      );
-    }
-  }
-
-void _editData(DriversAccount data) async {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Edit Driver Data'),
-        content: EditDriverForm(
-          driverId: data.driverId,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          idNumber: data.idNumber,
-          bodyNumber: data.bodyNumber,
-          email: data.email,
-          birthdate: data.birthdate,
-          address: data.address,
-          emergencyContact: data.emergencyContact,
-          codingScheme: data.codingScheme,
-          tag: data.tag,
-          driverPhoto: data.driverPhoto,
-          role: data.role,
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _updateDataInFirebase(data);
-              Navigator.of(context).pop();
-            },
-            child: Text('Save'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-  void _updateDataInFirebase(DriversAccount newData) async {
-    try {
-      QuerySnapshot querySnapshot = await _firestore
-          .collection('DriversAccount')
-          .where('firstName', isEqualTo: newData.firstName)
-          .where('lastName', isEqualTo: newData.lastName)
-          .where('idNumber', isEqualTo: newData.idNumber)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        await _firestore
-            .collection('DriversAccount')
-            .doc(querySnapshot.docs.first.id)
-            .update(newData.toJson());
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data updated successfully')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data not found')),
-        );
-      }
-    } catch (e) {
-      print('Error updating data: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating data: $e')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SfDataGrid(
-        source: _DriverDataSource(widget.driversAccountList, _deleteData, _editData, context),
+        source: _DriverDataSource(widget.driversAccountList, context),
         columns: <GridColumn>[
           DataGridStyles.buildDataColumn('firstName', 'First Name'),
           DataGridStyles.buildDataColumn('lastName', 'Last Name'),
           DataGridStyles.buildDataColumn('idNumber', 'ID Number'),
           DataGridStyles.buildDataColumn('bodyNumber', 'Body Number'),
-          DataGridStyles.buildDataColumn('email', 'Email'),
-          DataGridStyles.buildDataColumn('birthdate', 'Date of Birth'),
-          DataGridStyles.buildDataColumn('address', 'Address'),
-          DataGridStyles.buildDataColumn('emergencyContact', 'Contact #'),
-          DataGridStyles.buildDataColumn('codingScheme', 'Coding Scheme'),
           DataGridStyles.buildDataColumn('tag', 'Tag'),
-          GridColumn(
-            columnName: 'Actions',
-            width: 100,
-            label: Container(
-              padding: const EdgeInsets.all(8.0),
-              alignment: Alignment.center,
-              child: const Text('Actions'),
-            ),
-          ),
         ],
         columnWidthMode: ColumnWidthMode.lastColumnFill,
         gridLinesVisibility: GridLinesVisibility.none,
         headerGridLinesVisibility: GridLinesVisibility.none,
         headerRowHeight: 60,
+        onCellTap: (DataGridCellTapDetails details) {
+          if (details.rowColumnIndex.rowIndex != 0) {
+            final driver =
+                widget.driversAccountList[details.rowColumnIndex.rowIndex - 1];
+            _showDriverDetailsDialog(driver, context);
+          }
+        },
+      ),
+    );
+  }
+
+  void _showDriverDetailsDialog(DriversAccount driver, BuildContext context) {
+    TextEditingController firstNameController =
+        TextEditingController(text: driver.firstName);
+    TextEditingController lastNameController =
+        TextEditingController(text: driver.lastName);
+    TextEditingController idNumberController =
+        TextEditingController(text: driver.idNumber);
+    TextEditingController bodyNumberController =
+        TextEditingController(text: driver.bodyNumber);
+    TextEditingController emailController =
+        TextEditingController(text: driver.email);
+    TextEditingController birthdateController =
+        TextEditingController(text: driver.birthdate);
+    TextEditingController addressController =
+        TextEditingController(text: driver.address);
+    TextEditingController phoneNumberController =
+        TextEditingController(text: driver.phoneNumber);
+    TextEditingController codingSchemeController =
+        TextEditingController(text: driver.codingScheme);
+    TextEditingController tagController =
+        TextEditingController(text: driver.tag);
+    TextEditingController driver_photosController =
+        TextEditingController(text: driver.driver_photos);
+
+    Future<void> _pickImage() async {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          driver_photosController.text = pickedFile.path;
+        });
+      }
+    }
+
+    void _updateDriverData() async {
+      try {
+        await _firestore
+            .collection('DriversAccount')
+            .doc(driver.driverId)
+            .update({
+          'firstName': firstNameController.text,
+          'lastName': lastNameController.text,
+          'idNumber': idNumberController.text,
+          'bodyNumber': bodyNumberController.text,
+          'email': emailController.text,
+          'birthdate': birthdateController.text,
+          'address': addressController.text,
+          'phoneNumber': phoneNumberController.text,
+          'codingScheme': codingSchemeController.text,
+          'tag': tagController.text,
+          'driver_photos': driver_photosController.text,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data updated successfully')),
+        );
+        Navigator.of(context).pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating data: $e')),
+        );
+      }
+    }
+
+    void _deleteDriverData() async {
+      try {
+        await _firestore
+            .collection('DriversAccount')
+            .doc(driver.driverId)
+            .delete();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+        Navigator.of(context).pop();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting account: $e')),
+        );
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Personal Information'),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[200],
+                      child: ClipOval(
+                        child: driver.driver_photos.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: driver.driver_photos,
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Image.asset('images/default_avatar.png'),
+                                fit: BoxFit.cover,
+                                width: 100,
+                                height: 100,
+                              )
+                            : Image.asset(
+                                'images/default_avatar.png',
+                                fit: BoxFit.cover,
+                                width: 100,
+                                height: 100,
+                              ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: _pickImage,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Form(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'First Name', firstNameController),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Last Name', lastNameController),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'ID Number', idNumberController),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Body Number', bodyNumberController),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Email', emailController),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Date of Birth', birthdateController),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Address', addressController),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildEditableTextField('Tag', tagController),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEditableTextField('phoneNumberController',
+                                phoneNumberController),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildEditableTextField(
+                                'Coding Scheme', codingSchemeController),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: _deleteDriverData,
+              child: const Text('Delete Account'),
+            ),
+            ElevatedButton(
+              onPressed: _updateDriverData,
+              child: const Text('Save Changes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEditableTextField(
+      String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        textInputAction: TextInputAction.next,
       ),
     );
   }
 }
 
 class _DriverDataSource extends DataGridSource {
-  _DriverDataSource(this.source, this.deleteData, this.editData, this.context) {
+  _DriverDataSource(this.source, this.context) {
     _buildDataGridRows();
   }
 
   final List<DriversAccount> source;
-  final Function(DriversAccount) deleteData;
-  final Function(DriversAccount) editData;
   final BuildContext context;
   List<DataGridRow> dataGridRows = [];
 
@@ -193,13 +304,7 @@ class _DriverDataSource extends DataGridSource {
         _buildDataCell('lastName', data.lastName),
         _buildDataCell('idNumber', data.idNumber),
         _buildDataCell('bodyNumber', data.bodyNumber),
-        _buildDataCell('email', data.email),
-        _buildDataCell('birthdate', data.birthdate),
-        _buildDataCell('address', data.address),
-        _buildDataCell('emergencyContact', data.emergencyContact),
-        _buildDataCell('codingScheme', data.codingScheme),
         _buildDataCell('tag', data.tag),
-        _buildActionCell(data, context),
       ]);
     }).toList();
   }
@@ -210,80 +315,6 @@ class _DriverDataSource extends DataGridSource {
       value: Center(
         child: Text(value.toString()),
       ),
-    );
-  }
-
-  DataGridCell<Widget> _buildActionCell(DriversAccount data, BuildContext context) {
-    return DataGridCell<Widget>(
-      columnName: 'Actions',
-      value: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () {
-              _showDeleteConfirmationDialog(data, context);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              editData(data);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(DriversAccount data, BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Delete'),
-          content: const Text('Are you sure you want to delete this data?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                bool confirmDelete = await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Confirm Delete'),
-                    content: const Text('This action cannot be undone. Are you sure?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirmDelete == true) {
-                  deleteData(data);
-
-                  source.removeWhere((d) => d.firstName == data.firstName && d.lastName == data.lastName && d.idNumber == data.idNumber);
-                  _buildDataGridRows();
-                  notifyListeners();
-                }
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
     );
   }
 

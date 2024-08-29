@@ -39,7 +39,7 @@ class BatchUpload extends StatelessWidget {
               'email': row[4]?.value?.toString(),
               'birthdate': row[5]?.value?.toString(),
               'address': row[6]?.value?.toString(),
-              'emergencyContact': row[7]?.value?.toString(),
+              'phoneNumber': row[7]?.value?.toString(),
               'codingScheme': row[8]?.value?.toString(),
               'tag': row[9]?.value?.toString(),
             };

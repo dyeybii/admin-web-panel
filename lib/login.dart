@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   static const String id = '/login';
@@ -31,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: Center(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -50,8 +51,7 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Flexible(
                           child: Container(
-                            width:
-                                isSmallScreen ? double.infinity : containerSize,
+                            width: isSmallScreen ? double.infinity : containerSize,
                             padding: const EdgeInsets.all(20.0),
                             child: SingleChildScrollView(
                               child: _buildLoginForm(isSmallScreen),
@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
                         fontFamily: 'Poppins',
                         fontSize: isSmallScreen ? 20 : 30,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 176, 176, 176),
+                        color: const Color.fromARGB(255, 176, 176, 176),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                         fontFamily: 'Poppins',
                         fontSize: isSmallScreen ? 20 : 30,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 176, 176, 176),
+                        color: const Color.fromARGB(255, 176, 176, 176),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -145,8 +145,7 @@ class _LoginPageState extends State<LoginPage> {
             onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
           ),
           const SizedBox(height: 20.0),
-          _buildPasswordField(
-              onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
+          _buildPasswordField(onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
           const SizedBox(height: 20.0),
           _buildLoginButton(),
           if (_errorMessage.isNotEmpty)
@@ -216,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
         foregroundColor: MaterialStateProperty.all<Color>(
             const Color.fromARGB(255, 255, 255, 255)),
       ),
-      onPressed: _signInWithEmailAndPassword,
+      onPressed: _loading ? null : _signInWithEmailAndPassword,
       child: _loading ? const CircularProgressIndicator() : const Text('Login'),
     );
   }
@@ -229,12 +228,30 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
+        // Sign in with Firebase Authentication
         await _auth.signInWithEmailAndPassword(
           email: _usernameController.text,
           password: _passwordController.text,
         );
-        print('User ${_auth.currentUser!.uid} signed in');
-        Navigator.pushReplacementNamed(context, '/dashboard');
+
+        // Get user details from Firestore (check admin privileges)
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore.instance
+            .collection('admin')
+            .where('email', isEqualTo: _usernameController.text)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          // User is an admin, proceed to dashboard
+          print('Admin user found in Firestore');
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        } else {
+          // User is not an admin
+          setState(() {
+            _loading = false;
+            _errorMessage = 'Access Restricted: Admins Only.';
+          });
+          await _auth.signOut();
+        }
       } on FirebaseAuthException catch (e) {
         setState(() {
           _loading = false;

@@ -72,7 +72,7 @@ class _DriversFormState extends State<DriversForm> {
 
   Future<String?> uploadImage(Uint8List imageData, String fileName) async {
     try {
-      Reference ref = FirebaseStorage.instance.ref().child('driverPhotos/$fileName');
+      Reference ref = FirebaseStorage.instance.ref().child('driver_photos/$fileName');
       UploadTask uploadTask = ref.putData(imageData, SettableMetadata(contentType: 'image/${fileName.split('.').last}'));
       TaskSnapshot snapshot = await uploadTask;
       String downloadURL = await snapshot.ref.getDownloadURL();

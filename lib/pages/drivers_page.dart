@@ -30,7 +30,10 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
-  final TextEditingController _uidController = TextEditingController(); // Add this line
+  final TextEditingController _uidController = TextEditingController();
+
+  final TextEditingController _adminEmailController = TextEditingController(); // Add these
+  final TextEditingController _adminPasswordController = TextEditingController(); // Add these
 
   @override
   void initState() {
@@ -91,7 +94,7 @@ class _DriversPageState extends State<DriversPage> {
               codingSchemeController: _codingSchemeController,
               tagController: _tagController,
               driver_photosController: _driverPhotoController,
-              uidController: _uidController, // Add this line
+              uidController: _uidController,
               onRoleSelected: (role) {
                 _tagController.text = role!;
               },
@@ -113,9 +116,51 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
+  void _showAddAdminDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Add Admin'),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _adminEmailController,
+                decoration: const InputDecoration(labelText: 'Admin Email *'),
+              ),
+              TextField(
+                controller: _adminPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Admin Password *'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // Add function to create admin
+                },
+                child: const Text('Add Admin'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _addMemberToFirebaseAndFirestore() async {
     try {
-      // Create a new user in Firebase Authentication
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -124,7 +169,6 @@ class _DriversPageState extends State<DriversPage> {
 
       String uid = userCredential.user!.uid;
 
-      // Add user data to Firestore with the same uid
       FirebaseFirestore.instance.collection('DriversAccount').doc(uid).set({
         'uid': uid,
         'firstName': _firstNameController.text,
@@ -163,6 +207,11 @@ class _DriversPageState extends State<DriversPage> {
             ElevatedButton(
               onPressed: _showAddMemberDialog,
               child: const Text('Add Member'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: _showAddAdminDialog, // Show Add Admin dialog
+              child: const Text('Add Admin'),
             ),
             const SizedBox(width: 10),
             ElevatedButton(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class DriverCard extends StatelessWidget {
-  final String driverPhoto;
+  final String driver_photos;
   final String firstName;
   final String lastName;
   final bool isOnline;
 
   const DriverCard({
     Key? key,
-    required this.driverPhoto,
+    required this.driver_photos,
     required this.firstName,
     required this.lastName,
     required this.isOnline,
@@ -28,7 +28,7 @@ class DriverCard extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 Image.network(
-                  driverPhoto,
+                  driver_photos,
                   width: 100,
                   height: 100,
                   fit: BoxFit.cover,

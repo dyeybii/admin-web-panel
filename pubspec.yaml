@@ -30,31 +30,32 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^4.15.5
-  syncfusion_flutter_datagrid: ^25.1.38
-  firebase_core: ^2.28.0
-  firebase_database: ^10.5.0
+  cloud_firestore: ^5.3.0
+  syncfusion_flutter_datagrid: ^26.2.12
+  firebase_core: ^3.4.0
+  firebase_database: ^11.1.0
   cupertino_icons:
   flutter_admin_scaffold:
-  firebase_auth: ^4.19.0
-  cloud_firestore_web: ^3.11.0
+  firebase_auth: ^5.2.0
+  cloud_firestore_web: ^4.1.2
   google_sign_in: ^6.2.1
   excel: ^4.0.3
   path_provider: ^2.1.2
-  syncfusion_flutter_xlsio: ^25.1.41
+  syncfusion_flutter_xlsio: ^26.2.12
   google_fonts: ^6.2.1
   intl: ^0.19.0
   universal_html: ^2.2.4
   open_file: ^3.3.2
   file_picker: ^8.0.3
   image_picker: ^1.1.1
-  fl_chart: ^0.68.0
-  firebase_storage: ^11.7.6
+  fl_chart: ^0.69.0
+  firebase_storage: ^12.2.0
   cached_network_image: ^3.3.1
+  cloud_functions: ^5.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 
 # For information on the generic Dart part of this file, see the

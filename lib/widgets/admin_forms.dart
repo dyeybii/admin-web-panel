@@ -1,52 +1,17 @@
 import 'package:admin_web_panel/widgets/drivers_account.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:admin_web_panel/Style/data_grid_styles.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
-class DriverTable extends StatefulWidget {
-  final List<DriversAccount> driversAccountList;
 
-  const DriverTable({Key? key, required this.driversAccountList})
-      : super(key: key);
-
-  @override
-  _DriverTableState createState() => _DriverTableState();
-}
-
-class _DriverTableState extends State<DriverTable> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SfDataGrid(
-        source: _DriverDataSource(widget.driversAccountList, context),
-        columns: <GridColumn>[
-          DataGridStyles.buildDataColumn('firstName', 'First Name'),
-          DataGridStyles.buildDataColumn('lastName', 'Last Name'),
-          DataGridStyles.buildDataColumn('idNumber', 'ID Number'),
-          DataGridStyles.buildDataColumn('bodyNumber', 'Body Number'),
-          DataGridStyles.buildDataColumn('tag', 'Tag'),
-        ],
-        columnWidthMode: ColumnWidthMode.lastColumnFill,
-        gridLinesVisibility: GridLinesVisibility.none,
-        headerGridLinesVisibility: GridLinesVisibility.none,
-        headerRowHeight: 60,
-        onCellTap: (DataGridCellTapDetails details) {
-          if (details.rowColumnIndex.rowIndex != 0) {
-            final driver =
-                widget.driversAccountList[details.rowColumnIndex.rowIndex - 1];
-            _showDriverDetailsDialog(driver, context);
-          }
-        },
-      ),
-    );
-  }
-
-  void _showDriverDetailsDialog(DriversAccount driver, BuildContext context) {
+class AdminForms {
+  static Future<void> showDriverDetailsDialog(
+    DriversAccount driver,
+    BuildContext context,
+    DatabaseReference databaseReference,
+    Function setState,
+  ) async {
     TextEditingController firstNameController =
         TextEditingController(text: driver.firstName);
     TextEditingController lastNameController =
@@ -82,10 +47,7 @@ class _DriverTableState extends State<DriverTable> {
 
     void _updateDriverData() async {
       try {
-        await _firestore
-            .collection('DriversAccount')
-            .doc(driver.driverId)
-            .update({
+        await databaseReference.child(driver.driverId).update({
           'firstName': firstNameController.text,
           'lastName': lastNameController.text,
           'idNumber': idNumberController.text,
@@ -112,10 +74,7 @@ class _DriverTableState extends State<DriverTable> {
 
     void _deleteDriverData() async {
       try {
-        await _firestore
-            .collection('DriversAccount')
-            .doc(driver.driverId)
-            .delete();
+        await databaseReference.child(driver.driverId).remove();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account deleted successfully')),
         );
@@ -234,15 +193,16 @@ class _DriverTableState extends State<DriverTable> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: _buildEditableTextField('Tag', tagController),
+                            child: _buildEditableTextField(
+                                'Tag', tagController),
                           ),
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            child: _buildEditableTextField('phoneNumberController',
-                                phoneNumberController),
+                            child: _buildEditableTextField(
+                                'Phone Number', phoneNumberController),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -272,7 +232,7 @@ class _DriverTableState extends State<DriverTable> {
     );
   }
 
-  Widget _buildEditableTextField(
+  static Widget _buildEditableTextField(
       String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -284,51 +244,6 @@ class _DriverTableState extends State<DriverTable> {
         ),
         textInputAction: TextInputAction.next,
       ),
-    );
-  }
-}
-
-class _DriverDataSource extends DataGridSource {
-  _DriverDataSource(this.source, this.context) {
-    _buildDataGridRows();
-  }
-
-  final List<DriversAccount> source;
-  final BuildContext context;
-  List<DataGridRow> dataGridRows = [];
-
-  void _buildDataGridRows() {
-    dataGridRows = source.map<DataGridRow>((data) {
-      return DataGridRow(cells: [
-        _buildDataCell('firstName', data.firstName),
-        _buildDataCell('lastName', data.lastName),
-        _buildDataCell('idNumber', data.idNumber),
-        _buildDataCell('bodyNumber', data.bodyNumber),
-        _buildDataCell('tag', data.tag),
-      ]);
-    }).toList();
-  }
-
-  DataGridCell<Widget> _buildDataCell(String columnName, dynamic value) {
-    return DataGridCell<Widget>(
-      columnName: columnName,
-      value: Center(
-        child: Text(value.toString()),
-      ),
-    );
-  }
-
-  @override
-  List<DataGridRow> get rows => dataGridRows;
-
-  @override
-  DataGridRowAdapter buildRow(DataGridRow row) {
-    return DataGridRowAdapter(
-      cells: row.getCells().map<Widget>((cell) {
-        return Center(
-          child: cell.value as Widget,
-        );
-      }).toList(),
     );
   }
 }

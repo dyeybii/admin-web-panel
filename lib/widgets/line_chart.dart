@@ -62,21 +62,48 @@ class _LineChartSample2State extends State<LineChartSample2> {
       fontWeight: FontWeight.bold,
       fontSize: 16,
     );
-    Widget text;
-    switch (value.toInt()) {
-      case 2:
-        text = const Text('MAR', style: style);
-        break;
-      case 5:
-        text = const Text('JUN', style: style);
-        break;
-      case 8:
-        text = const Text('SEP', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
-    }
+Widget text;
+switch (value.toInt()) {
+  case 0:
+    text = const Text('JAN', style: style);
+    break;
+  case 1:
+    text = const Text('FEB', style: style);
+    break;
+  case 2:
+    text = const Text('MAR', style: style);
+    break;
+  case 3:
+    text = const Text('APR', style: style);
+    break;
+  case 4:
+    text = const Text('MAY', style: style);
+    break;
+  case 5:
+    text = const Text('JUN', style: style);
+    break;
+  case 6:
+    text = const Text('JUL', style: style);
+    break;
+  case 7:
+    text = const Text('AUG', style: style);
+    break;
+  case 8:
+    text = const Text('SEP', style: style);
+    break;
+  case 9:
+    text = const Text('OCT', style: style);
+    break;
+  case 10:
+    text = const Text('NOV', style: style);
+    break;
+  case 11:
+    text = const Text('DEC', style: style);
+    break;
+  default:
+    text = const Text('', style: style);
+    break;
+}
 
     return SideTitleWidget(
       axisSide: meta.axisSide,

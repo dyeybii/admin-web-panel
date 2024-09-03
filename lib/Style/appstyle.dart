@@ -14,6 +14,7 @@ class Appstyle{
     Colors.green.shade100,
     Colors.blue.shade100,
     Colors.blueGrey.shade100,
+Colors.blueGrey.shade100,
   ];
 
 

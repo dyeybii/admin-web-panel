@@ -23,7 +23,7 @@ class ExcelDownloader {
     sheet.getRangeByName('E1').setText('Body Number');
     sheet.getRangeByName('F1').setText('Coding Scheme');
     sheet.getRangeByName('G1').setText('Address');
-    sheet.getRangeByName('H1').setText('Contact #');
+    sheet.getRangeByName('H1').setText('Mobile Number');
     sheet.getRangeByName('I1').setText('Email');
     sheet.getRangeByName('J1').setText('Tag');
 

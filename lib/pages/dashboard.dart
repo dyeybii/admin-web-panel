@@ -1,5 +1,4 @@
-import 'package:admin_web_panel/widgets/card.dart';
-import 'package:admin_web_panel/widgets/line_chart_sample2.dart';
+import 'package:admin_web_panel/widgets/line_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -15,289 +14,132 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   final CollectionReference _driversRef =
       FirebaseFirestore.instance.collection('DriversAccount');
-  List<Map<String, dynamic>> _drivers = [];
-  int _currentIndex = 0;
-  int _pageSize = 10;
-
-  void _nextRange() {
-    setState(() {
-      _currentIndex =
-          (_currentIndex + _pageSize).clamp(0, _drivers.length - _pageSize);
-    });
-  }
-
-  void _previousRange() {
-    setState(() {
-      _currentIndex =
-          (_currentIndex - _pageSize).clamp(0, _drivers.length - _pageSize);
-    });
-  }
+  int _totalRegisteredDrivers = 0;
+  int _totalOnlineRiders = 0;
+  int _totalCompletedRides = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchDrivers();
+    _fetchData();
   }
 
-  void _fetchDrivers() async {
+  void _fetchData() async {
     try {
       final QuerySnapshot snapshot = await _driversRef.get();
-      final List<Map<String, dynamic>> driversList = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'driverPhoto': data['driverPhoto'],
-          'firstName': data['firstName'],
-          'lastName': data['lastName'],
-          'isOnline': data['isOnline'] ?? false,
-        };
-      }).toList();
-
       setState(() {
-        _drivers = driversList;
+        _totalRegisteredDrivers = snapshot.size;
+        _totalOnlineRiders =
+            snapshot.docs.where((doc) => doc['isOnline'] == true).length;
+        _totalCompletedRides = snapshot.docs
+            .where((doc) => doc['ridesCompleted'] != null)
+            .map((doc) => doc['ridesCompleted'] as int)
+            .reduce((a, b) => a + b);
       });
     } catch (e) {
-      print('Failed to fetch drivers: $e');
+      print('Failed to fetch data: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> driversRange1 = _drivers.sublist(
-        _currentIndex, (_currentIndex + _pageSize).clamp(0, _drivers.length));
-    final List<Map<String, dynamic>> driversRange2 = _drivers.sublist(
-        (_currentIndex + _pageSize).clamp(0, _drivers.length),
-        (_currentIndex + 2 * _pageSize).clamp(0, _drivers.length));
-
     return Scaffold(
       body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 600,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(60.0),
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 65, 65, 65),
-                      width: 2.0,
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Daily Active Drivers',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Divider(
-                          color: Colors.grey,
-                          thickness: 2,
-                          indent: 400,
-                          endIndent: 400,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: LineChartSample2(),
-                        )
-                      ],
-                    ),
-                  ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            Text(
+              'Dashboard',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
+            // Use a responsive GridView
+            GridView.count(
+              crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2, 
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 3, // Adjust aspect ratio for better card size
+              children: [
+                _buildStatCard(
+                  'Total Registered Drivers in App',
+                  _totalRegisteredDrivers.toString(),
+                  const Color(0xBF0863B7),
                 ),
-              ),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        height: 300,
-                        width: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(60.0),
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 65, 65, 65),
-                            width: 2.0,
-                          ),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Daily Rides',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Divider(
-                                color: Colors.grey,
-                                thickness: 2,
-                                indent: 100,
-                                endIndent: 100,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
-                        height: 300,
-                        width: 300,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(60.0),
-                          border: Border.all(
-                            color: const Color.fromARGB(255, 65, 65, 65),
-                            width: 2.0,
-                          ),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Riders Rating',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              Divider(
-                                color: Colors.grey,
-                                thickness: 2,
-                                indent: 100,
-                                endIndent: 100,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                _buildStatCard(
+                  'Total Online Riders',
+                  _totalOnlineRiders.toString(),
+                  const Color(0xBF207C00),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 400,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(60.0),
-                    border: Border.all(
-                      color: const Color.fromARGB(255, 65, 65, 65),
-                      width: 2.0,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Online Tricycle Drivers',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const Divider(
-                          color: Colors.grey,
-                          thickness: 2,
-                          indent: 400,
-                          endIndent: 400,
-                        ),
-                        Flexible(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: driversRange1
-                                      .map((driver) => DriverCard(
-                                            driverPhoto: driver[
-                                                    'driverPhoto'] ??
-                                                'https://via.placeholder.com/100',
-                                            firstName:
-                                                driver['firstName'] ?? '',
-                                            lastName: driver['lastName'] ?? '',
-                                            isOnline:
-                                                driver['isOnline'] ?? false,
-                                          ))
-                                      .toList(),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: driversRange2
-                                      .map((driver) => DriverCard(
-                                            driverPhoto: driver[
-                                                    'driverPhoto'] ??
-                                                'https://via.placeholder.com/100',
-                                            firstName:
-                                                driver['firstName'] ?? '',
-                                            lastName: driver['lastName'] ?? '',
-                                            isOnline:
-                                                driver['isOnline'] ?? false,
-                                          ))
-                                      .toList(),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    onPressed: _previousRange,
-                                    icon: const Icon(Icons.arrow_back),
-                                    color: Colors.black,
-                                  ),
-                                  IconButton(
-                                    onPressed: _nextRange,
-                                    icon: const Icon(Icons.arrow_forward),
-                                    color: Colors.black,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                _buildStatCard(
+                  'Total Completed Rides',
+                  _totalCompletedRides.toString(),
+                  const Color(0xBF525252),
                 ),
-              ),
-            ],
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildGraphCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 28,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphCard() {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16.0),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Daily Active Drivers',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 10),
+            LineChartSample2(),
+          ],
         ),
       ),
     );

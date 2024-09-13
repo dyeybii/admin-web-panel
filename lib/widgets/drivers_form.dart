@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import
+
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -396,6 +398,8 @@ class _DriversFormState extends State<DriversForm> {
   }
 }
 
+
+// Update _addMemberToRealtimeDatabase function
 Future<void> _addMemberToRealtimeDatabase({
   required BuildContext context,
   required String? birthdate,
@@ -408,9 +412,11 @@ Future<void> _addMemberToRealtimeDatabase({
   required String? phoneNumber,
   required String? uid,
 }) async {
-  DatabaseReference databaseReference = FirebaseDatabase.instance.ref();
+  DatabaseReference realtimeDatabaseRef = FirebaseDatabase.instance.ref();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  databaseReference.child('driversAccount').push().set({
+  // Adding to Realtime Database
+  realtimeDatabaseRef.child('driversAccount').push().set({
     'birthdate': birthdate,
     'bodyNumber': bodyNumber,
     'driverPhoto': driverPhoto,
@@ -422,8 +428,25 @@ Future<void> _addMemberToRealtimeDatabase({
     'uid': uid,
   }).then((_) {
     print('Member added to Realtime Database');
-    
   }).catchError((error) {
     print('Error adding member to Realtime Database: $error');
   });
+
+  // Adding to Firestore
+  try {
+    await firestore.collection('driversAccount').doc(uid).set({
+      'birthdate': birthdate,
+      'bodyNumber': bodyNumber,
+      'driverPhoto': driverPhoto,
+      'email': email,
+      'firstName': firstName,
+      'idNumber': idNumber,
+      'lastName': lastName,
+      'phoneNumber': phoneNumber,
+      'uid': uid,
+    });
+    print('Member added to Firestore');
+  } catch (e) {
+    print('Error adding member to Firestore: $e');
+  }
 }

@@ -3,9 +3,9 @@ import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -18,6 +18,7 @@ class DriversPage extends StatefulWidget {
 
 class _DriversPageState extends State<DriversPage> {
   List<DriversAccount> _driversAccountList = [];
+  
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -32,8 +33,10 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _driverPhotoController = TextEditingController();
   final TextEditingController _uidController = TextEditingController();
 
-  final TextEditingController _adminEmailController = TextEditingController(); // Add these
-  final TextEditingController _adminPasswordController = TextEditingController(); // Add these
+  final TextEditingController _adminEmailController = TextEditingController(); 
+  final TextEditingController _adminPasswordController = TextEditingController(); 
+
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
@@ -42,7 +45,7 @@ class _DriversPageState extends State<DriversPage> {
   }
 
   Future<void> _fetchDriversData() async {
-    List<DriversAccount> driversList = await _getDriversFromFirestore();
+    List<DriversAccount> driversList = await _getDriversFromRealtimeDatabase();
     if (mounted) {
       setState(() {
         _driversAccountList = driversList;
@@ -50,16 +53,15 @@ class _DriversPageState extends State<DriversPage> {
     }
   }
 
-  Future<List<DriversAccount>> _getDriversFromFirestore() async {
+  Future<List<DriversAccount>> _getDriversFromRealtimeDatabase() async {
     List<DriversAccount> driversList = [];
-
-    QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('DriversAccount').get();
-    for (var doc in snapshot.docs) {
-      driversList
-          .add(DriversAccount.fromJson(doc.data() as Map<String, dynamic>));
+    final snapshot = await _databaseRef.child('driversAccount').get();
+    if (snapshot.exists) {
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      driversList = data.entries.map((entry) {
+        return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
+      }).toList();
     }
-
     return driversList;
   }
 
@@ -100,7 +102,7 @@ class _DriversPageState extends State<DriversPage> {
               },
               onAddPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _addMemberToFirebaseAndFirestore();
+                  _addMemberToFirebaseAndRealtimeDatabase();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -159,17 +161,18 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
-  Future<void> _addMemberToFirebaseAndFirestore() async {
+  Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Attempt to create a new user with the provided email and password
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
-        password: 'defaultPassword', // Ideally, use a secure method to generate this
+        password: 'defaultPassword', // Consider prompting the user for a password or using a more secure method
       );
 
       String uid = userCredential.user!.uid;
 
-      FirebaseFirestore.instance.collection('DriversAccount').doc(uid).set({
+      // Store user details in Realtime Database
+      await _databaseRef.child('driversAccount').child(uid).set({
         'uid': uid,
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
@@ -181,13 +184,33 @@ class _DriversPageState extends State<DriversPage> {
         'phoneNumber': _phoneNumberController.text,
         'codingScheme': _codingSchemeController.text,
         'tag': _tagController.text,
-        'driverPhoto': _driverPhotoController.text,
-      }).then((value) {
-        print('Member added to Firestore');
+        'driverPhotos': _driverPhotoController.text,
+        'role': 'driver', // Ensure this is set correctly
+        'deviceToken': '', // Set appropriately or remove if not used
+        'driverId': '', // Set appropriately or remove if not used
+      }).then((_) {
+        print('Member added to Realtime Database');
         Navigator.of(context).pop();
+      }).catchError((error) {
+        print('Error writing to Realtime Database: $error');
       });
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('The email address is already in use by another account.'),
+          ),
+        );
+      } else {
+        print('Error adding member to Firebase or Realtime Database: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.message}'),
+          ),
+        );
+      }
     } catch (e) {
-      print('Error adding member to Firebase or Firestore: $e');
+      print('Error adding member to Firebase or Realtime Database: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -210,7 +233,7 @@ class _DriversPageState extends State<DriversPage> {
             ),
             const SizedBox(width: 10),
             ElevatedButton(
-              onPressed: _showAddAdminDialog, // Show Add Admin dialog
+              onPressed: _showAddAdminDialog, 
               child: const Text('Add Admin'),
             ),
             const SizedBox(width: 10),
@@ -224,19 +247,32 @@ class _DriversPageState extends State<DriversPage> {
             BatchUpload(onUpload: _handleBatchUpload),
           ],
         ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('DriversAccount')
-              .snapshots(),
+        body: StreamBuilder<DatabaseEvent>(
+          stream: _databaseRef.child('driversAccount').onValue,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            final List<DriversAccount> driversList = snapshot.data!.docs
-                .map((doc) =>
-                    DriversAccount.fromJson(doc.data() as Map<String, dynamic>))
-                .toList();
-            return DriverTable(driversAccountList: driversList);
+
+            if (snapshot.hasError) {
+              print('Error: ${snapshot.error}');
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+              return const Center(child: Text('No drivers found.'));
+            }
+
+            final Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+            final List<DriversAccount> driversList = data.entries.map((entry) {
+              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
+            }).toList();
+
+            print('Drivers List: $driversList');
+
+            return Expanded(
+              child: DriverTable(driversAccountList: driversList),
+            );
           },
         ),
       ),
@@ -245,13 +281,10 @@ class _DriversPageState extends State<DriversPage> {
 
   void _handleBatchUpload(List<Map<String, dynamic>> data) {
     for (var driverData in data) {
-      FirebaseFirestore.instance
-          .collection('DriversAccount')
-          .add(driverData)
-          .then((docRef) {
-        print('Driver added with ID: ${docRef.id}');
+      _databaseRef.child('driversAccount').push().set(driverData).then((_) {
+        print('Driver added with data: $driverData');
       }).catchError((error) {
-        print('Error adding driver data to Firestore: $error');
+        print('Error adding driver data to Realtime Database: $error');
       });
     }
   }

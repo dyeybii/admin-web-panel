@@ -1,4 +1,5 @@
 import 'package:admin_web_panel/Style/appcolors.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,34 @@ class _LineChartSample2State extends State<LineChartSample2> {
   ];
 
   bool showAvg = false;
+  List<FlSpot> tripSpots = []; // This will hold trip completion data
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTripData(); // Fetch data from Firebase when widget initializes
+  }
+
+  void fetchTripData() async {
+    DatabaseReference ref = FirebaseDatabase.instance.ref('completedTrips');
+    ref.onValue.listen((event) {
+      final Map<dynamic, dynamic> tripsData = event.snapshot.value as Map<dynamic, dynamic>;
+
+      // Parse the data into a list of spots (you can adjust based on your data structure)
+      List<FlSpot> fetchedSpots = [];
+      tripsData.forEach((key, tripData) {
+        int month = int.parse(tripData['month']); // Assuming trips are recorded by month
+        int completedTrips = int.parse(tripData['completedTrips']);
+        
+        // Add the trip data to FlSpot (x = month, y = number of completed trips)
+        fetchedSpots.add(FlSpot(month.toDouble(), completedTrips.toDouble()));
+      });
+
+      setState(() {
+        tripSpots = fetchedSpots;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,48 +91,48 @@ class _LineChartSample2State extends State<LineChartSample2> {
       fontWeight: FontWeight.bold,
       fontSize: 16,
     );
-Widget text;
-switch (value.toInt()) {
-  case 0:
-    text = const Text('JAN', style: style);
-    break;
-  case 1:
-    text = const Text('FEB', style: style);
-    break;
-  case 2:
-    text = const Text('MAR', style: style);
-    break;
-  case 3:
-    text = const Text('APR', style: style);
-    break;
-  case 4:
-    text = const Text('MAY', style: style);
-    break;
-  case 5:
-    text = const Text('JUN', style: style);
-    break;
-  case 6:
-    text = const Text('JUL', style: style);
-    break;
-  case 7:
-    text = const Text('AUG', style: style);
-    break;
-  case 8:
-    text = const Text('SEP', style: style);
-    break;
-  case 9:
-    text = const Text('OCT', style: style);
-    break;
-  case 10:
-    text = const Text('NOV', style: style);
-    break;
-  case 11:
-    text = const Text('DEC', style: style);
-    break;
-  default:
-    text = const Text('', style: style);
-    break;
-}
+    Widget text;
+    switch (value.toInt()) {
+      case 0:
+        text = const Text('JAN', style: style);
+        break;
+      case 1:
+        text = const Text('FEB', style: style);
+        break;
+      case 2:
+        text = const Text('MAR', style: style);
+        break;
+      case 3:
+        text = const Text('APR', style: style);
+        break;
+      case 4:
+        text = const Text('MAY', style: style);
+        break;
+      case 5:
+        text = const Text('JUN', style: style);
+        break;
+      case 6:
+        text = const Text('JUL', style: style);
+        break;
+      case 7:
+        text = const Text('AUG', style: style);
+        break;
+      case 8:
+        text = const Text('SEP', style: style);
+        break;
+      case 9:
+        text = const Text('OCT', style: style);
+        break;
+      case 10:
+        text = const Text('NOV', style: style);
+        break;
+      case 11:
+        text = const Text('DEC', style: style);
+        break;
+      default:
+        text = const Text('', style: style);
+        break;
+    }
 
     return SideTitleWidget(
       axisSide: meta.axisSide,
@@ -118,13 +147,13 @@ switch (value.toInt()) {
     );
     String text;
     switch (value.toInt()) {
-      case 1:
+      case 100:
         text = '100';
         break;
-      case 3:
+      case 200:
         text = '200';
         break;
-      case 5:
+      case 300:
         text = '300';
         break;
       default:
@@ -189,15 +218,7 @@ switch (value.toInt()) {
       maxY: 6,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-          ],
+          spots: tripSpots.isNotEmpty ? tripSpots : const [FlSpot(0, 0)], // Use fetched spots or a default
           isCurved: true,
           gradient: LinearGradient(
             colors: gradientColors,
@@ -268,7 +289,9 @@ switch (value.toInt()) {
       ),
       borderData: FlBorderData(
         show: true,
-        border: Border.all(color: const Color(0xff37434d)),
+        border: Border.all(
+          color: const Color(0xff37434d),
+        ),
       ),
       minX: 0,
       maxX: 11,
@@ -276,39 +299,23 @@ switch (value.toInt()) {
       maxY: 6,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
+          spots: tripSpots.isNotEmpty ? tripSpots : const [FlSpot(0, 0)],
           isCurved: true,
           gradient: LinearGradient(
             colors: [
-              ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                  .lerp(0.2)!,
-              ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                  .lerp(0.2)!,
+              AppColors.contentColorCyan.withOpacity(0.2),
+              AppColors.contentColorBlue.withOpacity(0.2),
             ],
           ),
           barWidth: 5,
           isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
+          dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
             gradient: LinearGradient(
               colors: [
-                ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
-                ColorTween(begin: gradientColors[0], end: gradientColors[1])
-                    .lerp(0.2)!
-                    .withOpacity(0.1),
+                AppColors.contentColorCyan.withOpacity(0.2),
+                AppColors.contentColorBlue.withOpacity(0.2),
               ],
             ),
           ),

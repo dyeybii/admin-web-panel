@@ -33,7 +33,7 @@ class AdminForms {
     TextEditingController tagController =
         TextEditingController(text: driver.tag);
     TextEditingController driver_photosController =
-        TextEditingController(text: driver.driver_photos);
+        TextEditingController(text: driver.driverPhotos);
 
     Future<void> _pickImage() async {
       final picker = ImagePicker();
@@ -47,7 +47,7 @@ class AdminForms {
 
     void _updateDriverData() async {
       try {
-        await databaseReference.child(driver.driverId).update({
+        await databaseReference.update({
           'firstName': firstNameController.text,
           'lastName': lastNameController.text,
           'idNumber': idNumberController.text,
@@ -112,9 +112,9 @@ class AdminForms {
                       radius: 50,
                       backgroundColor: Colors.grey[200],
                       child: ClipOval(
-                        child: driver.driver_photos.isNotEmpty
+                        child: driver.driverPhotos.isNotEmpty
                             ? CachedNetworkImage(
-                                imageUrl: driver.driver_photos,
+                                imageUrl: driver.driverPhotos,
                                 placeholder: (context, url) =>
                                     CircularProgressIndicator(),
                                 errorWidget: (context, url, error) =>

@@ -1,5 +1,4 @@
 class DriversAccount {
-  final String uid;
   final String driverId;
   final String firstName;
   final String lastName;
@@ -11,11 +10,12 @@ class DriversAccount {
   final String phoneNumber;
   final String codingScheme;
   final String tag;
-  final String driver_photos;
+  final String driverPhotos;
   final String role;
+  final String deviceToken;
+  final String uid;
 
   DriversAccount({
-    required this.uid,
     required this.driverId,
     required this.firstName,
     required this.lastName,
@@ -27,14 +27,15 @@ class DriversAccount {
     required this.phoneNumber,
     required this.codingScheme,
     required this.tag,
-    required this.driver_photos,
+    required this.driverPhotos,
     required this.role,
+    required this.deviceToken,
+    required this.uid,
   });
 
   factory DriversAccount.fromJson(Map<String, dynamic> json) {
     return DriversAccount(
-      uid: json['id'] ?? '',
-      driverId: json['driverId'] ?? '',
+      uid: json['uid'] ?? '',
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       idNumber: json['idNumber'] ?? '',
@@ -45,15 +46,16 @@ class DriversAccount {
       phoneNumber: json['phoneNumber'] ?? '',
       codingScheme: json['codingScheme'] ?? '',
       tag: json['tag'] ?? '',
-      driver_photos: json['driver_photos'] ?? '',
-      role: json['role'] ?? '',
+      driverPhotos: json['driverPhotos'] ?? '',
+      role: json['role'] ?? '', // Added role
+      deviceToken: json['deviceToken'] ?? '', // Added deviceToken
+      driverId: json['driverId'] ?? '', // Added driverId
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': uid,
-      'driverId': driverId,
+      'uid': uid,
       'firstName': firstName,
       'lastName': lastName,
       'idNumber': idNumber,
@@ -64,27 +66,10 @@ class DriversAccount {
       'phoneNumber': phoneNumber,
       'codingScheme': codingScheme,
       'tag': tag,
-      'driver_photos': driver_photos,
+      'driverPhotos': driverPhotos,
       'role': role,
+      'deviceToken': deviceToken,
+      'driverId': driverId,
     };
-  }
-
-  factory DriversAccount.fromMap(String id, Map<dynamic, dynamic> map) {
-    return DriversAccount(
-      uid: id,
-      driverId: map['driverId'] ?? '',
-      firstName: map['firstName'] ?? '',
-      lastName: map['lastName'] ?? '',
-      idNumber: map['idNumber'] ?? '',
-      bodyNumber: map['bodyNumber'] ?? '',
-      email: map['email'] ?? '',
-      birthdate: map['birthdate'] ?? '',
-      address: map['address'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
-      codingScheme: map['codingScheme'] ?? '',
-      tag: map['tag'] ?? '',
-      driver_photos: map['driver_photos'] ?? '',
-      role: map['role'] ?? '',
-    );
   }
 }

@@ -18,8 +18,10 @@ class DriversPage extends StatefulWidget {
 
 class _DriversPageState extends State<DriversPage> {
   List<DriversAccount> _driversAccountList = [];
-  
+  List<DriversAccount> _filteredDriversList = [];
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _idNumberController = TextEditingController();
@@ -28,13 +30,14 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _birthdateController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
   final TextEditingController _uidController = TextEditingController();
 
-  final TextEditingController _adminEmailController = TextEditingController(); 
-  final TextEditingController _adminPasswordController = TextEditingController(); 
+  final TextEditingController _adminEmailController = TextEditingController();
+  final TextEditingController _adminPasswordController = TextEditingController();
+
+  final TextEditingController searchController = TextEditingController();
 
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
 
@@ -42,6 +45,7 @@ class _DriversPageState extends State<DriversPage> {
   void initState() {
     super.initState();
     _fetchDriversData();
+    searchController.addListener(_filterDrivers);
   }
 
   Future<void> _fetchDriversData() async {
@@ -49,6 +53,7 @@ class _DriversPageState extends State<DriversPage> {
     if (mounted) {
       setState(() {
         _driversAccountList = driversList;
+        _filteredDriversList = driversList;
       });
     }
   }
@@ -63,6 +68,108 @@ class _DriversPageState extends State<DriversPage> {
       }).toList();
     }
     return driversList;
+  }
+
+  void _filterDrivers() {
+    setState(() {
+      String query = searchController.text.toLowerCase();
+      _filteredDriversList = _driversAccountList.where((driver) {
+        return driver.firstName.toLowerCase().contains(query) ||
+               driver.lastName.toLowerCase().contains(query) ||
+               driver.idNumber.toLowerCase().contains(query) ||
+               driver.bodyNumber.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _idNumberController.dispose();
+    _bodyNumberController.dispose();
+    _emailController.dispose();
+    _birthdateController.dispose();
+    _addressController.dispose();
+    _phoneNumberController.dispose();
+    _tagController.dispose();
+    _driverPhotoController.dispose();
+    _uidController.dispose();
+    _adminEmailController.dispose();
+    _adminPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Members and Operators'),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  controller: searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Search',
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.search),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          automaticallyImplyLeading: false,
+          actions: [
+            ElevatedButton(
+              onPressed: _showAddMemberDialog,
+              child: const Text('Add Member'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: _showAddAdminDialog,
+              child: const Text('Add Admin'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                ExcelDownloader.downloadExcel(context, _driversAccountList);
+              },
+              child: const Text('Download Excel'),
+            ),
+            const SizedBox(width: 10),
+            BatchUpload(onUpload: _handleBatchUpload),
+          ],
+        ),
+        body: StreamBuilder<DatabaseEvent>(
+          stream: _databaseRef.child('driversAccount').onValue,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+              return const Center(child: Text('No drivers found.'));
+            }
+
+            final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
+            final driversList = data.entries.map((entry) {
+              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
+            }).toList();
+
+            return DriverTable(driversAccountList: _filteredDriversList.isNotEmpty ? _filteredDriversList : driversList);
+          },
+        ),
+      ),
+    );
   }
 
   void _showAddMemberDialog() {
@@ -93,9 +200,8 @@ class _DriversPageState extends State<DriversPage> {
               birthdateController: _birthdateController,
               addressController: _addressController,
               phoneNumberController: _phoneNumberController,
-              codingSchemeController: _codingSchemeController,
               tagController: _tagController,
-              driver_photosController: _driverPhotoController,
+              driverPhotoController: _driverPhotoController,
               uidController: _uidController,
               onRoleSelected: (role) {
                 _tagController.text = role!;
@@ -163,15 +269,13 @@ class _DriversPageState extends State<DriversPage> {
 
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     try {
-      // Attempt to create a new user with the provided email and password
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
-        password: 'defaultPassword', // Consider prompting the user for a password or using a more secure method
+        password: 'defaultPassword',
       );
 
       String uid = userCredential.user!.uid;
 
-      // Store user details in Realtime Database
       await _databaseRef.child('driversAccount').child(uid).set({
         'uid': uid,
         'firstName': _firstNameController.text,
@@ -182,110 +286,20 @@ class _DriversPageState extends State<DriversPage> {
         'birthdate': _birthdateController.text,
         'address': _addressController.text,
         'phoneNumber': _phoneNumberController.text,
-        'codingScheme': _codingSchemeController.text,
         'tag': _tagController.text,
-        'driverPhotos': _driverPhotoController.text,
-        'role': 'driver', // Ensure this is set correctly
-        'deviceToken': '', // Set appropriately or remove if not used
-        'driverId': '', // Set appropriately or remove if not used
-      }).then((_) {
-        print('Member added to Realtime Database');
-        Navigator.of(context).pop();
-      }).catchError((error) {
-        print('Error writing to Realtime Database: $error');
+        'driverPhoto': _driverPhotoController.text,
       });
+
+      Navigator.of(context).pop();
+      _fetchDriversData(); // Refresh the list of drivers
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('The email address is already in use by another account.'),
-          ),
-        );
-      } else {
-        print('Error adding member to Firebase or Realtime Database: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.message}'),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error adding member to Firebase or Realtime Database: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Members and Operators'),
-          automaticallyImplyLeading: false,
-          actions: [
-            ElevatedButton(
-              onPressed: _showAddMemberDialog,
-              child: const Text('Add Member'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: _showAddAdminDialog, 
-              child: const Text('Add Admin'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () {
-                ExcelDownloader.downloadExcel(context, _driversAccountList);
-              },
-              child: const Text('Download Excel'),
-            ),
-            const SizedBox(width: 10),
-            BatchUpload(onUpload: _handleBatchUpload),
-          ],
-        ),
-        body: StreamBuilder<DatabaseEvent>(
-          stream: _databaseRef.child('driversAccount').onValue,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              print('Error: ${snapshot.error}');
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-
-            if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-              return const Center(child: Text('No drivers found.'));
-            }
-
-            final Map<dynamic, dynamic> data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            final List<DriversAccount> driversList = data.entries.map((entry) {
-              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
-            }).toList();
-
-            print('Drivers List: $driversList');
-
-            return Expanded(
-              child: DriverTable(driversAccountList: driversList),
-            );
-          },
-        ),
-      ),
-    );
   }
 
   void _handleBatchUpload(List<Map<String, dynamic>> data) {
     for (var driverData in data) {
-      _databaseRef.child('driversAccount').push().set(driverData).then((_) {
-        print('Driver added with data: $driverData');
-      }).catchError((error) {
-        print('Error adding driver data to Realtime Database: $error');
-      });
+      _databaseRef.child('driversAccount').push().set(driverData);
     }
   }
 }

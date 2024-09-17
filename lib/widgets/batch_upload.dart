@@ -11,15 +11,15 @@ class BatchUpload extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _pickFileAndUpload(BuildContext context) async {
-    // Pick the Excel file
+    
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx'],
-      withData: true, // This ensures that the bytes property is populated
+      withData: true, 
     );
 
     if (result != null && result.files.single.bytes != null) {
-      // Read and parse the Excel file using the excel package
+
       var bytes = result.files.single.bytes!;
       var excel = Excel.decodeBytes(bytes);
 
@@ -40,7 +40,6 @@ class BatchUpload extends StatelessWidget {
               'birthdate': row[5]?.value?.toString(),
               'address': row[6]?.value?.toString(),
               'phoneNumber': row[7]?.value?.toString(),
-              'codingScheme': row[8]?.value?.toString(),
               'tag': row[9]?.value?.toString(),
             };
             data.add(driverData);

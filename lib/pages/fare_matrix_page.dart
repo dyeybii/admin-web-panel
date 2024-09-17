@@ -177,9 +177,9 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                   height: 500,
                   width: 600,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
+                    color: const Color.fromARGB(255, 255, 255, 255),
                     border: Border.all(
-                      color: Colors.black,
+                      color: const Color.fromARGB(255, 185, 185, 185),
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(10),
@@ -203,7 +203,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black),
+                              borderSide: BorderSide(color: Color.fromARGB(255, 176, 176, 176)),
                             ),
                             labelText: 'Base Fare amount',
                             labelStyle: TextStyle(
@@ -253,25 +253,16 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               ElevatedButton(
                                 onPressed: _toggleEditMode,
                                 child: const Text('Change Fare'),
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.white, backgroundColor: Colors.black, // Text color
-                                ),
                               ),
                             if (isEditing) ...[
                               ElevatedButton(
                                 onPressed: _saveFareParameters,
                                 child: const Text('Save'),
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.white, backgroundColor: Colors.black, // Text color
-                                ),
                               ),
                               const SizedBox(width: 10),
                               ElevatedButton(
                                 onPressed: _cancelEdit,
                                 child: const Text('Cancel'),
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.white, backgroundColor: Colors.black, // Text color
-                                ),
                               ),
                             ],
                           ],

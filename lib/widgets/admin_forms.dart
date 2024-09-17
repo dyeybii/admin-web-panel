@@ -28,19 +28,17 @@ class AdminForms {
         TextEditingController(text: driver.address);
     TextEditingController phoneNumberController =
         TextEditingController(text: driver.phoneNumber);
-    TextEditingController codingSchemeController =
-        TextEditingController(text: driver.codingScheme);
     TextEditingController tagController =
         TextEditingController(text: driver.tag);
-    TextEditingController driver_photosController =
-        TextEditingController(text: driver.driverPhotos);
+    TextEditingController driverPhotoController =
+        TextEditingController(text: driver.driverPhoto);
 
     Future<void> _pickImage() async {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         setState(() {
-          driver_photosController.text = pickedFile.path;
+          driverPhotoController.text = pickedFile.path;
         });
       }
     }
@@ -56,9 +54,8 @@ class AdminForms {
           'birthdate': birthdateController.text,
           'address': addressController.text,
           'phoneNumber': phoneNumberController.text,
-          'codingScheme': codingSchemeController.text,
           'tag': tagController.text,
-          'driver_photos': driver_photosController.text,
+          'driverPhoto': driverPhotoController.text,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -112,9 +109,9 @@ class AdminForms {
                       radius: 50,
                       backgroundColor: Colors.grey[200],
                       child: ClipOval(
-                        child: driver.driverPhotos.isNotEmpty
+                        child: driver.driverPhoto.isNotEmpty
                             ? CachedNetworkImage(
-                                imageUrl: driver.driverPhotos,
+                                imageUrl: driver.driverPhoto,
                                 placeholder: (context, url) =>
                                     CircularProgressIndicator(),
                                 errorWidget: (context, url, error) =>
@@ -205,10 +202,6 @@ class AdminForms {
                                 'Phone Number', phoneNumberController),
                           ),
                           const SizedBox(width: 10),
-                          Expanded(
-                            child: _buildEditableTextField(
-                                'Coding Scheme', codingSchemeController),
-                          ),
                         ],
                       ),
                     ],

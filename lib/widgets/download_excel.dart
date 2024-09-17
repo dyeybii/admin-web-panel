@@ -21,7 +21,6 @@ class ExcelDownloader {
     sheet.getRangeByName('C1').setText('Date of Birth');
     sheet.getRangeByName('D1').setText('ID Number');
     sheet.getRangeByName('E1').setText('Body Number');
-    sheet.getRangeByName('F1').setText('Coding Scheme');
     sheet.getRangeByName('G1').setText('Address');
     sheet.getRangeByName('H1').setText('Mobile Number');
     sheet.getRangeByName('I1').setText('Email');
@@ -35,7 +34,6 @@ class ExcelDownloader {
       sheet.getRangeByIndex(row, 3).setText(driver.birthdate);
       sheet.getRangeByIndex(row, 4).setText(driver.idNumber);
       sheet.getRangeByIndex(row, 5).setText(driver.bodyNumber);
-      sheet.getRangeByIndex(row, 6).setText(driver.codingScheme);
       sheet.getRangeByIndex(row, 7).setText(driver.address);
       sheet.getRangeByIndex(row, 8).setText(driver.phoneNumber);
       sheet.getRangeByIndex(row, 9).setText(driver.email);

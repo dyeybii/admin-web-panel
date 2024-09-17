@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
-import 'package:admin_web_panel/pages/note_page.dart';
+import 'package:admin_web_panel/pages/fund_collection.dart'; 
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/login.dart';
 
 class WebAdminPanel extends StatefulWidget {
-  const WebAdminPanel({Key? key}) : super(key: key);
+  const WebAdminPanel({super.key});
 
   @override
   State<WebAdminPanel> createState() => _WebAdminPanelState();
@@ -51,8 +51,8 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         return const Dashboard();
       case DriversPage.id:
         return const DriversPage();
-      case NotePage.id:
-        return NotePage(key: UniqueKey());
+      case FundCollection.id:
+        return const FundCollection();
       case FareMatrixPage.id:
         return const FareMatrixPage();
       default:
@@ -60,60 +60,42 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      title: const Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "TRI.CO",
-                style: TextStyle(
-                  color: Colors.indigo,
-                  fontSize: 60,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            width: 20,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Admin Panel",
+                  "TRI.CO",
                   style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  "COTODA",
-                  style: TextStyle(
-                    color: Colors.grey,
+                    color: Colors.indigo,
+                    fontSize: 60,
                     fontWeight: FontWeight.bold,
-                    fontSize: 24,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: _confirmLogout,
+            SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Admin Panel", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                  Text("COTODA", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 24)),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-      automaticallyImplyLeading: false,
-    ),
+        actions: [
+          IconButton(icon: const Icon(Icons.logout), onPressed: _confirmLogout),
+        ],
+        automaticallyImplyLeading: false,
+      ),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -125,17 +107,13 @@ Widget build(BuildContext context) {
               children: <Widget>[
                 const SizedBox(height: 20.0),
                 _buildListTile('Dashboard', Icons.dashboard, Dashboard.id),
-                _buildListTile(
-                    'Drivers', 'images/tricycle_icon.png', DriversPage.id),
-                _buildListTile('Notes', Icons.edit_note, NotePage.id),
-                _buildListTile(
-                    'Fare Matrix', 'images/Peso_sign.png', FareMatrixPage.id),
+                _buildListTile('Drivers', 'images/tricycle_icon.png', DriversPage.id),
+                _buildListTile('Fund Collection', Icons.money, FundCollection.id), 
+                _buildListTile('Fare Matrix', 'images/Peso_sign.png', FareMatrixPage.id),
               ],
             ),
           ),
-          Expanded(
-            child: _getSelectedScreen(),
-          ),
+          Expanded(child: _getSelectedScreen()),
         ],
       ),
     );
@@ -160,15 +138,11 @@ Widget build(BuildContext context) {
               fontSize: 16.0,
             ),
           ),
-          leading: leadingIcon is IconData
-              ? Icon(leadingIcon,
-              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white)
-              : Image.asset(leadingIcon,
-              width: 24,
-              height: 24,
-              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white),
+          leading:
+              leadingIcon is IconData ? Icon(leadingIcon, color:isSelected ? const Color(0xFF3B3F9E) : Colors.white)
+                                     : Image.asset(leadingIcon,width :24,height :24,color:isSelected ?const Color(0xFF3B3F9E):Colors.white),
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              const EdgeInsets.symmetric(horizontal :20.0, vertical :12.0),
         ),
       ),
     );

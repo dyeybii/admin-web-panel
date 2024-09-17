@@ -54,9 +54,9 @@ void _fetchData() async {
             .where((doc) => doc['ridesCompleted'] != null)
             .map((doc) => doc['ridesCompleted'] as int)
             .reduce((a, b) => a + b);
-        print('Total Registered Drivers: $_totalRegisteredDrivers');
-        print('Total Online Riders: $_totalOnlineRiders');
-        print('Total Completed Rides: $_totalCompletedRides');
+        print('Total Tricycle Line: $_totalRegisteredDrivers');
+        print('Total Operators: $_totalOnlineRiders');
+        print('Total Total Member: $_totalCompletedRides');
       });
     }
 
@@ -127,17 +127,17 @@ void _fetchData() async {
                 _buildStatCard(
                   'Total Registered Drivers',
                   _totalRegisteredDrivers.toString(),
-                  const Color(0xBF0863B7), // Color for the card
+                  const Color(0xFF507EA9), // Color for the card
                 ),
                 _buildStatCard(
                   'Total Online Riders',
                   _totalOnlineRiders.toString(),
-                  const Color(0xBF207C00), // Color for the card
+                  const Color(0xFF5096A9), // Color for the card
                 ),
                 _buildStatCard(
                   'Total Completed Rides',
                   _totalCompletedRides.toString(),
-                  const Color(0xBF525252), // Color for the card
+                  const Color(0xFF465D7C), // Color for the card
                 ),
               ],
             ),
@@ -305,7 +305,7 @@ Widget _buildPieChartCard() {
             const SizedBox(height: 10),
 
             // Line chart showing the number of completed rides over time
-            SizedBox(
+            const SizedBox(
               height: 200,
               child: LineChartSample2(), // Assuming you have this widget for showing the line chart
             ),

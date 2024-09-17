@@ -4,8 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import
-
+import 'form_validation.dart'; // Import the validation file
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -17,10 +16,8 @@ class DriversForm extends StatefulWidget {
   final TextEditingController birthdateController;
   final TextEditingController addressController;
   final TextEditingController phoneNumberController;
-  final TextEditingController codingSchemeController;
   final TextEditingController tagController;
-  final TextEditingController driver_photosController;
-
+  final TextEditingController driverPhotoController;
   final TextEditingController uidController;
   final void Function(String?)? onRoleSelected;
   final Function()? onAddPressed;
@@ -36,9 +33,8 @@ class DriversForm extends StatefulWidget {
     required this.birthdateController,
     required this.addressController,
     required this.phoneNumberController,
-    required this.codingSchemeController,
     required this.tagController,
-    required this.driver_photosController,
+    required this.driverPhotoController,
     required this.uidController,
     required this.onRoleSelected,
     required this.onAddPressed,
@@ -57,7 +53,6 @@ class _DriversFormState extends State<DriversForm> {
 
   Future<void> selectImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-
     if (result != null) {
       if (result.files.single.extension == 'png' || result.files.single.extension == 'jpg') {
         setState(() {
@@ -95,14 +90,11 @@ class _DriversFormState extends State<DriversForm> {
       widget.birthdateController,
       widget.addressController,
       widget.phoneNumberController,
-      widget.codingSchemeController,
       widget.tagController,
     ];
-
     for (var controller in controllers) {
       controller.clear();
     }
-
     setState(() {
       _selectedRole = null;
       _image = null;
@@ -117,7 +109,6 @@ class _DriversFormState extends State<DriversForm> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-
     if (picked != null) {
       setState(() {
         String formattedDate =
@@ -128,7 +119,7 @@ class _DriversFormState extends State<DriversForm> {
   }
 
   Future<void> _showAlertDialog(String message) async {
-    return showDialog<void>(
+    return showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -136,12 +127,12 @@ class _DriversFormState extends State<DriversForm> {
           title: const Text('Error'),
           content: SingleChildScrollView(
             child: ListBody(
-              children: <Widget>[
+              children: [
                 Text(message),
               ],
             ),
           ),
-          actions: <Widget>[
+          actions: [
             TextButton(
               child: const Text('OK'),
               onPressed: () {
@@ -159,7 +150,7 @@ class _DriversFormState extends State<DriversForm> {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
         child: Container(
           height: 600.0,
           width: 800.0,
@@ -209,8 +200,7 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  Widget buildTextField(TextEditingController controller, String labelText,
-      {int? maxLength}) {
+  Widget buildTextField(TextEditingController controller, String labelText, {int? maxLength}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -219,6 +209,12 @@ class _DriversFormState extends State<DriversForm> {
       ),
       maxLength: maxLength,
       maxLines: null,
+      validator: (value) {
+        if (controller == widget.idNumberController || controller == widget.bodyNumberController || controller == widget.phoneNumberController) {
+          return FormValidation.validateNumber(value);
+        }
+        return FormValidation.validateRequired(value);
+      },
     );
   }
 
@@ -251,11 +247,9 @@ class _DriversFormState extends State<DriversForm> {
         Expanded(
           child: Column(
             children: [
-              buildTextField(widget.codingSchemeController, 'Coding Scheme', maxLength: 3),
-              const SizedBox(height: 10.0),
               buildTextField(widget.addressController, 'Address'),
               const SizedBox(height: 10.0),
-              buildTextField(widget.phoneNumberController, 'Cellphone Number', maxLength: 11),
+              buildTextField(widget.phoneNumberController, 'Mobile Number', maxLength: 11),
               const SizedBox(height: 10.0),
               buildTextField(widget.emailController, 'Email'),
               const SizedBox(height: 10.0),
@@ -277,6 +271,9 @@ class _DriversFormState extends State<DriversForm> {
             labelText: 'Date of Birth',
             border: OutlineInputBorder(),
           ),
+          validator: (value) {
+            return FormValidation.validateRequired(value);
+          },
         ),
       ),
     );
@@ -293,26 +290,26 @@ class _DriversFormState extends State<DriversForm> {
         Row(
           children: [
             Expanded(
-              child: RadioListTile<String?>(
+              child: RadioListTile(
                 title: const Text('Member'),
                 value: 'member',
                 groupValue: _selectedRole,
                 onChanged: (value) {
                   setState(() {
-                    _selectedRole = value;
+                    _selectedRole = value as String?;
                     widget.onRoleSelected?.call(value);
                   });
                 },
               ),
             ),
             Expanded(
-              child: RadioListTile<String?>(
+              child: RadioListTile(
                 title: const Text('Operator'),
                 value: 'operator',
                 groupValue: _selectedRole,
                 onChanged: (value) {
                   setState(() {
-                    _selectedRole = value;
+                    _selectedRole = value as String?;
                     widget.onRoleSelected?.call(value);
                   });
                 },
@@ -320,6 +317,12 @@ class _DriversFormState extends State<DriversForm> {
             ),
           ],
         ),
+        // Validate if a role is selected
+        if (_selectedRole == null)
+          const Text(
+            'Please select a role',
+            style: TextStyle(color: Colors.red),
+          ),
       ],
     );
   }
@@ -338,36 +341,36 @@ class _DriversFormState extends State<DriversForm> {
         const SizedBox(width: 10.0),
         ElevatedButton(
           onPressed: () async {
-            if (widget.formKey.currentState!.validate()) {
+            if (widget.formKey.currentState!.validate() && _selectedRole != null) {
               try {
-                UserCredential userCredential =
-                    await _auth.createUserWithEmailAndPassword(
+                UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
                   email: widget.emailController.text,
                   password: widget.birthdateController.text,
                 );
-
                 print('User created: ${userCredential.user?.email}');
-
                 if (_image != null) {
                   String? downloadURL = await uploadImage(
-                      _image!, 'driverPhoto_${userCredential.user?.uid}.${_imageFileName!.split('.').last}');
+                    _image!,
+                    'driver_photos_${userCredential.user?.uid}.${_imageFileName!.split('.').last}',
+                  );
                   if (downloadURL != null) {
-                    widget.driver_photosController.text = downloadURL;
+                    widget.driverPhotoController.text = downloadURL;
                   } else {
                     _showAlertDialog('Image upload failed. Please try again.');
                     return;
                   }
+                } else {
+                  _showAlertDialog('Please select a photo.');
+                  return;
                 }
-
                 if (widget.onAddPressed != null) {
                   widget.onAddPressed!();
                 }
-
                 await _addMemberToRealtimeDatabase(
                   context: context,
                   birthdate: widget.birthdateController.text,
                   bodyNumber: widget.bodyNumberController.text,
-                  driverPhoto: widget.driver_photosController.text,
+                  driverPhoto: widget.driverPhotoController.text,
                   email: widget.emailController.text,
                   firstName: widget.firstNameController.text,
                   idNumber: widget.idNumberController.text,
@@ -376,65 +379,37 @@ class _DriversFormState extends State<DriversForm> {
                   uid: userCredential.user?.uid,
                 );
               } on FirebaseAuthException catch (e) {
-                _showAlertDialog(e.message ?? 'An error occurred');
+                _showAlertDialog(e.message ?? 'Account added');
               } catch (e) {
                 print('Error: $e');
               }
+            } else {
+              _showAlertDialog('Please select a tag.');
             }
           },
           child: const Text('Add Driver & Create Account'),
         ),
         const SizedBox(width: 10.0),
-        IconButton(
-          icon: Icon(Icons.edit),
-          onPressed: () {
-            if (widget.onEditPressed != null) {
-              widget.onEditPressed!();
-            }
-          },
-        ),
       ],
     );
   }
-}
 
+  Future<void> _addMemberToRealtimeDatabase({
+    required BuildContext context,
+    required String? birthdate,
+    required String? bodyNumber,
+    required String? driverPhoto,
+    required String? email,
+    required String? firstName,
+    required String? idNumber,
+    required String? lastName,
+    required String? phoneNumber,
+    required String? uid,
+  }) async {
+    DatabaseReference realtimeDatabaseRef = FirebaseDatabase.instance.ref();
 
-// Update _addMemberToRealtimeDatabase function
-Future<void> _addMemberToRealtimeDatabase({
-  required BuildContext context,
-  required String? birthdate,
-  required String? bodyNumber,
-  required String? driverPhoto,
-  required String? email,
-  required String? firstName,
-  required String? idNumber,
-  required String? lastName,
-  required String? phoneNumber,
-  required String? uid,
-}) async {
-  DatabaseReference realtimeDatabaseRef = FirebaseDatabase.instance.ref();
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  // Adding to Realtime Database
-  realtimeDatabaseRef.child('driversAccount').push().set({
-    'birthdate': birthdate,
-    'bodyNumber': bodyNumber,
-    'driverPhoto': driverPhoto,
-    'email': email,
-    'firstName': firstName,
-    'idNumber': idNumber,
-    'lastName': lastName,
-    'phoneNumber': phoneNumber,
-    'uid': uid,
-  }).then((_) {
-    print('Member added to Realtime Database');
-  }).catchError((error) {
-    print('Error adding member to Realtime Database: $error');
-  });
-
-  // Adding to Firestore
-  try {
-    await firestore.collection('driversAccount').doc(uid).set({
+    // Adding to Realtime Database
+    realtimeDatabaseRef.child('driversAccount').push().set({
       'birthdate': birthdate,
       'bodyNumber': bodyNumber,
       'driverPhoto': driverPhoto,
@@ -444,9 +419,10 @@ Future<void> _addMemberToRealtimeDatabase({
       'lastName': lastName,
       'phoneNumber': phoneNumber,
       'uid': uid,
+    }).then((_) {
+      print('Member added to Realtime Database');
+    }).catchError((error) {
+      print('Error adding member to Realtime Database: $error');
     });
-    print('Member added to Firestore');
-  } catch (e) {
-    print('Error adding member to Firestore: $e');
   }
 }

@@ -1,3 +1,31 @@
+class TotalRatings {
+  final double averageRating;
+  final int ratingCount;
+  final int ratingSum;
+
+  TotalRatings({
+    required this.averageRating,
+    required this.ratingCount,
+    required this.ratingSum,
+  });
+
+  factory TotalRatings.fromJson(Map<String, dynamic> json) {
+    return TotalRatings(
+      averageRating: (json['averageRating'] as num).toDouble(),
+      ratingCount: json['ratingCount'] ?? 0,
+      ratingSum: json['ratingSum'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'averageRating': averageRating,
+      'ratingCount': ratingCount,
+      'ratingSum': ratingSum,
+    };
+  }
+}
+
 class DriversAccount {
   final String driverId;
   final String firstName;
@@ -8,12 +36,12 @@ class DriversAccount {
   final String birthdate;
   final String address;
   final String phoneNumber;
-  final String codingScheme;
   final String tag;
-  final String driverPhotos;
-  final String role;
-  final String deviceToken;
+  final String driverPhoto;
   final String uid;
+  final TotalRatings? totalRatings;  // New
+  final String? currentTripID;       // New
+  final String? deviceToken;         // New
 
   DriversAccount({
     required this.driverId,
@@ -25,33 +53,36 @@ class DriversAccount {
     required this.birthdate,
     required this.address,
     required this.phoneNumber,
-    required this.codingScheme,
     required this.tag,
-    required this.driverPhotos,
-    required this.role,
-    required this.deviceToken,
+    required this.driverPhoto,
     required this.uid,
+    this.totalRatings,  // New
+    this.currentTripID, // New
+    this.deviceToken,   // New
   });
 
-  factory DriversAccount.fromJson(Map<String, dynamic> json) {
-    return DriversAccount(
-      uid: json['uid'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      idNumber: json['idNumber'] ?? '',
-      bodyNumber: json['bodyNumber'] ?? '',
-      email: json['email'] ?? '',
-      birthdate: json['birthdate'] ?? '',
-      address: json['address'] ?? '',
-      phoneNumber: json['phoneNumber'] ?? '',
-      codingScheme: json['codingScheme'] ?? '',
-      tag: json['tag'] ?? '',
-      driverPhotos: json['driverPhotos'] ?? '',
-      role: json['role'] ?? '', // Added role
-      deviceToken: json['deviceToken'] ?? '', // Added deviceToken
-      driverId: json['driverId'] ?? '', // Added driverId
-    );
-  }
+factory DriversAccount.fromJson(Map<dynamic, dynamic> json) {
+  return DriversAccount(
+    uid: json['uid'] ?? '',
+    firstName: json['firstName'] ?? '',
+    lastName: json['lastName'] ?? '',
+    idNumber: json['idNumber'] ?? '',
+    bodyNumber: json['bodyNumber'] ?? '',
+    email: json['email'] ?? '',
+    birthdate: json['birthdate'] ?? '',
+    address: json['address'] ?? '',
+    phoneNumber: json['phoneNumber'] ?? '',
+    tag: json['tag'] ?? '',
+    driverPhoto: json['driverPhotos'] ?? '',
+    driverId: json['driverId'] ?? '',
+    totalRatings: json['totalRatings'] != null
+        ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))  // Explicit cast
+        : null,
+    currentTripID: json['currentTripID'],
+    deviceToken: json['deviceToken'],
+  );
+}
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -64,12 +95,12 @@ class DriversAccount {
       'birthdate': birthdate,
       'address': address,
       'phoneNumber': phoneNumber,
-      'codingScheme': codingScheme,
       'tag': tag,
-      'driverPhotos': driverPhotos,
-      'role': role,
-      'deviceToken': deviceToken,
+      'driverPhotos': driverPhoto,
       'driverId': driverId,
+      if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),  // New
+      if (currentTripID != null) 'currentTripID': currentTripID,  // New
+      if (deviceToken != null) 'deviceToken': deviceToken,        // New
     };
   }
 }

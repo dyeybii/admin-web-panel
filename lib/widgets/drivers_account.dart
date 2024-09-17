@@ -61,28 +61,27 @@ class DriversAccount {
     this.deviceToken,   // New
   });
 
-factory DriversAccount.fromJson(Map<dynamic, dynamic> json) {
-  return DriversAccount(
-    uid: json['uid'] ?? '',
-    firstName: json['firstName'] ?? '',
-    lastName: json['lastName'] ?? '',
-    idNumber: json['idNumber'] ?? '',
-    bodyNumber: json['bodyNumber'] ?? '',
-    email: json['email'] ?? '',
-    birthdate: json['birthdate'] ?? '',
-    address: json['address'] ?? '',
-    phoneNumber: json['phoneNumber'] ?? '',
-    tag: json['tag'] ?? '',
-    driverPhoto: json['driverPhotos'] ?? '',
-    driverId: json['driverId'] ?? '',
-    totalRatings: json['totalRatings'] != null
-        ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))  // Explicit cast
-        : null,
-    currentTripID: json['currentTripID'],
-    deviceToken: json['deviceToken'],
-  );
-}
-
+  factory DriversAccount.fromJson(Map<dynamic, dynamic> json) {
+    return DriversAccount(
+      uid: json['uid'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      idNumber: json['idNumber'] ?? '',
+      bodyNumber: json['bodyNumber'] ?? '',
+      email: json['email'] ?? '',
+      birthdate: json['birthdate'] ?? '',
+      address: json['address'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      tag: json['tag'] ?? '',
+      driverPhoto: json['driverPhoto'] ?? '',  // Corrected field name
+      driverId: json['driverId'] ?? '',
+      totalRatings: json['totalRatings'] != null
+          ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))  // Explicit cast
+          : null,
+      currentTripID: json['currentTripID'],
+      deviceToken: json['deviceToken'],
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -96,7 +95,7 @@ factory DriversAccount.fromJson(Map<dynamic, dynamic> json) {
       'address': address,
       'phoneNumber': phoneNumber,
       'tag': tag,
-      'driverPhotos': driverPhoto,
+      'driverPhoto': driverPhoto,  // Corrected field name
       'driverId': driverId,
       if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),  // New
       if (currentTripID != null) 'currentTripID': currentTripID,  // New

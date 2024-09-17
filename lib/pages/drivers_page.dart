@@ -35,7 +35,8 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _uidController = TextEditingController();
 
   final TextEditingController _adminEmailController = TextEditingController();
-  final TextEditingController _adminPasswordController = TextEditingController();
+  final TextEditingController _adminPasswordController =
+      TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
 
@@ -75,9 +76,9 @@ class _DriversPageState extends State<DriversPage> {
       String query = searchController.text.toLowerCase();
       _filteredDriversList = _driversAccountList.where((driver) {
         return driver.firstName.toLowerCase().contains(query) ||
-               driver.lastName.toLowerCase().contains(query) ||
-               driver.idNumber.toLowerCase().contains(query) ||
-               driver.bodyNumber.toLowerCase().contains(query);
+            driver.lastName.toLowerCase().contains(query) ||
+            driver.idNumber.toLowerCase().contains(query) ||
+            driver.bodyNumber.toLowerCase().contains(query);
       }).toList();
     });
   }
@@ -162,10 +163,14 @@ class _DriversPageState extends State<DriversPage> {
 
             final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
             final driversList = data.entries.map((entry) {
-              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
+              return DriversAccount.fromJson(
+                  Map<String, dynamic>.from(entry.value));
             }).toList();
 
-            return DriverTable(driversAccountList: _filteredDriversList.isNotEmpty ? _filteredDriversList : driversList);
+            return DriverTable(
+                driversAccountList: _filteredDriversList.isNotEmpty
+                    ? _filteredDriversList
+                    : driversList);
           },
         ),
       ),
@@ -201,10 +206,10 @@ class _DriversPageState extends State<DriversPage> {
               addressController: _addressController,
               phoneNumberController: _phoneNumberController,
               tagController: _tagController,
-              driverPhotoController: _driverPhotoController,
               uidController: _uidController,
-              onRoleSelected: (role) {
-                _tagController.text = role!;
+              driverPhotoController: _driverPhotoController,
+              ontagSelected: (tag) {
+                _tagController.text = tag!; 
               },
               onAddPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -251,7 +256,8 @@ class _DriversPageState extends State<DriversPage> {
               TextField(
                 controller: _adminPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Admin Password *'),
+                decoration:
+                    const InputDecoration(labelText: 'Admin Password *'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -269,7 +275,8 @@ class _DriversPageState extends State<DriversPage> {
 
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: 'defaultPassword',
       );
@@ -293,7 +300,8 @@ class _DriversPageState extends State<DriversPage> {
       Navigator.of(context).pop();
       _fetchDriversData(); // Refresh the list of drivers
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
     }
   }
 

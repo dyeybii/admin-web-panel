@@ -19,7 +19,7 @@ class DriversForm extends StatefulWidget {
   final TextEditingController tagController;
   final TextEditingController driverPhotoController;
   final TextEditingController uidController;
-  final void Function(String?)? onRoleSelected;
+  final void Function(String?)? ontagSelected;
   final Function()? onAddPressed;
   final Function()? onEditPressed;
 
@@ -36,7 +36,7 @@ class DriversForm extends StatefulWidget {
     required this.tagController,
     required this.driverPhotoController,
     required this.uidController,
-    required this.onRoleSelected,
+    required this.ontagSelected,
     required this.onAddPressed,
     this.onEditPressed,
   });
@@ -48,7 +48,7 @@ class DriversForm extends StatefulWidget {
 class _DriversFormState extends State<DriversForm> {
   Uint8List? _image;
   String? _imageFileName;
-  String? _selectedRole;
+  String? _selectedTag;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> selectImage() async {
@@ -96,7 +96,7 @@ class _DriversFormState extends State<DriversForm> {
       controller.clear();
     }
     setState(() {
-      _selectedRole = null;
+      _selectedTag = null;
       _image = null;
       _imageFileName = null;
     });
@@ -253,7 +253,7 @@ class _DriversFormState extends State<DriversForm> {
               const SizedBox(height: 10.0),
               buildTextField(widget.emailController, 'Email'),
               const SizedBox(height: 10.0),
-              buildRoleSelection(),
+              buildTagSelection(),
             ],
           ),
         ),
@@ -279,12 +279,12 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  Widget buildRoleSelection() {
+  Widget buildTagSelection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Role',
+          'Tag',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         Row(
@@ -293,12 +293,12 @@ class _DriversFormState extends State<DriversForm> {
               child: RadioListTile(
                 title: const Text('Member'),
                 value: 'member',
-                groupValue: _selectedRole,
+                groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {
-                    _selectedRole = value as String?;
-                    widget.onRoleSelected?.call(value);
+                    _selectedTag = value as String?;
                   });
+                  widget.ontagSelected!(value as String?);
                 },
               ),
             ),
@@ -306,123 +306,27 @@ class _DriversFormState extends State<DriversForm> {
               child: RadioListTile(
                 title: const Text('Operator'),
                 value: 'operator',
-                groupValue: _selectedRole,
+                groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {
-                    _selectedRole = value as String?;
-                    widget.onRoleSelected?.call(value);
+                    _selectedTag = value as String?;
                   });
+                  widget.ontagSelected!(value as String?);
                 },
               ),
             ),
           ],
         ),
-        // Validate if a role is selected
-        if (_selectedRole == null)
-          const Text(
-            'Please select a role',
-            style: TextStyle(color: Colors.red),
-          ),
       ],
     );
   }
 
   Widget buildFormButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: () {
-            resetFormFields();
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cancel'),
-        ),
-        const SizedBox(width: 10.0),
-        ElevatedButton(
-          onPressed: () async {
-            if (widget.formKey.currentState!.validate() && _selectedRole != null) {
-              try {
-                UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-                  email: widget.emailController.text,
-                  password: widget.birthdateController.text,
-                );
-                print('User created: ${userCredential.user?.email}');
-                if (_image != null) {
-                  String? downloadURL = await uploadImage(
-                    _image!,
-                    'driver_photos_${userCredential.user?.uid}.${_imageFileName!.split('.').last}',
-                  );
-                  if (downloadURL != null) {
-                    widget.driverPhotoController.text = downloadURL;
-                  } else {
-                    _showAlertDialog('Image upload failed. Please try again.');
-                    return;
-                  }
-                } else {
-                  _showAlertDialog('Please select a photo.');
-                  return;
-                }
-                if (widget.onAddPressed != null) {
-                  widget.onAddPressed!();
-                }
-                await _addMemberToRealtimeDatabase(
-                  context: context,
-                  birthdate: widget.birthdateController.text,
-                  bodyNumber: widget.bodyNumberController.text,
-                  driverPhoto: widget.driverPhotoController.text,
-                  email: widget.emailController.text,
-                  firstName: widget.firstNameController.text,
-                  idNumber: widget.idNumberController.text,
-                  lastName: widget.lastNameController.text,
-                  phoneNumber: widget.phoneNumberController.text,
-                  uid: userCredential.user?.uid,
-                );
-              } on FirebaseAuthException catch (e) {
-                _showAlertDialog(e.message ?? 'Account added');
-              } catch (e) {
-                print('Error: $e');
-              }
-            } else {
-              _showAlertDialog('Please select a tag.');
-            }
-          },
-          child: const Text('Add Driver & Create Account'),
-        ),
-        const SizedBox(width: 10.0),
-      ],
+    return Center(
+      child: ElevatedButton(
+        onPressed: widget.onAddPressed,
+        child: const Text('Add Driver'),
+      ),
     );
-  }
-
-  Future<void> _addMemberToRealtimeDatabase({
-    required BuildContext context,
-    required String? birthdate,
-    required String? bodyNumber,
-    required String? driverPhoto,
-    required String? email,
-    required String? firstName,
-    required String? idNumber,
-    required String? lastName,
-    required String? phoneNumber,
-    required String? uid,
-  }) async {
-    DatabaseReference realtimeDatabaseRef = FirebaseDatabase.instance.ref();
-
-    // Adding to Realtime Database
-    realtimeDatabaseRef.child('driversAccount').push().set({
-      'birthdate': birthdate,
-      'bodyNumber': bodyNumber,
-      'driverPhoto': driverPhoto,
-      'email': email,
-      'firstName': firstName,
-      'idNumber': idNumber,
-      'lastName': lastName,
-      'phoneNumber': phoneNumber,
-      'uid': uid,
-    }).then((_) {
-      print('Member added to Realtime Database');
-    }).catchError((error) {
-      print('Error adding member to Realtime Database: $error');
-    });
   }
 }

@@ -46,8 +46,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
   late TextEditingController _birthdateController;
   late TextEditingController _addressController;
   late TextEditingController _phoneNumberController;
-  late TextEditingController _tagController;
-  late TextEditingController _driverPhotoController;
+  late String _selectedTag;
+  late String _driverPhotoUrl;
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -62,8 +62,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _birthdateController = TextEditingController(text: widget.birthdate);
     _addressController = TextEditingController(text: widget.address);
     _phoneNumberController = TextEditingController(text: widget.phoneNumber);
-    _tagController = TextEditingController(text: widget.tag);
-    _driverPhotoController = TextEditingController(text: widget.driverPhoto);
+    _selectedTag = widget.tag;
+    _driverPhotoUrl = widget.driverPhoto;
   }
 
   @override
@@ -76,8 +76,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _birthdateController.dispose();
     _addressController.dispose();
     _phoneNumberController.dispose();
-    _tagController.dispose();
-    _driverPhotoController.dispose();
     super.dispose();
   }
 
@@ -98,8 +96,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
           'birthdate': _birthdateController.text,
           'address': _addressController.text,
           'phoneNumber': _phoneNumberController.text,
-          'tag': _tagController.text,
-          'driverPhoto': _driverPhotoController.text,
+          'tag': _selectedTag,
+          'driverPhoto': _driverPhotoUrl,
         });
 
         Navigator.pop(context);
@@ -116,23 +114,27 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
   Future<void> _deleteDriver() async {
     try {
-      // Delete from Authentication
-      await FirebaseAuth.instance.currentUser?.delete();
+      User? user = FirebaseAuth.instance.currentUser;
 
-      // Delete from Realtime Database
-      final driverRef = FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
-      await driverRef.remove();
+      if (user != null) {
+        // Directly delete user without re-authentication
+        await user.delete();
 
-      // Delete driver photo from Firebase Storage
-      if (widget.driverPhoto.isNotEmpty) {
-        final storageRef = FirebaseStorage.instance.refFromURL(widget.driverPhoto);
-        await storageRef.delete();
+        // Delete from Realtime Database
+        final driverRef = FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
+        await driverRef.remove();
+
+        // Delete driver photo from Firebase Storage
+        if (_driverPhotoUrl.isNotEmpty) {
+          final storageRef = FirebaseStorage.instance.refFromURL(_driverPhotoUrl);
+          await storageRef.delete();
+        }
+
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Driver account deleted successfully')),
+        );
       }
-
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Driver account deleted successfully')),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting account: $e')),
@@ -145,7 +147,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
-      // Upload the image to Firebase Storage
       await uploadImageToFirebase(image);
     } else {
       print('No image selected.');
@@ -158,10 +159,9 @@ class _EditDriverFormState extends State<EditDriverForm> {
       final fileRef = storageRef.child(image.name);
       await fileRef.putFile(File(image.path));
 
-      // Get the new image URL and update the controller
       final newImageUrl = await fileRef.getDownloadURL();
       setState(() {
-        _driverPhotoController.text = newImageUrl;
+        _driverPhotoUrl = newImageUrl;
       });
 
       print('Image uploaded successfully: ${image.name}');
@@ -170,32 +170,36 @@ class _EditDriverFormState extends State<EditDriverForm> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
+@override
+Widget build(BuildContext context) {
+  return SingleChildScrollView(
+    scrollDirection: Axis.vertical,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 20.0),
-        child: Container(
-          width: 800.0,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                buildBackButton(),
-                buildProfilePicture(),
-                const SizedBox(height: 30.0),
-                buildFormFields(),
-                const SizedBox(height: 20.0),
-                buildFormButtons(),
-              ],
-            ),
+        width: double.infinity,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              buildBackButton(),
+              buildProfilePicture(),
+              const SizedBox(height: 30.0),
+              SizedBox(
+                width: 300, // Set the desired width here
+                child: buildFormFields(),
+              ),
+              const SizedBox(height: 20.0),
+              buildFormButtons(),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget buildBackButton() {
     return Align(
@@ -213,14 +217,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
     return Center(
       child: Stack(
         children: [
-          _driverPhotoController.text.isNotEmpty
+          _driverPhotoUrl.isNotEmpty
               ? CircleAvatar(
                   radius: 50,
-                  backgroundImage: NetworkImage(_driverPhotoController.text),
+                  backgroundImage: NetworkImage(_driverPhotoUrl),
                 )
-              : const CircleAvatar(
+              : CircleAvatar(
                   radius: 50,
-                  backgroundImage: AssetImage('images/default_avatar.png'),
+                  child: const Icon(Icons.person),
                 ),
           Positioned(
             bottom: 0,
@@ -237,15 +241,18 @@ class _EditDriverFormState extends State<EditDriverForm> {
     );
   }
 
-  Widget buildTextField(TextEditingController controller, String labelText, {int? maxLength}) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        border: const OutlineInputBorder(),
+  Widget buildTextField(TextEditingController controller, String labelText, {int? maxLength, String? Function(String?)? validator}) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.4, // Adjust width percentage as needed
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: labelText,
+          border: const OutlineInputBorder(),
+        ),
+        maxLength: maxLength,
+        validator: validator,
       ),
-      maxLength: maxLength,
-      maxLines: null,
     );
   }
 
@@ -255,22 +262,16 @@ class _EditDriverFormState extends State<EditDriverForm> {
         Expanded(
           child: Column(
             children: [
-              buildTextField(_firstNameController, 'First Name'),
+              buildTextField(_firstNameController, 'First Name', validator: (value) => value!.isEmpty ? 'Please enter first name' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_lastNameController, 'Last Name'),
+              buildTextField(_lastNameController, 'Last Name', validator: (value) => value!.isEmpty ? 'Please enter last name' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_idNumberController, 'ID Number', maxLength: 4),
+              buildTextField(_idNumberController, 'ID Number', maxLength: 4, validator: (value) => value!.isEmpty ? 'Please enter ID number' : null),
               const SizedBox(height: 10.0),
               GestureDetector(
                 onTap: _selectBirthdate,
                 child: AbsorbPointer(
-                  child: TextFormField(
-                    controller: _birthdateController,
-                    decoration: const InputDecoration(
-                      labelText: 'Date of Birth',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
+                  child: buildTextField(_birthdateController, 'Date of Birth'),
                 ),
               ),
             ],
@@ -280,13 +281,11 @@ class _EditDriverFormState extends State<EditDriverForm> {
         Expanded(
           child: Column(
             children: [
-              buildTextField(_bodyNumberController, 'Body Number', maxLength: 4),
+              buildTextField(_bodyNumberController, 'Body Number', maxLength: 4, validator: (value) => value!.isEmpty ? 'Please enter body number' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_addressController, 'Address'),
+              buildTextField(_addressController, 'Address', validator: (value) => value!.isEmpty ? 'Please enter address' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_phoneNumberController, 'Phone Number', maxLength: 15),
-              const SizedBox(height: 10.0),
-              buildTextField(_emailController, 'Email'),
+              buildTextField(_phoneNumberController, 'Phone Number', maxLength: 11, validator: (value) => value!.isEmpty ? 'Please enter phone number' : null),
               const SizedBox(height: 10.0),
               buildTagSelection(),
             ],
@@ -297,79 +296,81 @@ class _EditDriverFormState extends State<EditDriverForm> {
   }
 
   Widget buildTagSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const Text(
-          'Tag',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: RadioListTile(
-                title: const Text('Operator'),
+        Expanded(
+          child: Row(
+            children: [
+              Radio<String>(
                 value: 'Operator',
-                groupValue: _tagController.text,
+                groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {
-                    _tagController.text = value.toString();
+                    _selectedTag = value!;
                   });
                 },
               ),
-            ),
-            Expanded(
-              child: RadioListTile(
-                title: const Text('Member'),
+              const Text('Operator'),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Radio<String>(
                 value: 'Member',
-                groupValue: _tagController.text,
+                groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {
-                    _tagController.text = value.toString();
+                    _selectedTag = value!;
                   });
                 },
               ),
-            ),
-          ],
+              const Text('Member'),
+            ],
+          ),
         ),
       ],
     );
   }
 
   void _selectBirthdate() async {
-    DateTime? selectedDate = await showDatePicker(
+    DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1950),
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
 
-    if (selectedDate != null) {
-      String formattedDate = selectedDate.toString().substring(0, 10);
+    if (pickedDate != null) {
       setState(() {
-        _birthdateController.text = formattedDate;
+        _birthdateController.text = '${pickedDate.toLocal()}'.split(' ')[0];
       });
     }
   }
 
-  Widget buildFormButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+Widget buildFormButtons() {
+  return Center(
+    child: Column(
       children: [
         ElevatedButton(
-          onPressed: _isLoading ? null : _updateDriver,
+          onPressed: _deleteDriver,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 221, 154, 150),
+          ),
+          child: const Text('Delete Driver'),
+        ),
+        const SizedBox(height: 20.0), // Add some spacing between buttons
+        ElevatedButton(
+          onPressed: _updateDriver,
           child: _isLoading
               ? const CircularProgressIndicator()
-              : const Text('Update'),
-        ),
-        TextButton(
-          onPressed: _isLoading ? null : _deleteDriver,
-          child: const Text(
-            'Delete Driver',
-            style: TextStyle(color: Colors.red),
-          ),
+              : const Text('Save Changes'),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
+
 }

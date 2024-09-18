@@ -106,7 +106,7 @@ class _DriversFormState extends State<DriversForm> {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
+      firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
     if (picked != null) {
@@ -292,7 +292,7 @@ class _DriversFormState extends State<DriversForm> {
             Expanded(
               child: RadioListTile(
                 title: const Text('Member'),
-                value: 'member',
+                value: 'Member',
                 groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {
@@ -305,7 +305,7 @@ class _DriversFormState extends State<DriversForm> {
             Expanded(
               child: RadioListTile(
                 title: const Text('Operator'),
-                value: 'operator',
+                value: 'Operator',
                 groupValue: _selectedTag,
                 onChanged: (value) {
                   setState(() {

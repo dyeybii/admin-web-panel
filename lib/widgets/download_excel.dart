@@ -21,10 +21,10 @@ class ExcelDownloader {
     sheet.getRangeByName('C1').setText('Date of Birth');
     sheet.getRangeByName('D1').setText('ID Number');
     sheet.getRangeByName('E1').setText('Body Number');
-    sheet.getRangeByName('G1').setText('Address');
-    sheet.getRangeByName('H1').setText('Mobile Number');
-    sheet.getRangeByName('I1').setText('Email');
-    sheet.getRangeByName('J1').setText('Tag');
+    sheet.getRangeByName('F1').setText('Address');
+    sheet.getRangeByName('G1').setText('Mobile Number');
+    sheet.getRangeByName('H1').setText('Email');
+    sheet.getRangeByName('I1').setText('Tag');
 
     // Populate the worksheet with driver data.
     int row = 2;

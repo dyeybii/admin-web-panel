@@ -86,7 +86,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
       });
 
       try {
-        final driverRef = FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
+        final driverRef =
+            FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
         await driverRef.update({
           'firstName': _firstNameController.text,
           'lastName': _lastNameController.text,
@@ -121,12 +122,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
         await user.delete();
 
         // Delete from Realtime Database
-        final driverRef = FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
+        final driverRef =
+            FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
         await driverRef.remove();
 
         // Delete driver photo from Firebase Storage
         if (_driverPhotoUrl.isNotEmpty) {
-          final storageRef = FirebaseStorage.instance.refFromURL(_driverPhotoUrl);
+          final storageRef =
+              FirebaseStorage.instance.refFromURL(_driverPhotoUrl);
           await storageRef.delete();
         }
 
@@ -170,36 +173,35 @@ class _EditDriverFormState extends State<EditDriverForm> {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  return SingleChildScrollView(
-    scrollDirection: Axis.vertical,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
       child: Container(
-        width: double.infinity,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              buildBackButton(),
-              buildProfilePicture(),
-              const SizedBox(height: 30.0),
-              SizedBox(
-                width: 300, // Set the desired width here
-                child: buildFormFields(),
-              ),
-              const SizedBox(height: 20.0),
-              buildFormButtons(),
-            ],
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        child: Container(
+          width: double.infinity,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                buildBackButton(),
+                buildProfilePicture(),
+                const SizedBox(height: 30.0),
+                SizedBox(
+                  width: 300, // Set the desired width here
+                  child: buildFormFields(),
+                ),
+                const SizedBox(height: 20.0),
+                buildFormButtons(),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget buildBackButton() {
     return Align(
@@ -241,9 +243,11 @@ Widget build(BuildContext context) {
     );
   }
 
-  Widget buildTextField(TextEditingController controller, String labelText, {int? maxLength, String? Function(String?)? validator}) {
+  Widget buildTextField(TextEditingController controller, String labelText,
+      {int? maxLength, String? Function(String?)? validator}) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.4, // Adjust width percentage as needed
+      width: MediaQuery.of(context).size.width *
+          0.4, // Adjust width percentage as needed
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
@@ -262,11 +266,18 @@ Widget build(BuildContext context) {
         Expanded(
           child: Column(
             children: [
-              buildTextField(_firstNameController, 'First Name', validator: (value) => value!.isEmpty ? 'Please enter first name' : null),
+              buildTextField(_firstNameController, 'First Name',
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter first name' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_lastNameController, 'Last Name', validator: (value) => value!.isEmpty ? 'Please enter last name' : null),
+              buildTextField(_lastNameController, 'Last Name',
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter last name' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_idNumberController, 'ID Number', maxLength: 4, validator: (value) => value!.isEmpty ? 'Please enter ID number' : null),
+              buildTextField(_idNumberController, 'ID Number',
+                  maxLength: 4,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter ID number' : null),
               const SizedBox(height: 10.0),
               GestureDetector(
                 onTap: _selectBirthdate,
@@ -281,11 +292,19 @@ Widget build(BuildContext context) {
         Expanded(
           child: Column(
             children: [
-              buildTextField(_bodyNumberController, 'Body Number', maxLength: 4, validator: (value) => value!.isEmpty ? 'Please enter body number' : null),
+              buildTextField(_bodyNumberController, 'Body Number',
+                  maxLength: 4,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter body number' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_addressController, 'Address', validator: (value) => value!.isEmpty ? 'Please enter address' : null),
+              buildTextField(_addressController, 'Address',
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter address' : null),
               const SizedBox(height: 10.0),
-              buildTextField(_phoneNumberController, 'Phone Number', maxLength: 11, validator: (value) => value!.isEmpty ? 'Please enter phone number' : null),
+              buildTextField(_phoneNumberController, 'Phone Number',
+                  maxLength: 11,
+                  validator: (value) =>
+                      value!.isEmpty ? 'Please enter phone number' : null),
               const SizedBox(height: 10.0),
               buildTagSelection(),
             ],
@@ -302,6 +321,7 @@ Widget build(BuildContext context) {
         Expanded(
           child: Row(
             children: [
+              const SizedBox(height: 10.0),
               Radio<String>(
                 value: 'Operator',
                 groupValue: _selectedTag,
@@ -350,27 +370,26 @@ Widget build(BuildContext context) {
     }
   }
 
-Widget buildFormButtons() {
-  return Center(
-    child: Column(
-      children: [
-        ElevatedButton(
-          onPressed: _deleteDriver,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 221, 154, 150),
+  Widget buildFormButtons() {
+    return Center(
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: _deleteDriver,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 221, 154, 150),
+            ),
+            child: const Text('Delete Driver'),
           ),
-          child: const Text('Delete Driver'),
-        ),
-        const SizedBox(height: 20.0), // Add some spacing between buttons
-        ElevatedButton(
-          onPressed: _updateDriver,
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : const Text('Save Changes'),
-        ),
-      ],
-    ),
-  );
-}
-
+          const SizedBox(height: 20.0), // Add some spacing between buttons
+          ElevatedButton(
+            onPressed: _updateDriver,
+            child: _isLoading
+                ? const CircularProgressIndicator()
+                : const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
 }

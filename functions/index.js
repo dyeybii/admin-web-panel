@@ -41,3 +41,6 @@ exports.syncDriversAccountToFirestore = functions.database
 
       return null;
     });
+
+
+    

@@ -64,6 +64,107 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _phoneNumberController = TextEditingController(text: widget.phoneNumber);
     _selectedTag = widget.tag;
     _driverPhotoUrl = widget.driverPhoto;
+
+    // Fetch driver by UID and print key
+    _fetchDriverByUID();
+  }
+
+  Future<String?> _fetchDriverByUID() async {
+    final driverRef = FirebaseDatabase.instance.ref('driversAccount');
+    final query =
+        driverRef.orderByChild('uid').equalTo(widget.driverId); // Search by UID
+
+    try {
+      DataSnapshot snapshot = await query.get();
+
+      if (snapshot.exists) {
+        Map data = snapshot.value as Map;
+        String? driverKey;
+
+        data.forEach((key, value) {
+          // Print the driver's key and data
+          driverKey = key;
+          print('Driver Key: $key');
+          print('Driver Data: $value');
+        });
+
+        return driverKey; // Return the driver key
+      } else {
+        print('No driver found with UID: ${widget.driverId}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching driver data: $e');
+      return null;
+    }
+  }
+
+  Future<void> _updateDriver(String driverKey) async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final driverRef =
+            FirebaseDatabase.instance.ref('driversAccount/$driverKey');
+
+        Map<String, dynamic> updates = {};
+
+        // Check each field for changes and add to the update map
+        if (_firstNameController.text != widget.firstName) {
+          updates['firstName'] = _firstNameController.text;
+        }
+        if (_lastNameController.text != widget.lastName) {
+          updates['lastName'] = _lastNameController.text;
+        }
+        if (_idNumberController.text != widget.idNumber) {
+          updates['idNumber'] = _idNumberController.text;
+        }
+        if (_bodyNumberController.text != widget.bodyNumber) {
+          updates['bodyNumber'] = _bodyNumberController.text;
+        }
+        if (_emailController.text != widget.email) {
+          updates['email'] = _emailController.text;
+        }
+        if (_birthdateController.text != widget.birthdate) {
+          updates['birthdate'] = _birthdateController.text;
+        }
+        if (_addressController.text != widget.address) {
+          updates['address'] = _addressController.text;
+        }
+        if (_phoneNumberController.text != widget.phoneNumber) {
+          updates['phoneNumber'] = _phoneNumberController.text;
+        }
+        if (_selectedTag != widget.tag) {
+          updates['tag'] = _selectedTag;
+        }
+        if (_driverPhotoUrl != widget.driverPhoto) {
+          updates['driverPhoto'] = _driverPhotoUrl;
+        }
+
+        // If updates map is not empty, perform the update
+        if (updates.isNotEmpty) {
+          await driverRef.update(updates);
+          print('Driver information updated successfully.');
+        } else {
+          print('No changes to update.');
+        }
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        Navigator.pop(context); // Close the form after updating
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating data: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -79,302 +180,141 @@ class _EditDriverFormState extends State<EditDriverForm> {
     super.dispose();
   }
 
-  Future<void> _updateDriver() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        final driverRef =
-            FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
-        await driverRef.update({
-          'firstName': _firstNameController.text,
-          'lastName': _lastNameController.text,
-          'idNumber': _idNumberController.text,
-          'bodyNumber': _bodyNumberController.text,
-          'email': _emailController.text,
-          'birthdate': _birthdateController.text,
-          'address': _addressController.text,
-          'phoneNumber': _phoneNumberController.text,
-          'tag': _selectedTag,
-          'driverPhoto': _driverPhotoUrl,
-        });
-
-        Navigator.pop(context);
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating data: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _deleteDriver() async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-
-      if (user != null) {
-        // Directly delete user without re-authentication
-        await user.delete();
-
-        // Delete from Realtime Database
-        final driverRef =
-            FirebaseDatabase.instance.ref('driversAccount/${widget.driverId}');
-        await driverRef.remove();
-
-        // Delete driver photo from Firebase Storage
-        if (_driverPhotoUrl.isNotEmpty) {
-          final storageRef =
-              FirebaseStorage.instance.refFromURL(_driverPhotoUrl);
-          await storageRef.delete();
-        }
-
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Driver account deleted successfully')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting account: $e')),
-      );
-    }
-  }
-
-  Future<void> selectImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image != null) {
-      await uploadImageToFirebase(image);
-    } else {
-      print('No image selected.');
-    }
-  }
-
-  Future<void> uploadImageToFirebase(XFile image) async {
-    try {
-      final storageRef = FirebaseStorage.instance.ref().child('driver_photos');
-      final fileRef = storageRef.child(image.name);
-      await fileRef.putFile(File(image.path));
-
-      final newImageUrl = await fileRef.getDownloadURL();
-      setState(() {
-        _driverPhotoUrl = newImageUrl;
-      });
-
-      print('Image uploaded successfully: ${image.name}');
-    } catch (e) {
-      print('Error uploading image: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        child: Container(
-          width: double.infinity,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                buildBackButton(),
-                buildProfilePicture(),
-                const SizedBox(height: 30.0),
-                SizedBox(
-                  width: 300, // Set the desired width here
-                  child: buildFormFields(),
-                ),
-                const SizedBox(height: 20.0),
-                buildFormButtons(),
-              ],
-            ),
-          ),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Edit Driver'),
       ),
-    );
-  }
-
-  Widget buildBackButton() {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: IconButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        icon: const Icon(Icons.arrow_back),
-      ),
-    );
-  }
-
-  Widget buildProfilePicture() {
-    return Center(
-      child: _driverPhotoUrl.isNotEmpty
-          ? CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(_driverPhotoUrl),
-            )
-          : const CircleAvatar(
-              radius: 50,
-              child: Icon(Icons.person),
-            ),
-    );
-  }
-
-  Widget buildTextField(TextEditingController controller, String labelText,
-      {int? maxLength, String? Function(String?)? validator}) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width *
-          0.4, // Adjust width percentage as needed
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: labelText,
-          border: const OutlineInputBorder(),
-        ),
-        maxLength: maxLength,
-        validator: validator,
-      ),
-    );
-  }
-
-  Widget buildFormFields() {
-    return Row(
-      children: [
-        Expanded(
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              buildTextField(_firstNameController, 'First Name',
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter first name' : null),
-              const SizedBox(height: 10.0),
-              buildTextField(_lastNameController, 'Last Name',
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter last name' : null),
-              const SizedBox(height: 10.0),
-              buildTextField(_idNumberController, 'ID Number',
-                  maxLength: 4,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter ID number' : null),
-              const SizedBox(height: 10.0),
-              GestureDetector(
-                onTap: _selectBirthdate,
-                child: AbsorbPointer(
-                  child: buildTextField(_birthdateController, 'Date of Birth'),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 20.0),
-        Expanded(
-          child: Column(
-            children: [
-              buildTextField(_bodyNumberController, 'Body Number',
-                  maxLength: 4,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter body number' : null),
-              const SizedBox(height: 10.0),
-              buildTextField(_addressController, 'Address',
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter address' : null),
-              const SizedBox(height: 10.0),
-              buildTextField(_phoneNumberController, 'Phone Number',
-                  maxLength: 11,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter phone number' : null),
-              const SizedBox(height: 10.0),
-              buildTagSelection(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildTagSelection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Row(
-            children: [
-              const SizedBox(height: 10.0),
-              Radio<String>(
-                value: 'Operator',
-                groupValue: _selectedTag,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedTag = value!;
-                  });
+              TextFormField(
+                controller: _firstNameController,
+                decoration: InputDecoration(labelText: 'First Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a first name';
+                  }
+                  return null;
                 },
               ),
-              const Text('Operator'),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Row(
-            children: [
-              Radio<String>(
-                value: 'Member',
-                groupValue: _selectedTag,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedTag = value!;
-                  });
+              TextFormField(
+                controller: _lastNameController,
+                decoration: InputDecoration(labelText: 'Last Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a last name';
+                  }
+                  return null;
                 },
               ),
-              const Text('Member'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _selectBirthdate() async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _birthdateController.text = '${pickedDate.toLocal()}'.split(' ')[0];
-      });
+              TextFormField(
+                controller: _idNumberController,
+                decoration: InputDecoration(labelText: 'ID Number'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an ID number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _bodyNumberController,
+                decoration: InputDecoration(labelText: 'Body Number'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a body number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: (value) {
+                  if (value == null || value.isEmpty || !value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _birthdateController,
+                decoration: InputDecoration(labelText: 'Birthdate'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a birthdate';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _addressController,
+                decoration: InputDecoration(labelText: 'Address'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an address';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: InputDecoration(labelText: 'Phone Number'),
+                validator: (value) {
+                  if (value == null || value.isEmpty || value.length != 11) {
+                    return 'Please enter a valid phone number';
+                  }
+                  return null;
+                },
+              ),
+              DropdownButtonFormField<String>(
+  value: _selectedTag.isNotEmpty ? _selectedTag : null, // Ensures valid initial value
+  decoration: InputDecoration(labelText: 'Tag'),
+  items: ['Member', 'Operator'].map((tag) => DropdownMenuItem(
+        value: tag,
+        child: Text(tag),
+      )).toList(),
+  onChanged: (newValue) {
+    setState(() {
+      _selectedTag = newValue!;
+    });
+  },
+  validator: (value) {
+    if (value == null || value.isEmpty) {
+      return 'Please select a tag';
     }
-  }
+    return null;
+  },
+),
 
-  Widget buildFormButtons() {
-    return Center(
-      child: Column(
-        children: [
-          ElevatedButton(
-            onPressed: _deleteDriver,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 221, 154, 150),
-            ),
-            child: const Text('Delete Driver'),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                        // Find the driver key first, then update the driver
+                        String? driverKey =
+                            await _fetchDriverByUID(); // Fetch the driver key
+
+                        if (driverKey != null) {
+                          await _updateDriver(
+                              driverKey); // Update the driver using the found key
+                        } else {
+                          print('Driver not found, cannot update');
+                        }
+                      },
+                child: _isLoading
+                    ? CircularProgressIndicator()
+                    : Text('Update Driver'),
+              ),
+            ],
           ),
-          const SizedBox(height: 20.0), // Add some spacing between buttons
-          ElevatedButton(
-            onPressed: _updateDriver,
-            child: _isLoading
-                ? const CircularProgressIndicator()
-                : const Text('Save Changes'),
-          ),
-        ],
+        ),
       ),
     );
   }

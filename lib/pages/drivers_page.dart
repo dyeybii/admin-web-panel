@@ -19,6 +19,11 @@ class DriversPage extends StatefulWidget {
 class _DriversPageState extends State<DriversPage> {
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
+  String selectedTagFilter = 'All'; // To track the selected filter
+    DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime _endDate = DateTime.now();
+  List<Map<String, dynamic>> tripsData = []; // List to hold trip data
+
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -33,10 +38,10 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
   final TextEditingController _uidController = TextEditingController();
+  final TextEditingController _driverIdController = TextEditingController();
 
   final TextEditingController _adminEmailController = TextEditingController();
-  final TextEditingController _adminPasswordController =
-      TextEditingController();
+  final TextEditingController _adminPasswordController = TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
 
@@ -75,11 +80,22 @@ class _DriversPageState extends State<DriversPage> {
     setState(() {
       String query = searchController.text.toLowerCase();
       _filteredDriversList = _driversAccountList.where((driver) {
-        return driver.firstName.toLowerCase().contains(query) ||
+        final matchesSearch = driver.firstName.toLowerCase().contains(query) ||
             driver.lastName.toLowerCase().contains(query) ||
             driver.idNumber.toLowerCase().contains(query) ||
             driver.bodyNumber.toLowerCase().contains(query);
+
+        final matchesTag = selectedTagFilter == 'All' || driver.tag == selectedTagFilter;
+        
+        return matchesSearch && matchesTag;
       }).toList();
+    });
+  }
+
+  void _filterByTag(String? tag) {
+    setState(() {
+      selectedTagFilter = tag ?? 'All';
+      _filterDrivers();
     });
   }
 
@@ -128,6 +144,17 @@ class _DriversPageState extends State<DriversPage> {
           ),
           automaticallyImplyLeading: false,
           actions: [
+            DropdownButton<String>(
+              value: selectedTagFilter,
+              items: ['All', 'Operator', 'Member'].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: _filterByTag,
+              underline: Container(), // To remove default dropdown underline
+            ),
             ElevatedButton(
               onPressed: _showAddMemberDialog,
               child: const Text('Add Member'),
@@ -145,9 +172,17 @@ class _DriversPageState extends State<DriversPage> {
               child: const Text('Download Excel'),
             ),
             const SizedBox(width: 10),
-            BatchUpload(onUpload: _handleBatchUpload),
-          ],
-        ),
+            BatchUpload(
+  onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
+    List<DriversAccount> driversList = uploadedDrivers.map((driverData) {
+      return DriversAccount.fromJson(driverData);
+    }).toList();
+
+    _handleBatchUpload(driversList); // Call your function with the correct type
+  },
+),
+        ]),
+        
         body: StreamBuilder<DatabaseEvent>(
           stream: _databaseRef.child('driversAccount').onValue,
           builder: (context, snapshot) {
@@ -165,14 +200,12 @@ class _DriversPageState extends State<DriversPage> {
 
             final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
             final driversList = data.entries.map((entry) {
-              return DriversAccount.fromJson(
-                  Map<String, dynamic>.from(entry.value));
+              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
             }).toList();
 
             return DriverTable(
-                driversAccountList: _filteredDriversList.isNotEmpty
-                    ? _filteredDriversList
-                    : driversList);
+              driversAccountList: _filteredDriversList.isNotEmpty ? _filteredDriversList : driversList,
+            );
           },
         ),
       ),
@@ -211,7 +244,7 @@ class _DriversPageState extends State<DriversPage> {
               uidController: _uidController,
               driverPhotoController: _driverPhotoController,
               ontagSelected: (tag) {
-                _tagController.text = tag!; 
+                _tagController.text = tag!;
               },
               onAddPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -258,8 +291,7 @@ class _DriversPageState extends State<DriversPage> {
               TextField(
                 controller: _adminPasswordController,
                 obscureText: true,
-                decoration:
-                    const InputDecoration(labelText: 'Admin Password *'),
+                decoration: const InputDecoration(labelText: 'Admin Password *'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -277,39 +309,43 @@ class _DriversPageState extends State<DriversPage> {
 
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
-        password: 'defaultPassword',
+        password: 'defaultPassword123',
       );
-
       String uid = userCredential.user!.uid;
-
-      await _databaseRef.child('driversAccount').child(uid).set({
-        'uid': uid,
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'idNumber': _idNumberController.text,
-        'bodyNumber': _bodyNumberController.text,
-        'email': _emailController.text,
-        'birthdate': _birthdateController.text,
-        'address': _addressController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'tag': _tagController.text,
-        'driverPhoto': _driverPhotoController.text,
-      });
+      DatabaseReference ref = _databaseRef.child('driversAccount').child(uid);
+      DriversAccount newDriver = DriversAccount(
+        driverId: _driverIdController.text,
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        idNumber: _idNumberController.text,
+        bodyNumber: _bodyNumberController.text,
+        email: _emailController.text,
+        birthdate: _birthdateController.text,
+        address: _addressController.text,
+        phoneNumber: _phoneNumberController.text,
+        tag: _tagController.text,
+        driverPhoto: _driverPhotoController.text,
+        uid: uid,
+      );
+      await ref.set(newDriver.toJson());
 
       Navigator.of(context).pop();
-      _fetchDriversData(); // Refresh the list of drivers
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: ${e.message}')));
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add driver: $e')),
+      );
     }
   }
 
-  void _handleBatchUpload(List<Map<String, dynamic>> data) {
-    for (var driverData in data) {
-      _databaseRef.child('driversAccount').push().set(driverData);
-    }
-  }
+void _handleBatchUpload(List<DriversAccount> uploadedDrivers) {
+  setState(() {
+    _driversAccountList.addAll(uploadedDrivers);
+    _filterDrivers();
+  });
 }
+
+}
+

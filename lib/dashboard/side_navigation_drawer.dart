@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
-import 'package:admin_web_panel/pages/fund_collection.dart'; 
+import 'package:admin_web_panel/pages/note_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/login.dart';
 
@@ -51,8 +51,8 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         return const Dashboard();
       case DriversPage.id:
         return const DriversPage();
-      case FundCollection.id:
-        return const FundCollection();
+      case NotePage.id:
+        return NotePage(key: UniqueKey());
       case FareMatrixPage.id:
         return const FareMatrixPage();
       default:
@@ -80,7 +80,6 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               ],
             ),
             SizedBox(width: 20),
-           
           ],
         ),
         actions: [
@@ -118,9 +117,11 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               ),
             ),
             _buildDrawerItem('Dashboard', Icons.dashboard, Dashboard.id),
-            _buildDrawerItem('Drivers', Icons.directions_car, DriversPage.id),
-            _buildDrawerItem('Fund Collection', Icons.money, FundCollection.id),
-            _buildDrawerItem('Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
+            _buildDrawerItem(
+                'Member Management', Icons.directions_car, DriversPage.id),
+            _buildDrawerItem('Fund Collection', Icons.money, NotePage.id),
+            _buildDrawerItem(
+                'Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -156,5 +157,3 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     );
   }
 }
-
-

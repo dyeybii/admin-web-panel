@@ -11,15 +11,13 @@ class BatchUpload extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _pickFileAndUpload(BuildContext context) async {
-    
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx'],
-      withData: true, 
+      withData: true,
     );
 
     if (result != null && result.files.single.bytes != null) {
-
       var bytes = result.files.single.bytes!;
       var excel = Excel.decodeBytes(bytes);
 
@@ -27,20 +25,22 @@ class BatchUpload extends StatelessWidget {
 
       for (var table in excel.tables.keys) {
         if (excel.tables[table]!.rows.isNotEmpty) {
-          for (int rowIndex = 1; rowIndex < excel.tables[table]!.rows.length; rowIndex++) {
+          for (int rowIndex = 1;
+              rowIndex < excel.tables[table]!.rows.length;
+              rowIndex++) {
             var row = excel.tables[table]!.rows[rowIndex];
 
             // Extracting values from each cell
             final driverData = {
               'firstName': row[0]?.value?.toString(),
               'lastName': row[1]?.value?.toString(),
-              'idNumber': row[2]?.value?.toString(),
-              'bodyNumber': row[3]?.value?.toString(),
-              'email': row[4]?.value?.toString(),
-              'birthdate': row[5]?.value?.toString(),
-              'address': row[6]?.value?.toString(),
-              'phoneNumber': row[7]?.value?.toString(),
-              'tag': row[9]?.value?.toString(),
+              'birthdate': row[2]?.value?.toString(),
+              'idNumber': row[3]?.value?.toString(),
+              'bodyNumber': row[4]?.value?.toString(),
+              'address': row[5]?.value?.toString(),
+              'phoneNumber': row[6]?.value?.toString(),
+              'email': row[7]?.value?.toString(),
+              'tag': row[8]?.value?.toString(),
             };
             data.add(driverData);
           }
@@ -56,10 +56,12 @@ class BatchUpload extends StatelessWidget {
     }
   }
 
-  Future<void> _createUserAccountsAndUploadData(BuildContext context, List<Map<String, dynamic>> data) async {
+  Future<void> _createUserAccountsAndUploadData(
+      BuildContext context, List<Map<String, dynamic>> data) async {
     for (var driverData in data) {
       try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
           email: driverData['email'],
           password: driverData['birthdate'],
         );

@@ -1,7 +1,7 @@
-import 'dart:async';
+import 'package:admin_web_panel/widgets/rides_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart'; // Import fl_chart for charts
-import 'package:firebase_database/firebase_database.dart'; // For Firebase Realtime Database
+import 'package:fl_chart/fl_chart.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class Dashboard extends StatefulWidget {
   static const String id = "/webPageDashboard";
@@ -15,19 +15,18 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   final DatabaseReference _driversRef =
       FirebaseDatabase.instance.ref().child('driversAccount');
-
   final DatabaseReference _onlineDriversRef =
       FirebaseDatabase.instance.ref().child('onlineDrivers');
 
   int _totalTricycleLine = 0;
-  int _totalOnlineRiders = 0; // Updated from Realtime Database
+  int _totalOnlineRiders = 0;
   int _totalMembers = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchData(); // Fetch data when the widget is first built
-    _fetchOnlineRiders(); // Fetch online riders
+    _fetchData();
+    _fetchOnlineRiders();
   }
 
   void _fetchData() async {
@@ -38,24 +37,19 @@ class _DashboardState extends State<Dashboard> {
           int tricycleCount = 0;
           int memberCount = 0;
 
-          // Iterate over each driver record
           driversData.forEach((key, value) {
             if (value['tag'] == 'Operator') {
-              tricycleCount++; // Count Tricycle Line for Operators
+              tricycleCount++;
             }
             if (value['email'] != null) {
-              memberCount++; // Count Members based on email presence
+              memberCount++;
             }
           });
 
           setState(() {
             _totalTricycleLine = tricycleCount;
             _totalMembers = memberCount;
-            print('Total Tricycle Line: $_totalTricycleLine');
-            print('Total Members: $_totalMembers');
           });
-        } else {
-          print('No driver records found.');
         }
       });
     } catch (e) {
@@ -70,10 +64,7 @@ class _DashboardState extends State<Dashboard> {
           final onlineData = event.snapshot.value as Map<dynamic, dynamic>;
           setState(() {
             _totalOnlineRiders = onlineData.length;
-            print('Total Online Riders: $_totalOnlineRiders');
           });
-        } else {
-          print('No online drivers found in Realtime Database.');
         }
       });
     } catch (e) {
@@ -133,6 +124,13 @@ class _DashboardState extends State<Dashboard> {
               ],
             ),
             const SizedBox(height: 20),
+
+            // Add RidesChart at the bottom
+            Container(
+              height: 300, // Set a fixed height for the chart
+              padding: const EdgeInsets.all(16.0),
+              child: RidesChart(),
+            ),
           ],
         ),
       ),
@@ -174,103 +172,102 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildPieChart() {
-  final double onlinePercentage = _totalTricycleLine > 0
-      ? (_totalOnlineRiders / _totalTricycleLine) * 100
-      : 0.0;
-  final double offlinePercentage = 100.0 - onlinePercentage;
+    final double onlinePercentage = _totalTricycleLine > 0
+        ? (_totalOnlineRiders / _totalTricycleLine) * 100
+        : 0.0;
+    final double offlinePercentage = 100.0 - onlinePercentage;
 
-  return Container(
-    padding: const EdgeInsets.all(16.0),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.shade300,
-          blurRadius: 8,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Driver Online Status',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 200,
-          child: Stack(
-            children: [
-              PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: onlinePercentage,
-                      color: Colors.green,
-                      title: '${onlinePercentage.toStringAsFixed(1)}%',
-                      radius: 100,
-                      titleStyle: const TextStyle(color: Colors.white),
-                    ),
-                    PieChartSectionData(
-                      value: offlinePercentage,
-                      color: Colors.red,
-                      title: '${offlinePercentage.toStringAsFixed(1)}%',
-                      radius: 100,
-                      titleStyle: const TextStyle(color: Colors.white),
-                    ),
-                  ],
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 0,
-                ),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Online',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Offline',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Driver Online Status',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 200,
+            child: Stack(
+              children: [
+                PieChart(
+                  PieChartData(
+                    sections: [
+                      PieChartSectionData(
+                        value: onlinePercentage,
+                        color: Colors.green,
+                        title: '${onlinePercentage.toStringAsFixed(1)}%',
+                        radius: 100,
+                        titleStyle: const TextStyle(color: Colors.white),
+                      ),
+                      PieChartSectionData(
+                        value: offlinePercentage,
+                        color: Colors.red,
+                        title: '${offlinePercentage.toStringAsFixed(1)}%',
+                        radius: 100,
+                        titleStyle: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: 0,
+                  ),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Online',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Offline',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

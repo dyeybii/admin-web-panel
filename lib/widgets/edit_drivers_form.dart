@@ -217,29 +217,15 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
   Widget buildProfilePicture() {
     return Center(
-      child: Stack(
-        children: [
-          _driverPhotoUrl.isNotEmpty
-              ? CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage(_driverPhotoUrl),
-                )
-              : CircleAvatar(
-                  radius: 50,
-                  child: const Icon(Icons.person),
-                ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: IconButton(
-              onPressed: () {
-                selectImage();
-              },
-              icon: const Icon(Icons.add_a_photo),
+      child: _driverPhotoUrl.isNotEmpty
+          ? CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(_driverPhotoUrl),
+            )
+          : const CircleAvatar(
+              radius: 50,
+              child: Icon(Icons.person),
             ),
-          ),
-        ],
-      ),
     );
   }
 

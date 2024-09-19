@@ -111,14 +111,16 @@ class _DriversPageState extends State<DriversPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Members and Operators'),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: searchController,
-                  decoration: const InputDecoration(
-                    labelText: 'Search',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.search),
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Search',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.search),
+                    ),
                   ),
                 ),
               ),

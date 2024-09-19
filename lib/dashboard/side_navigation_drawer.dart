@@ -80,71 +80,81 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               ],
             ),
             SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Admin Panel", style: TextStyle(color: Colors.grey, fontSize: 14)),
-                  Text("COTODA", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 24)),
-                ],
-              ),
-            ),
+           
           ],
         ),
         actions: [
           IconButton(icon: const Icon(Icons.logout), onPressed: _confirmLogout),
         ],
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: 240,
-            color: const Color(0xFF3B3F9E),
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                const SizedBox(height: 20.0),
-                _buildListTile('Dashboard', Icons.dashboard, Dashboard.id),
-                _buildListTile('Drivers', 'images/tricycle_icon.png', DriversPage.id),
-                _buildListTile('Fund Collection', Icons.money, FundCollection.id), 
-                _buildListTile('Fare Matrix', 'images/Peso_sign.png', FareMatrixPage.id),
-              ],
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.indigo,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Admin Panel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'COTODA Admin Dashboard',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(child: _getSelectedScreen()),
-        ],
+            _buildDrawerItem('Dashboard', Icons.dashboard, Dashboard.id),
+            _buildDrawerItem('Drivers', Icons.directions_car, DriversPage.id),
+            _buildDrawerItem('Fund Collection', Icons.money, FundCollection.id),
+            _buildDrawerItem('Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: _confirmLogout,
+            ),
+          ],
+        ),
       ),
+      body: _getSelectedScreen(),
     );
   }
 
-  Widget _buildListTile(String title, dynamic leadingIcon, String? routeId) {
+  Widget _buildDrawerItem(String title, IconData icon, String? routeId) {
     bool isSelected = selectedRoute == routeId;
 
-    return GestureDetector(
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.indigo : Colors.black,
+          fontSize: 16.0,
+        ),
+      ),
+      leading: Icon(icon, color: isSelected ? Colors.indigo : Colors.black),
+      selected: isSelected,
       onTap: () {
         setState(() {
           selectedRoute = routeId;
         });
+        Navigator.pop(context); // Close the drawer after selection
       },
-      child: Container(
-        color: isSelected ? Colors.white : const Color(0xFF3B3F9E),
-        child: ListTile(
-          title: Text(
-            title,
-            style: TextStyle(
-              color: isSelected ? const Color(0xFF3B3F9E) : Colors.white,
-              fontSize: 16.0,
-            ),
-          ),
-          leading:
-              leadingIcon is IconData ? Icon(leadingIcon, color:isSelected ? const Color(0xFF3B3F9E) : Colors.white)
-                                     : Image.asset(leadingIcon,width :24,height :24,color:isSelected ?const Color(0xFF3B3F9E):Colors.white),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal :20.0, vertical :12.0),
-        ),
-      ),
     );
   }
 }
+
+

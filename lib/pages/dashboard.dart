@@ -22,8 +22,8 @@ class _DashboardState extends State<Dashboard> {
       FirebaseFirestore.instance.collection('DriversAccount');
 
   // Realtime Database reference for online drivers
-  final DatabaseReference _onlineDriversRef = 
-    FirebaseDatabase.instance.ref().child('onlineDrivers');
+  final DatabaseReference _onlineDriversRef =
+      FirebaseDatabase.instance.ref().child('onlineDrivers');
 
   // Variables to hold the fetched data
   int _totalRegisteredDrivers = 0;
@@ -31,7 +31,7 @@ class _DashboardState extends State<Dashboard> {
   int _totalCompletedRides = 0;
 
   // Default start and end dates for the date picker, showing a 30-day range
-  DateTime _startDate = DateTime.now().subtract(Duration(days: 30)); 
+  DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
   DateTime _endDate = DateTime.now();
 
   @override
@@ -41,42 +41,42 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // Method to fetch data from Firestore and Realtime Database and update state
-void _fetchData() async {
-  try {
-    final QuerySnapshot snapshot = await _driversRef.get();
-    if (snapshot.docs.isEmpty) {
-      print('No driver records found.');
-    } else {
-      setState(() {
-        _totalRegisteredDrivers = snapshot.size;
-        _totalOnlineRiders = snapshot.docs.where((doc) => doc['isOnline'] == true).length;
-        _totalCompletedRides = snapshot.docs
-            .where((doc) => doc['ridesCompleted'] != null)
-            .map((doc) => doc['ridesCompleted'] as int)
-            .reduce((a, b) => a + b);
-        print('Total Tricycle Line: $_totalRegisteredDrivers');
-        print('Total Operators: $_totalOnlineRiders');
-        print('Total Total Member: $_totalCompletedRides');
-      });
-    }
-
-    _onlineDriversRef.once().then((DatabaseEvent event) {
-      if (event.snapshot.exists) {
-        final onlineData = event.snapshot.value as Map<dynamic, dynamic>;
-        setState(() {
-          _totalOnlineRiders = onlineData.length;
-          print('Updated Total Online Riders from Realtime DB: $_totalOnlineRiders');
-        });
+  void _fetchData() async {
+    try {
+      final QuerySnapshot snapshot = await _driversRef.get();
+      if (snapshot.docs.isEmpty) {
+        print('No driver records found.');
       } else {
-        print('No online drivers found in Realtime Database.');
+        setState(() {
+          _totalRegisteredDrivers = snapshot.size;
+          _totalOnlineRiders =
+              snapshot.docs.where((doc) => doc['isOnline'] == true).length;
+          _totalCompletedRides = snapshot.docs
+              .where((doc) => doc['ridesCompleted'] != null)
+              .map((doc) => doc['ridesCompleted'] as int)
+              .reduce((a, b) => a + b);
+          print('Total Registered Drivers: $_totalRegisteredDrivers');
+          print('Total Online Riders: $_totalOnlineRiders');
+          print('Total Completed Rides: $_totalCompletedRides');
+        });
       }
-    });
 
-  } catch (e) {
-    print('Failed to fetch data: $e');
+      _onlineDriversRef.once().then((DatabaseEvent event) {
+        if (event.snapshot.exists) {
+          final onlineData = event.snapshot.value as Map<dynamic, dynamic>;
+          setState(() {
+            _totalOnlineRiders = onlineData.length;
+            print(
+                'Updated Total Online Riders from Realtime DB: $_totalOnlineRiders');
+          });
+        } else {
+          print('No online drivers found in Realtime Database.');
+        }
+      });
+    } catch (e) {
+      print('Failed to fetch data: $e');
+    }
   }
-}
-
 
   // Method to show a date picker for selecting the start or end date
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -117,9 +117,12 @@ void _fetchData() async {
 
             // Grid displaying total drivers, online riders, and completed rides
             GridView.count(
-              crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2, // Adjust columns based on screen size
+              crossAxisCount: MediaQuery.of(context).size.width > 800
+                  ? 3
+                  : 2, // Adjust columns based on screen size
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Disable scroll in grid
+              physics:
+                  const NeverScrollableScrollPhysics(), // Disable scroll in grid
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               childAspectRatio: 3, // Adjust the height of the grid items
@@ -143,12 +146,21 @@ void _fetchData() async {
             ),
             const SizedBox(height: 20),
 
-            // Pie chart card displaying percentage of online and offline drivers
-            _buildPieChartCard(),
+            // Row displaying the Pie Chart and Line Graph
+            Row(
+              children: [
+                // Pie chart displaying percentage of online and offline drivers
+                Expanded(
+                  child: _buildPieChart(),
+                ),
+                const SizedBox(width: 16), // Add spacing between the two charts
+                // Line graph showing the number of completed rides over time
+                Expanded(
+                  child: _buildLineGraph(),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
-
-            // Graph card for showing completed rides over time
-            _buildGraphCard(),
           ],
         ),
       ),
@@ -186,38 +198,42 @@ void _fetchData() async {
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
-            overflow: TextOverflow.ellipsis, // Handle overflow in case of long numbers
+            overflow: TextOverflow
+                .ellipsis, // Handle overflow in case of long numbers
           ),
         ],
       ),
     );
   }
 
-  // Widget to build a pie chart card showing the percentage of online and offline drivers
-Widget _buildPieChartCard() {
-  final double onlinePercentage = _totalRegisteredDrivers > 0
-      ? (_totalOnlineRiders / _totalRegisteredDrivers) * 100
-      : 0.0;
-  final double offlinePercentage = 100.0 - onlinePercentage;
+  // Widget to build a pie chart displaying online vs offline drivers
+  Widget _buildPieChart() {
+    final double onlinePercentage = _totalRegisteredDrivers > 0
+        ? (_totalOnlineRiders / _totalRegisteredDrivers) * 100
+        : 0.0;
+    final double offlinePercentage = 100.0 - onlinePercentage;
 
-  print('Online Percentage: $onlinePercentage');
-  print('Offline Percentage: $offlinePercentage');
-
-  return Card(
-    elevation: 3,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    child: Container(
-      width: double.infinity,
+    return Container(
       padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white, // Background color of the container
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Total Active Drivers',
+            'Driver Status',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
-
           SizedBox(
             height: 200,
             child: PieChart(
@@ -243,74 +259,75 @@ Widget _buildPieChartCard() {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-
-
-  // Widget to build a graph card showing the number of completed rides over time
-  Widget _buildGraphCard() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title and date pickers for the graph
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total Completed Rides',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-                Row(
-                  children: [
-                    // Date picker for selecting the start date
-                    InkWell(
-                      onTap: () => _selectDate(context, true), // Show date picker
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(DateFormat('MM/dd/yyyy').format(_startDate)),
+  // Widget to build a line graph for completed rides over time
+  Widget _buildLineGraph() {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white, // Background color of the container
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Completed Rides Over Time',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              Row(
+                children: [
+                  // Date picker for selecting the start date
+                  InkWell(
+                    onTap: () => _selectDate(context, true), // Show date picker
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      child:
+                          Text(DateFormat('MM/dd/yyyy').format(_startDate)),
                     ),
-                    const SizedBox(width: 8),
-                    const Text('to'),
-                    const SizedBox(width: 8),
-
-                    // Date picker for selecting the end date
-                    InkWell(
-                      onTap: () => _selectDate(context, false), // Show date picker
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(DateFormat('MM/dd/yyyy').format(_endDate)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('to'),
+                  const SizedBox(width: 8),
+                  // Date picker for selecting the end date
+                  InkWell(
+                    onTap: () => _selectDate(context, false), // Show date picker
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      child: Text(DateFormat('MM/dd/yyyy').format(_endDate)),
                     ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Line chart showing the number of completed rides over time
-            const SizedBox(
-              height: 200,
-              child: LineChartSample2(), // Assuming you have this widget for showing the line chart
-            ),
-          ],
-        ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 200,
+            child:
+                LineChartSample2(), // Assuming you have this widget for showing the line chart
+          ),
+        ],
       ),
     );
   }

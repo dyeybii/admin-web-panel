@@ -34,10 +34,10 @@ class ExcelDownloader {
       sheet.getRangeByIndex(row, 3).setText(driver.birthdate);
       sheet.getRangeByIndex(row, 4).setText(driver.idNumber);
       sheet.getRangeByIndex(row, 5).setText(driver.bodyNumber);
-      sheet.getRangeByIndex(row, 7).setText(driver.address);
-      sheet.getRangeByIndex(row, 8).setText(driver.phoneNumber);
-      sheet.getRangeByIndex(row, 9).setText(driver.email);
-      sheet.getRangeByIndex(row, 10).setText(driver.tag);
+      sheet.getRangeByIndex(row, 6).setText(driver.address);
+      sheet.getRangeByIndex(row, 7).setText(driver.phoneNumber);
+      sheet.getRangeByIndex(row, 8).setText(driver.email);
+      sheet.getRangeByIndex(row, 9).setText(driver.tag);
       row++;
     }
 

@@ -34,7 +34,7 @@ class _AddNoteFormState extends State<AddNoteForm> {
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(labelText: 'Name', border: OutlineInputBorder()),
                   maxLines: 1,
                   style: const TextStyle(
                     overflow: TextOverflow.ellipsis,
@@ -76,7 +76,7 @@ class _AddNoteFormState extends State<AddNoteForm> {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Title and content cannot be empty'),
+                  content: Text('Name and content cannot be empty'),
                   duration: Duration(seconds: 3),
                 ),
               );

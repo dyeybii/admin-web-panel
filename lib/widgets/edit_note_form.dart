@@ -80,7 +80,7 @@ class _EditNoteFormState extends State<EditNoteForm> {
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: 'Title',
+                labelText: 'Name',
                 border: OutlineInputBorder(
                   borderSide: BorderSide(width: 2.0),
                 ),

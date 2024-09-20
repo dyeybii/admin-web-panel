@@ -70,7 +70,7 @@ class _NotePageState extends State<NotePage> {
                 );
               },
               child: const Text(
-                'Add Note',
+                'Add Member',
                 style: TextStyle(
                   color: Color.fromARGB(255, 0, 0, 0),
                 ),

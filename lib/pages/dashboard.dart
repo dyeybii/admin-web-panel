@@ -72,70 +72,70 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          'Dashboard',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 20),
+
+        // Grid view with stats
+        GridView.count(
+          crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 3,
           children: [
-            const SizedBox(height: 20),
-            Text(
-              'Dashboard',
-              style: Theme.of(context).textTheme.headlineSmall,
+            _buildStatCard(
+              'Total Tricycle Line',
+              _totalTricycleLine.toString(),
+              const Color(0xFF507EA9),
             ),
-            const SizedBox(height: 20),
-
-            GridView.count(
-              crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 3,
-              children: [
-                _buildStatCard(
-                  'Total Tricycle Line',
-                  _totalTricycleLine.toString(),
-                  const Color(0xFF507EA9),
-                ),
-                _buildStatCard(
-                  'Total Online Riders',
-                  _totalOnlineRiders.toString(),
-                  const Color(0xFF5096A9),
-                ),
-                _buildStatCard(
-                  'Total Members',
-                  _totalMembers.toString(),
-                  const Color(0xFF465D7C),
-                ),
-              ],
+            _buildStatCard(
+              'Total Online Riders',
+              _totalOnlineRiders.toString(),
+              const Color(0xFF5096A9),
             ),
-            const SizedBox(height: 20),
-
-            // Row displaying the Pie Chart
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPieChart(),
-                ),
-                const SizedBox(width: 16),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Add RidesChart at the bottom
-            Container(
-              height: 300, // Set a fixed height for the chart
-              padding: const EdgeInsets.all(16.0),
-              child: RidesChart(),
+            _buildStatCard(
+              'Total Members',
+              _totalMembers.toString(),
+              const Color(0xFF465D7C),
             ),
           ],
         ),
-      ),
-    );
-  }
+        const SizedBox(height: 20),
+
+        // Pie Chart and Rides Chart in two columns
+        Row(
+          children: [
+            // Driver Online Status (Pie Chart)
+
+            const SizedBox(width: 16), // Space between columns
+
+            // Rides Chart
+            Expanded(
+              child: SizedBox(
+                height: 500, // Set a fixed height for the chart
+                child: RidesChart(),
+              ),
+            ),            Expanded(
+              child: _buildPieChart(),
+            ),
+          ]
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildStatCard(String title, String value, Color color) {
     return Container(
@@ -199,7 +199,7 @@ class _DashboardState extends State<Dashboard> {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 200,
+            height: 400,
             child: Stack(
               children: [
                 PieChart(
@@ -209,7 +209,7 @@ class _DashboardState extends State<Dashboard> {
                         value: onlinePercentage,
                         color: Colors.green,
                         title: '${onlinePercentage.toStringAsFixed(1)}%',
-                        radius: 100,
+                        radius: 150,
                         titleStyle: const TextStyle(color: Colors.white),
                       ),
                       PieChartSectionData(
@@ -241,7 +241,8 @@ class _DashboardState extends State<Dashboard> {
                           const SizedBox(width: 8),
                           const Text(
                             'Online',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -256,7 +257,8 @@ class _DashboardState extends State<Dashboard> {
                           const SizedBox(width: 8),
                           const Text(
                             'Offline',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),

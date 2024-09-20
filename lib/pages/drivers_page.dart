@@ -21,10 +21,9 @@ class _DriversPageState extends State<DriversPage> {
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
   String selectedTagFilter = 'All'; // To track the selected filter
-    DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
   DateTime _endDate = DateTime.now();
   List<Map<String, dynamic>> tripsData = []; // List to hold trip data
-
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -42,7 +41,8 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _driverIdController = TextEditingController();
 
   final TextEditingController _adminEmailController = TextEditingController();
-  final TextEditingController _adminPasswordController = TextEditingController();
+  final TextEditingController _adminPasswordController =
+      TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
 
@@ -86,8 +86,9 @@ class _DriversPageState extends State<DriversPage> {
             driver.idNumber.toLowerCase().contains(query) ||
             driver.bodyNumber.toLowerCase().contains(query);
 
-        final matchesTag = selectedTagFilter == 'All' || driver.tag == selectedTagFilter;
-        
+        final matchesTag =
+            selectedTagFilter == 'All' || driver.tag == selectedTagFilter;
+
         return matchesSearch && matchesTag;
       }).toList();
     });
@@ -124,68 +125,69 @@ class _DriversPageState extends State<DriversPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Members and Operators'),
-              Center(
-                child: SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Search',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.search),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Members and Operators'),
+                Center(
+                  child: SizedBox(
+                    width: 300,
+                    child: TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        labelText: 'Search',
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.search),
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+            automaticallyImplyLeading: false,
+            actions: [
+              DropdownButton<String>(
+                value: selectedTagFilter,
+                items: ['All', 'Operator', 'Member'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: _filterByTag,
+                underline: Container(), // To remove default dropdown underline
               ),
-            ],
-          ),
-          automaticallyImplyLeading: false,
-          actions: [
-            DropdownButton<String>(
-              value: selectedTagFilter,
-              items: ['All', 'Operator', 'Member'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: _filterByTag,
-              underline: Container(), // To remove default dropdown underline
-            ),
-            ElevatedButton(
-              onPressed: _showAddMemberDialog,
-              child: const Text('Add Member'),
-            ),
-            const SizedBox(width: 10),
-                        ElevatedButton(
-              onPressed: () {
-                ExcelTemplateDownloader.downloadExcelTemplate(context);
-              },
-              child: const Text('Export Template'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () {
-                ExcelDownloader.downloadExcel(context, _driversAccountList);
-              },
-              child: const Text('Download Excel'),
-            ),
-            const SizedBox(width: 10),
-            BatchUpload(
-  onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
-    List<DriversAccount> driversList = uploadedDrivers.map((driverData) {
-      return DriversAccount.fromJson(driverData);
-    }).toList();
+              ElevatedButton(
+                onPressed: _showAddMemberDialog,
+                child: const Text('Add Member'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  ExcelTemplateDownloader.downloadExcelTemplate(context);
+                },
+                child: const Text('Export Template'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  ExcelDownloader.downloadExcel(context, _driversAccountList);
+                },
+                child: const Text('Download Excel'),
+              ),
+              const SizedBox(width: 10),
+              BatchUpload(
+                onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
+                  List<DriversAccount> driversList =
+                      uploadedDrivers.map((driverData) {
+                    return DriversAccount.fromJson(driverData);
+                  }).toList();
 
-    _handleBatchUpload(driversList); // Call your function with the correct type
-  },
-),
-        ]),
-        
+                  _handleBatchUpload(
+                      driversList); // Call your function with the correct type
+                },
+              ),
+            ]),
         body: StreamBuilder<DatabaseEvent>(
           stream: _databaseRef.child('driversAccount').onValue,
           builder: (context, snapshot) {
@@ -203,11 +205,14 @@ class _DriversPageState extends State<DriversPage> {
 
             final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
             final driversList = data.entries.map((entry) {
-              return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
+              return DriversAccount.fromJson(
+                  Map<String, dynamic>.from(entry.value));
             }).toList();
 
             return DriverTable(
-              driversAccountList: _filteredDriversList.isNotEmpty ? _filteredDriversList : driversList,
+              driversAccountList: _filteredDriversList.isNotEmpty
+                  ? _filteredDriversList
+                  : driversList,
             );
           },
         ),
@@ -233,35 +238,34 @@ class _DriversPageState extends State<DriversPage> {
             ],
           ),
           content: SingleChildScrollView(
-            child: DriversForm(
-              formKey: _formKey,
-              firstNameController: _firstNameController,
-              lastNameController: _lastNameController,
-              idNumberController: _idNumberController,
-              bodyNumberController: _bodyNumberController,
-              emailController: _emailController,
-              birthdateController: _birthdateController,
-              addressController: _addressController,
-              phoneNumberController: _phoneNumberController,
-              tagController: _tagController,
-              uidController: _uidController,
-              driverPhotoController: _driverPhotoController,
-              ontagSelected: (tag) {
-                _tagController.text = tag!;
-              },
-              onAddPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _addMemberToFirebaseAndRealtimeDatabase();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all required fields.'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ),
+              child: DriversForm(
+            formKey: _formKey,
+            firstNameController: _firstNameController,
+            lastNameController: _lastNameController,
+            idNumberController: _idNumberController,
+            bodyNumberController: _bodyNumberController,
+            emailController: _emailController,
+            birthdateController: _birthdateController,
+            addressController: _addressController,
+            phoneNumberController: _phoneNumberController,
+            tagController: _tagController,
+            uidController: _uidController,
+            driverPhotoController: _driverPhotoController,
+            ontagSelected: (tag) {
+              _tagController.text = tag!;
+            },
+            onAddPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _addMemberToFirebaseAndRealtimeDatabase();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please fill in all required fields.'),
+                  ),
+                );
+              }
+            },
+          )),
         );
       },
     );
@@ -294,7 +298,8 @@ class _DriversPageState extends State<DriversPage> {
               TextField(
                 controller: _adminPasswordController,
                 obscureText: true,
-                decoration: const InputDecoration(labelText: 'Admin Password *'),
+                decoration:
+                    const InputDecoration(labelText: 'Admin Password *'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -312,7 +317,8 @@ class _DriversPageState extends State<DriversPage> {
 
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: 'defaultPassword123',
       );
@@ -343,12 +349,10 @@ class _DriversPageState extends State<DriversPage> {
     }
   }
 
-void _handleBatchUpload(List<DriversAccount> uploadedDrivers) {
-  setState(() {
-    _driversAccountList.addAll(uploadedDrivers);
-    _filterDrivers();
-  });
+  void _handleBatchUpload(List<DriversAccount> uploadedDrivers) {
+    setState(() {
+      _driversAccountList.addAll(uploadedDrivers);
+      _filterDrivers();
+    });
+  }
 }
-
-}
-

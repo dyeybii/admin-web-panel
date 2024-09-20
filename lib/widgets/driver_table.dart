@@ -33,25 +33,7 @@ class _DriverTableState extends State<DriverTable> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            DropdownButton<String>(
-              hint: const Text("Filter by Tag"),
-              items: ['All', 'Operator', 'Member'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (filter) {
-                setState(() {
-                  if (filter == 'All') {
-                    filteredList = widget.driversAccountList;
-                  } else {
-                    filteredList = widget.driversAccountList.where((driver) => driver.tag == filter).toList();
-                  }
-                  currentPage = 0;
-                });
-              },
-            ),
+
             Expanded(
               child: Card(
                 elevation: 4,

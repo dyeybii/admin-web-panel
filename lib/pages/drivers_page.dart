@@ -3,6 +3,7 @@ import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
+import 'package:admin_web_panel/widgets/export_template.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -160,9 +161,11 @@ class _DriversPageState extends State<DriversPage> {
               child: const Text('Add Member'),
             ),
             const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: _showAddAdminDialog,
-              child: const Text('Add Admin'),
+                        ElevatedButton(
+              onPressed: () {
+                ExcelTemplateDownloader.downloadExcelTemplate(context);
+              },
+              child: const Text('Export Template'),
             ),
             const SizedBox(width: 10),
             ElevatedButton(

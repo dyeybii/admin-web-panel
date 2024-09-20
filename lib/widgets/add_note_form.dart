@@ -27,8 +27,8 @@ class _AddNoteFormState extends State<AddNoteForm> {
             maxWidth: MediaQuery.of(context).size.width * 0.8,
           ),
           child: SizedBox(
-            height: 350,
-            width: 1000,
+            height: 200,
+            width: 350,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -44,7 +44,7 @@ class _AddNoteFormState extends State<AddNoteForm> {
                 TextField(
                   controller: _contentController,
                   decoration: const InputDecoration(labelText: 'Content', border: OutlineInputBorder()),
-                  maxLines: 10,
+                  maxLines: 4,
                   style: const TextStyle(
                     overflow: TextOverflow.ellipsis,
                   ),

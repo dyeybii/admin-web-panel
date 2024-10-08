@@ -1,12 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:admin_web_panel/widgets/export_template.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -20,13 +19,11 @@ class DriversPage extends StatefulWidget {
 class _DriversPageState extends State<DriversPage> {
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
-  String selectedTagFilter = 'All'; // To track the selected filter
-  DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
-  DateTime _endDate = DateTime.now();
-  List<Map<String, dynamic>> tripsData = []; // List to hold trip data
+  List<DriversAccount> _selectedDrivers =
+      []; 
+  String selectedTagFilter = 'All'; 
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _idNumberController = TextEditingController();
@@ -40,12 +37,7 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _uidController = TextEditingController();
   final TextEditingController _driverIdController = TextEditingController();
 
-  final TextEditingController _adminEmailController = TextEditingController();
-  final TextEditingController _adminPasswordController =
-      TextEditingController();
-
   final TextEditingController searchController = TextEditingController();
-
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
 
   @override
@@ -70,9 +62,12 @@ class _DriversPageState extends State<DriversPage> {
     final snapshot = await _databaseRef.child('driversAccount').get();
     if (snapshot.exists) {
       final data = snapshot.value as Map<dynamic, dynamic>;
-      driversList = data.entries.map((entry) {
-        return DriversAccount.fromJson(Map<String, dynamic>.from(entry.value));
-      }).toList();
+      driversList = data.entries
+          .map((entry) =>
+              DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
+          .where((driver) => driver != null)
+          .cast<DriversAccount>()
+          .toList();
     }
     return driversList;
   }
@@ -115,8 +110,6 @@ class _DriversPageState extends State<DriversPage> {
     _tagController.dispose();
     _driverPhotoController.dispose();
     _uidController.dispose();
-    _adminEmailController.dispose();
-    _adminPasswordController.dispose();
     super.dispose();
   }
 
@@ -125,69 +118,85 @@ class _DriversPageState extends State<DriversPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Members and Operators'),
-                Center(
-                  child: SizedBox(
-                    width: 300,
-                    child: TextField(
-                      controller: searchController,
-                      decoration: const InputDecoration(
-                        labelText: 'Search',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.search),
-                      ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Members and Operators'),
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Search',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.search),
                     ),
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: _fetchDriversData, 
             ),
-            automaticallyImplyLeading: false,
-            actions: [
-              DropdownButton<String>(
-                value: selectedTagFilter,
-                items: ['All', 'Operator', 'Member'].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: _filterByTag,
-                underline: Container(), // To remove default dropdown underline
-              ),
-              ElevatedButton(
-                onPressed: _showAddMemberDialog,
-                child: const Text('Add Member'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  ExcelTemplateDownloader.downloadExcelTemplate(context);
-                },
-                child: const Text('Export Template'),
-              ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  ExcelDownloader.downloadExcel(context, _driversAccountList);
-                },
-                child: const Text('Download Excel'),
-              ),
-              const SizedBox(width: 10),
-              BatchUpload(
-                onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
-                  List<DriversAccount> driversList =
-                      uploadedDrivers.map((driverData) {
-                    return DriversAccount.fromJson(driverData);
-                  }).toList();
+            DropdownButton<String>(
+              value: selectedTagFilter,
+              items: ['All', 'Operator', 'Member'].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: _filterByTag,
+              underline: Container(), 
+            ),
+            ElevatedButton(
+              onPressed: _showAddMemberDialog,
+              child: const Text('Add Member'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                ExcelTemplateDownloader.downloadExcelTemplate(context);
+              },
+              child: const Text('Export Template'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                
+                if (_selectedDrivers.isNotEmpty) {
+                  
+                  ExcelDownloader.downloadExcel(context, _driversAccountList,
+                      _selectedDrivers);
+                } else {
+                  
+                  ExcelDownloader.downloadExcel(context, _driversAccountList,
+                      []); 
+                }
+              },
+              child: const Text('Download Excel'),
+            ),
+            const SizedBox(width: 10),
+            BatchUpload(
+              onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
+                List<DriversAccount> driversList = uploadedDrivers
+                    .map((driverData) {
+                      return DriversAccount.fromJson(driverData);
+                    })
+                    .where((driver) => driver != null)
+                    .cast<DriversAccount>()
+                    .toList();
 
-                  _handleBatchUpload(
-                      driversList); // Call your function with the correct type
-                },
-              ),
-            ]),
+                _handleBatchUpload(driversList);
+              },
+            ),
+          ],
+        ),
         body: StreamBuilder<DatabaseEvent>(
           stream: _databaseRef.child('driversAccount').onValue,
           builder: (context, snapshot) {
@@ -204,15 +213,25 @@ class _DriversPageState extends State<DriversPage> {
             }
 
             final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            final driversList = data.entries.map((entry) {
-              return DriversAccount.fromJson(
-                  Map<String, dynamic>.from(entry.value));
-            }).toList();
+            final driversList = data.entries
+                .map((entry) => DriversAccount.fromJson(
+                    Map<String, dynamic>.from(entry.value)))
+                .where((driver) => driver != null)
+                .cast<DriversAccount>()
+                .toList();
 
             return DriverTable(
               driversAccountList: _filteredDriversList.isNotEmpty
                   ? _filteredDriversList
                   : driversList,
+              selectedDrivers:
+                  _selectedDrivers, 
+              onSelectedDriversChanged: (List<DriversAccount> selected) {
+                setState(() {
+                  _selectedDrivers =
+                      selected;
+                });
+              },
             );
           },
         ),
@@ -271,88 +290,43 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
-  void _showAddAdminDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Add Admin'),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _adminEmailController,
-                decoration: const InputDecoration(labelText: 'Admin Email *'),
-              ),
-              TextField(
-                controller: _adminPasswordController,
-                obscureText: true,
-                decoration:
-                    const InputDecoration(labelText: 'Admin Password *'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Add function to create admin
-                },
-                child: const Text('Add Admin'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: 'defaultPassword123',
-      );
-      String uid = userCredential.user!.uid;
-      DatabaseReference ref = _databaseRef.child('driversAccount').child(uid);
-      DriversAccount newDriver = DriversAccount(
-        driverId: _driverIdController.text,
-        firstName: _firstNameController.text,
-        lastName: _lastNameController.text,
-        idNumber: _idNumberController.text,
-        bodyNumber: _bodyNumberController.text,
-        email: _emailController.text,
-        birthdate: _birthdateController.text,
-        address: _addressController.text,
-        phoneNumber: _phoneNumberController.text,
-        tag: _tagController.text,
-        driverPhoto: _driverPhotoController.text,
-        uid: uid,
-      );
-      await ref.set(newDriver.toJson());
+    final newDriver = DriversAccount(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      idNumber: _idNumberController.text,
+      bodyNumber: _bodyNumberController.text,
+      email: _emailController.text,
+      birthdate: _birthdateController.text,
+      address: _addressController.text,
+      phoneNumber: _phoneNumberController.text,
+      tag: _tagController.text,
+      uid: _uidController.text,
+      driverPhoto: _driverPhotoController.text,
+      driverId: _driverIdController.text,
+    );
+    await _databaseRef.child('driversAccount').push().set(newDriver.toJson());
 
-      Navigator.of(context).pop();
-    } catch (e) {
-      print('Error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add driver: $e')),
-      );
-    }
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _idNumberController.clear();
+    _bodyNumberController.clear();
+    _emailController.clear();
+    _birthdateController.clear();
+    _addressController.clear();
+    _phoneNumberController.clear();
+    _tagController.clear();
+    _uidController.clear();
+    _driverPhotoController.clear();
+
+    Navigator.of(context).pop(); 
+    _fetchDriversData(); 
   }
 
-  void _handleBatchUpload(List<DriversAccount> uploadedDrivers) {
-    setState(() {
-      _driversAccountList.addAll(uploadedDrivers);
-      _filterDrivers();
-    });
+  void _handleBatchUpload(List<DriversAccount> driversList) {
+    for (var driver in driversList) {
+      _databaseRef.child('driversAccount').push().set(driver.toJson());
+    }
+    _fetchDriversData();
   }
 }

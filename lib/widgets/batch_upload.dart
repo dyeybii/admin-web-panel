@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class BatchUpload extends StatelessWidget {
   final Function(List<Map<String, dynamic>>) onUpload;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child('driversAccount');
 
   BatchUpload({required this.onUpload});
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _pickFileAndUpload(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -30,7 +31,6 @@ class BatchUpload extends StatelessWidget {
               rowIndex++) {
             var row = excel.tables[table]!.rows[rowIndex];
 
-            // Extracting values from each cell
             final driverData = {
               'firstName': row[0]?.value?.toString(),
               'lastName': row[1]?.value?.toString(),
@@ -47,11 +47,11 @@ class BatchUpload extends StatelessWidget {
         }
       }
 
-      // Upload the data and create user accounts
+
       await _createUserAccountsAndUploadData(context, data);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No file selected.')),
+        const SnackBar(content: Text('No file selected.')),
       );
     }
   }
@@ -63,16 +63,19 @@ class BatchUpload extends StatelessWidget {
         UserCredential userCredential =
             await _auth.createUserWithEmailAndPassword(
           email: driverData['email'],
-          password: driverData['birthdate'],
+          password: driverData['birthdate'], 
         );
+
+
+        await _databaseRef.push().set(driverData);
 
         print('User created: ${userCredential.user?.email}');
 
-        // Here, you can call the onUpload function to handle the Firestore upload if needed
+ 
         onUpload(data);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Batch upload and user creation completed.')),
+          const SnackBar(content: Text('Batch upload and user creation completed.')),
         );
       } on FirebaseAuthException catch (e) {
         _showAlertDialog(context, e.message ?? 'An error occurred');
@@ -87,14 +90,14 @@ class BatchUpload extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Text(message),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -106,7 +109,7 @@ class BatchUpload extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () => _pickFileAndUpload(context),
-      child: Text('Batch Upload'),
+      child: const Text('Batch Upload'),
     );
   }
 }

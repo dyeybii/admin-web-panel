@@ -39,9 +39,9 @@ class DriversAccount {
   final String tag;
   final String driverPhoto;
   final String uid;
-  final TotalRatings? totalRatings;  // New
-  final String? currentTripID;       // New
-  final String? deviceToken;         // New
+  final TotalRatings? totalRatings;
+  final String? currentTripID;
+  final String? deviceToken;
 
   DriversAccount({
     required this.driverId,
@@ -56,12 +56,17 @@ class DriversAccount {
     required this.tag,
     required this.driverPhoto,
     required this.uid,
-    this.totalRatings,  // New
-    this.currentTripID, // New
-    this.deviceToken,   // New
+    this.totalRatings,
+    this.currentTripID,
+    this.deviceToken,
   });
 
-  factory DriversAccount.fromJson(Map<dynamic, dynamic> json) {
+  static DriversAccount? fromJson(Map<dynamic, dynamic> json) {
+
+    if (json['firstName'] == null || (json['firstName'] as String).isEmpty) {
+      return null; 
+    }
+
     return DriversAccount(
       uid: json['uid'] ?? '',
       firstName: json['firstName'] ?? '',
@@ -73,10 +78,10 @@ class DriversAccount {
       address: json['address'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
       tag: json['tag'] ?? '',
-      driverPhoto: json['driverPhoto'] ?? '',  // Corrected field name
+      driverPhoto: json['driverPhoto'] ?? '',
       driverId: json['driverId'] ?? '',
       totalRatings: json['totalRatings'] != null
-          ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))  // Explicit cast
+          ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))
           : null,
       currentTripID: json['currentTripID'],
       deviceToken: json['deviceToken'],
@@ -95,11 +100,11 @@ class DriversAccount {
       'address': address,
       'phoneNumber': phoneNumber,
       'tag': tag,
-      'driverPhoto': driverPhoto,  // Corrected field name
+      'driverPhoto': driverPhoto,
       'driverId': driverId,
-      if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),  // New
-      if (currentTripID != null) 'currentTripID': currentTripID,  // New
-      if (deviceToken != null) 'deviceToken': deviceToken,        // New
+      if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),
+      if (currentTripID != null) 'currentTripID': currentTripID,
+      if (deviceToken != null) 'deviceToken': deviceToken,
     };
   }
 }

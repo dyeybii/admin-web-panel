@@ -65,14 +65,12 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _selectedTag = widget.tag;
     _driverPhotoUrl = widget.driverPhoto;
 
-    // Fetch driver by UID and print key
     _fetchDriverByUID();
   }
 
   Future<String?> _fetchDriverByUID() async {
     final driverRef = FirebaseDatabase.instance.ref('driversAccount');
-    final query =
-        driverRef.orderByChild('uid').equalTo(widget.driverId); // Search by UID
+    final query = driverRef.orderByChild('uid').equalTo(widget.driverId);
 
     try {
       DataSnapshot snapshot = await query.get();
@@ -82,13 +80,12 @@ class _EditDriverFormState extends State<EditDriverForm> {
         String? driverKey;
 
         data.forEach((key, value) {
-          // Print the driver's key and data
           driverKey = key;
           print('Driver Key: $key');
           print('Driver Data: $value');
         });
 
-        return driverKey; // Return the driver key
+        return driverKey;
       } else {
         print('No driver found with UID: ${widget.driverId}');
         return null;
@@ -111,7 +108,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
         Map<String, dynamic> updates = {};
 
-        // Check each field for changes and add to the update map
         if (_firstNameController.text != widget.firstName) {
           updates['firstName'] = _firstNameController.text;
         }
@@ -143,7 +139,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
           updates['driverPhoto'] = _driverPhotoUrl;
         }
 
-        // If updates map is not empty, perform the update
         if (updates.isNotEmpty) {
           await driverRef.update(updates);
           print('Driver information updated successfully.');
@@ -155,7 +150,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
           _isLoading = false;
         });
 
-        Navigator.pop(context); // Close the form after updating
+        Navigator.pop(context);
       } catch (e) {
         setState(() {
           _isLoading = false;
@@ -273,37 +268,35 @@ class _EditDriverFormState extends State<EditDriverForm> {
                 },
               ),
               DropdownButtonFormField<String>(
-  value: _selectedTag.isNotEmpty ? _selectedTag : null, // Ensures valid initial value
-  decoration: InputDecoration(labelText: 'Tag'),
-  items: ['Member', 'Operator'].map((tag) => DropdownMenuItem(
-        value: tag,
-        child: Text(tag),
-      )).toList(),
-  onChanged: (newValue) {
-    setState(() {
-      _selectedTag = newValue!;
-    });
-  },
-  validator: (value) {
-    if (value == null || value.isEmpty) {
-      return 'Please select a tag';
-    }
-    return null;
-  },
-),
-
+                value: _selectedTag.isNotEmpty ? _selectedTag : null,
+                decoration: InputDecoration(labelText: 'Tag'),
+                items: ['Member', 'Operator']
+                    .map((tag) => DropdownMenuItem(
+                          value: tag,
+                          child: Text(tag),
+                        ))
+                    .toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedTag = newValue!;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a tag';
+                  }
+                  return null;
+                },
+              ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading
                     ? null
                     : () async {
-                        // Find the driver key first, then update the driver
-                        String? driverKey =
-                            await _fetchDriverByUID(); // Fetch the driver key
+                        String? driverKey = await _fetchDriverByUID();
 
                         if (driverKey != null) {
-                          await _updateDriver(
-                              driverKey); // Update the driver using the found key
+                          await _updateDriver(driverKey);
                         } else {
                           print('Driver not found, cannot update');
                         }

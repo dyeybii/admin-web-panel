@@ -72,99 +72,143 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
- @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: [
-        const SizedBox(height: 20),
-        Text(
-          'Dashboard',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 20),
-
-        // Grid view with stats
-        GridView.count(
-          crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 3,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
           children: [
-            _buildStatCard(
-              'Total Tricycle Line',
-              _totalTricycleLine.toString(),
-              const Color(0xFF507EA9),
+            const SizedBox(height: 20),
+            Text(
+              'Welcome Back!',
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            _buildStatCard(
-              'Total Online Riders',
-              _totalOnlineRiders.toString(),
-              const Color(0xFF5096A9),
+            const Divider(thickness: 2), // Line divider added here
+            const SizedBox(height: 20),
+
+            // Responsive grid view with stats
+            LayoutBuilder(
+              builder: (context, constraints) {
+                int crossAxisCount = constraints.maxWidth > 800 ? 3 : 2;
+                return GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 3,
+                  children: [
+                    _buildStatCard(
+                      'Total Tricycle Line',
+                      _totalTricycleLine.toString(),
+                      const Color(0xFF507EA9),
+                      'images/tricycle_icon.png',
+                    ),
+                    _buildStatCard(
+                      'Total Online Riders',
+                      _totalOnlineRiders.toString(),
+                      const Color(0xFF5096A9),
+                      'images/tricycle_icon.png',
+                    ),
+                    _buildStatCard(
+                      'Total Members',
+                      _totalMembers.toString(),
+                      const Color(0xFF465D7C),
+                      'images/tricycle_icon.png',
+                    ),
+                  ],
+                );
+              },
             ),
-            _buildStatCard(
-              'Total Members',
-              _totalMembers.toString(),
-              const Color(0xFF465D7C),
+            const SizedBox(height: 20),
+
+            // Pie Chart and Rides Chart in two columns
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 450, // Set a fixed height for the chart
+                    child: RidesChart(),
+                  ),
+                ),
+                const SizedBox(width: 16), // Space between columns
+                Expanded(
+                  child: SizedBox(
+                    height: 450, // Set a fixed height for the chart
+                    child: _buildPieChart(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 20),
+      ),
+    );
+  }
 
-        // Pie Chart and Rides Chart in two columns
-        Row(
-          children: [
-            // Driver Online Status (Pie Chart)
-
-            const SizedBox(width: 16), // Space between columns
-
-            // Rides Chart
-            Expanded(
-              child: SizedBox(
-                height: 500, // Set a fixed height for the chart
-                child: RidesChart(),
-              ),
-            ),            Expanded(
-              child: _buildPieChart(),
-            ),
-          ]
-        ),
-      ],
-    ),
-  );
-}
-
-
-  Widget _buildStatCard(String title, String value, Color color) {
+  // Build Stat Card with Icon
+  Widget _buildStatCard(
+      String title, String value, Color color, String iconPath) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 24.0),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+          // Wrap the Column in a Flexible widget to prevent overflow
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Handle long text
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Handle long numbers
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 28,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+          const SizedBox(width: 8), // Space between text and icon
+
+          // Icon with Circular Background
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFD9D9D9), // Circle background color
+              shape: BoxShape.circle,
             ),
-            overflow: TextOverflow.ellipsis,
+            padding: const EdgeInsets.all(14.0),
+            child: ColorFiltered(
+              colorFilter: const ColorFilter.mode(
+                Colors.grey, // Make the icon grey
+                BlendMode.srcIn,
+              ),
+              child: Image.asset(
+                iconPath,
+                height: 40, // Adjusted icon size
+                width: 40,
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
         ],
       ),
@@ -199,7 +243,7 @@ Widget build(BuildContext context) {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: 400,
+            height: 370,
             child: Stack(
               children: [
                 PieChart(
@@ -216,7 +260,7 @@ Widget build(BuildContext context) {
                         value: offlinePercentage,
                         color: Colors.red,
                         title: '${offlinePercentage.toStringAsFixed(1)}%',
-                        radius: 100,
+                        radius: 150,
                         titleStyle: const TextStyle(color: Colors.white),
                       ),
                     ],

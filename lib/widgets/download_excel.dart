@@ -9,13 +9,16 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 
 class ExcelDownloader {
+
   static Future<void> downloadExcel(
-      BuildContext context, List<DriversAccount> driversAccountList) async {
-    // Create a new workbook and access the first worksheet.
+      BuildContext context, List<DriversAccount> allDrivers, List<DriversAccount> selectedDrivers) async {
+ 
+    List<DriversAccount> driversToDownload = selectedDrivers.isNotEmpty ? selectedDrivers : allDrivers;
+
+
     final Workbook workbook = Workbook();
     final Worksheet sheet = workbook.worksheets[0];
 
-    // Set the column headers.
     sheet.getRangeByName('A1').setText('First Name');
     sheet.getRangeByName('B1').setText('Last Name');
     sheet.getRangeByName('C1').setText('Date of Birth');
@@ -26,9 +29,9 @@ class ExcelDownloader {
     sheet.getRangeByName('H1').setText('Email');
     sheet.getRangeByName('I1').setText('Tag');
 
-    // Populate the worksheet with driver data.
+ 
     int row = 2;
-    for (var driver in driversAccountList) {
+    for (var driver in driversToDownload) {
       sheet.getRangeByIndex(row, 1).setText(driver.firstName);
       sheet.getRangeByIndex(row, 2).setText(driver.lastName);
       sheet.getRangeByIndex(row, 3).setText(driver.birthdate);
@@ -41,24 +44,24 @@ class ExcelDownloader {
       row++;
     }
 
-    // Auto-fit all columns.
-    for (int col = 1; col <= 10; col++) {
+
+    for (int col = 1; col <= 9; col++) {
       sheet.autoFitColumn(col);
     }
 
-    // Save the workbook as a byte stream.
+
     final List<int> bytes = workbook.saveAsStream();
     workbook.dispose();
 
     if (kIsWeb) {
-      // Handle file download for web platforms.
+
       AnchorElement(
           href:
               'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
         ..setAttribute('download', 'Drivers Information.xlsx')
         ..click();
     } else {
-      // Handle file saving and opening for mobile and desktop platforms.
+
       final String path = (await getApplicationSupportDirectory()).path;
       final String fileName =
           Platform.isWindows ? '$path\\Drivers Information.xlsx' : '$path/drivers_data.xlsx';
@@ -67,7 +70,6 @@ class ExcelDownloader {
       OpenFile.open(file.path);
     }
 
-    // Show a confirmation message.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Excel file downloaded.'),

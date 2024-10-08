@@ -1,12 +1,19 @@
-import 'package:admin_web_panel/widgets/edit_drivers_form.dart';
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
-import 'drivers_account.dart';
+import 'package:admin_web_panel/widgets/drivers_account.dart';
+import 'package:admin_web_panel/widgets/edit_drivers_form.dart';
 
 class DriverTable extends StatefulWidget {
   final List<DriversAccount> driversAccountList;
+  final List<DriversAccount> selectedDrivers;
+  final Function(List<DriversAccount>) onSelectedDriversChanged;
 
-  const DriverTable({Key? key, required this.driversAccountList}) : super(key: key);
+  const DriverTable({
+    Key? key,
+    required this.driversAccountList,
+    required this.selectedDrivers,
+    required this.onSelectedDriversChanged,
+  }) : super(key: key);
 
   @override
   _DriverTableState createState() => _DriverTableState();
@@ -14,13 +21,15 @@ class DriverTable extends StatefulWidget {
 
 class _DriverTableState extends State<DriverTable> {
   List<DriversAccount> filteredList = [];
-  int rowsPerPage = 6;
+  int rowsPerPage = 7;
   int currentPage = 0;
+  bool isAllSelected = false; 
 
   @override
   void initState() {
     super.initState();
-    filteredList = widget.driversAccountList;
+    filteredList = widget.driversAccountList.where((driver) => driver.firstName.isNotEmpty).toList();
+    isAllSelected = widget.selectedDrivers.length == filteredList.length;
   }
 
   @override
@@ -33,44 +42,89 @@ class _DriverTableState extends State<DriverTable> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('${widget.selectedDrivers.length} driver(s) selected'),
+              ],
+            ),
             Expanded(
               child: Card(
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: DataTable2(
-                    columns: const [
-                      DataColumn2(label: Text('First Name')),
-                      DataColumn2(label: Text('Last Name')),
-                      DataColumn2(label: Text('ID Number')),
-                      DataColumn2(label: Text('Body Number')),
-                      DataColumn2(label: Text('Email')),
-                      DataColumn2(label: Text('Phone Number')), // Added Phone Number
-                      DataColumn2(label: Text('Tag')),
+                    columns: [
+                      DataColumn2(
+                        label: Row(
+                          children: [
+                            Checkbox(
+                              value: isAllSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  isAllSelected = value!;
+                                  if (isAllSelected) {
+
+                                    widget.selectedDrivers.clear();
+                                    widget.selectedDrivers.addAll(filteredList);
+                                  } else {
+
+                                    widget.selectedDrivers.clear();
+                                  }
+                                  widget.onSelectedDriversChanged(widget.selectedDrivers);
+                                });
+                              },
+                            ),
+                            const Text('Select All'),
+                          ],
+                        ),
+                      ),
+                      const DataColumn2(label: Text('First Name')),
+                      const DataColumn2(label: Text('Last Name')),
+                      const DataColumn2(label: Text('ID Number')),
+                      const DataColumn2(label: Text('Body Number')),
+                      const DataColumn2(label: Text('Email')),
+                      const DataColumn2(label: Text('Phone Number')),
+                      const DataColumn2(label: Text('Tag')),
                     ],
                     rows: _getCurrentPageDrivers().map((driver) {
+                      final isSelected = widget.selectedDrivers.contains(driver);
                       return DataRow2(
+                        selected: isSelected,
                         cells: [
+                          DataCell(
+                            Checkbox(
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value!) {
+                                    widget.selectedDrivers.add(driver);
+                                  } else {
+                                    widget.selectedDrivers.remove(driver);
+                                  }
+                                  widget.onSelectedDriversChanged(widget.selectedDrivers);
+
+                                  isAllSelected = widget.selectedDrivers.length == filteredList.length;
+                                });
+                              },
+                            ),
+                          ),
                           DataCell(Text(driver.firstName)),
                           DataCell(Text(driver.lastName)),
                           DataCell(Text(driver.idNumber)),
                           DataCell(Text(driver.bodyNumber)),
                           DataCell(Text(driver.email)),
-                          DataCell(Text(driver.phoneNumber)), // Added Phone Number
+                          DataCell(Text(driver.phoneNumber)),
                           DataCell(Text(driver.tag)),
                         ],
-                        onSelectChanged: (selected) {
-                          if (selected != null && selected) {
-                            _showDriverDetailsDialog(driver, context);
-                          }
-                        },
                       );
                     }).toList(),
                     border: TableBorder(
                       bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
                     ),
-                    headingRowColor: MaterialStateProperty.resolveWith((states) => const Color.fromARGB(255, 145, 179, 230)),
+                    headingRowColor: WidgetStateProperty.resolveWith(
+                      (states) => const Color.fromARGB(255, 145, 179, 230),
+                    ),
                     columnSpacing: 20,
                     horizontalMargin: 16,
                     dataRowHeight: 60,
@@ -120,28 +174,5 @@ class _DriverTableState extends State<DriverTable> {
     int end = start + rowsPerPage;
     end = end > filteredList.length ? filteredList.length : end;
     return filteredList.sublist(start, end);
-  }
-
-  void _showDriverDetailsDialog(DriversAccount driver, BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: EditDriverForm(
-            driverId: driver.uid,
-            firstName: driver.firstName,
-            lastName: driver.lastName,
-            idNumber: driver.idNumber,
-            bodyNumber: driver.bodyNumber,
-            email: driver.email,
-            birthdate: driver.birthdate,
-            address: driver.address,
-            phoneNumber: driver.phoneNumber,
-            tag: driver.tag,
-            driverPhoto: driver.driverPhoto,
-          ),
-        );
-      },
-    );
   }
 }

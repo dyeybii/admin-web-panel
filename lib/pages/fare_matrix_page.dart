@@ -17,13 +17,13 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
   TextEditingController addedkmController = TextEditingController();
   TextEditingController totalfareFareController = TextEditingController();
 
-  bool isEditing = false; // Track if the form is in edit mode
-  late DocumentSnapshot currentParameters; // Firestore document snapshot
+  bool isEditing = false; 
+  late DocumentSnapshot currentParameters; 
 
   @override
   void initState() {
     super.initState();
-    _loadFareParameters(); // Load fare parameters on init
+    _loadFareParameters(); 
   }
 
   Future<void> _loadFareParameters() async {
@@ -40,7 +40,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
         totalfareFareController.text = doc['durationPerMinuteAmount'].toString();
       });
     } catch (e) {
-      // Handle errors (e.g., document not found)
+      
       print('Error loading fare parameters: $e');
     }
   }
@@ -57,7 +57,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
       });
 
       setState(() {
-        isEditing = false; // Exit edit mode after saving
+        isEditing = false; 
       });
     } catch (e) {
       print('Error saving fare parameters: $e');
@@ -66,14 +66,14 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
 
   void _toggleEditMode() {
     setState(() {
-      isEditing = !isEditing; // Toggle between edit and view modes
+      isEditing = !isEditing; 
     });
   }
 
   void _cancelEdit() {
     setState(() {
-      isEditing = false; // Exit edit mode without saving
-      // Reset fields to original values
+      isEditing = false; 
+     
       basefareController.text = currentParameters['baseFareAmount'].toString();
       addedkmController.text =
           currentParameters['distancePerKmAmount'].toString();
@@ -141,7 +141,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                foregroundColor: Colors.black, // Text color
+                foregroundColor: Colors.black, 
               ),
             ),
           ],
@@ -194,7 +194,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: Colors.black, // Text color
+                            color: Colors.black,
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -210,8 +210,8 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               color: Colors.black,
                             ),
                           ),
-                          enabled: isEditing, // Disable input if not editing
-                          style: const TextStyle(color: Colors.black), // Input text color
+                          enabled: isEditing, 
+                          style: const TextStyle(color: Colors.black),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -226,8 +226,8 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               color: Colors.black,
                             ),
                           ),
-                          enabled: isEditing, // Disable input if not editing
-                          style: const TextStyle(color: Colors.black), // Input text color
+                          enabled: isEditing, 
+                          style: const TextStyle(color: Colors.black), 
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -242,8 +242,8 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               color: Colors.black,
                             ),
                           ),
-                          enabled: isEditing, // Disable input if not editing
-                          style: const TextStyle(color: Colors.black), // Input text color
+                          enabled: isEditing,
+                          style: const TextStyle(color: Colors.black), 
                         ),
                         const SizedBox(height: 20),
                         Row(

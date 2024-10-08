@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/widgets/note_reader.dart';
-import 'package:admin_web_panel/widgets/add_note_form.dart';  // Import the AddNoteForm
-import 'package:admin_web_panel/widgets/note_card.dart';  // Import the noteCard
+import 'package:admin_web_panel/widgets/add_note_form.dart';  
+import 'package:admin_web_panel/widgets/note_card.dart'; 
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
 
-class NotePage extends StatefulWidget {
+class FundPage extends StatefulWidget {
   static const String id = 'note_page';
 
-   const NotePage({Key? key}) : super(key: key);
+   const FundPage({Key? key}) : super(key: key);
 
 
   @override
-  State<NotePage> createState() => _NotePageState();
+  State<FundPage> createState() => _FundPageState();
 }
 
-class _NotePageState extends State<NotePage> {
+class _FundPageState extends State<FundPage> {
   void _addNote(String title, Timestamp creationDate, String content) async {
     try {
       if (title.isEmpty || content.isEmpty) {
         throw Exception('Title and content cannot be empty');
       }
 
-      // Generate a random color_id between 1 and 7
+    
       final random = Random();
       final colorId = random.nextInt(7) + 1;
 

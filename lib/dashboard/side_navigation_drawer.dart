@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
-import 'package:admin_web_panel/pages/note_page.dart';
+import 'package:admin_web_panel/pages/fund_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/login.dart';
+import 'package:admin_web_panel/pages/profile_picture.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:admin_web_panel/pages/account_page.dart'; // Import Account Page
 
 class WebAdminPanel extends StatefulWidget {
   const WebAdminPanel({super.key});
@@ -15,6 +19,14 @@ class WebAdminPanel extends StatefulWidget {
 class _WebAdminPanelState extends State<WebAdminPanel> {
   String? selectedRoute = Dashboard.id;
 
+
+  @override
+  void initState() {
+    super.initState();
+    
+  }
+
+ 
   Future<void> _confirmLogout() async {
     bool? confirmed = await showDialog<bool>(
       context: context,
@@ -51,10 +63,12 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         return const Dashboard();
       case DriversPage.id:
         return const DriversPage();
-      case NotePage.id:
-        return NotePage(key: UniqueKey());
+      case FundPage.id:
+        return FundPage(key: UniqueKey());
       case FareMatrixPage.id:
         return const FareMatrixPage();
+      case AccountPage.id: 
+        return AccountPage();
       default:
         return const Dashboard();
     }
@@ -83,6 +97,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
           ],
         ),
         actions: [
+          
           IconButton(icon: const Icon(Icons.logout), onPressed: _confirmLogout),
         ],
         automaticallyImplyLeading: true,
@@ -91,22 +106,22 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
                 color: Colors.indigo,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Admin Panel',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  const Text(
+                  SizedBox(height: 10),
+                  Text(
                     'COTODA Admin Dashboard',
                     style: TextStyle(
                       color: Colors.white70,
@@ -117,11 +132,10 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               ),
             ),
             _buildDrawerItem('Dashboard', Icons.dashboard, Dashboard.id),
-            _buildDrawerItem(
-                'Member Management', Icons.directions_car, DriversPage.id),
-            _buildDrawerItem('Fund Collection', Icons.money, NotePage.id),
-            _buildDrawerItem(
-                'Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
+            _buildDrawerItem('Member Management', Icons.directions_car, DriversPage.id),
+            _buildDrawerItem('Fund Collection', Icons.money, FundPage.id),
+            _buildDrawerItem('Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
+            _buildDrawerItem('Account', Icons.account_circle, AccountPage.id), // Add Account option here
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -152,7 +166,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         setState(() {
           selectedRoute = routeId;
         });
-        Navigator.pop(context); // Close the drawer after selection
+        Navigator.pop(context);
       },
     );
   }

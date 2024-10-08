@@ -9,40 +9,34 @@ class RidesChart extends StatefulWidget {
 }
 
 class _RidesChartState extends State<RidesChart> {
-  DateTime _startDate = DateTime.now().subtract(Duration(days: 30));
+  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
-  List<Map<String, dynamic>> tripsData = []; // List to hold trip data
+  late Future<List<Map<String, dynamic>>> tripsDataFuture;
 
   @override
   void initState() {
     super.initState();
-    getTripData();
+    tripsDataFuture = getTripData();
   }
 
-  Future<void> getTripData() async {
+  Future<List<Map<String, dynamic>>> getTripData() async {
     DatabaseReference tripRef = FirebaseDatabase.instance.ref().child("tripRequests");
+    Map<DateTime, int> tripsCount = {};
 
     try {
-      setState(() {
-        tripsData.clear(); // Clear the old data
-      });
-
-      // Fetch data from Firebase
       DatabaseEvent snapshot = await tripRef.once();
-
       if (snapshot.snapshot.value != null) {
         Map<dynamic, dynamic>? data = snapshot.snapshot.value as Map<dynamic, dynamic>?;
 
         if (data != null) {
-          Map<DateTime, int> tripsCount = {}; // Map to count trips per day
           data.forEach((key, value) {
             if (value is Map<dynamic, dynamic>) {
               String? publishDateTimeStr = value['publishDateTime'] as String?;
               if (publishDateTimeStr != null) {
                 try {
                   DateTime publishDateTime = DateTime.parse(publishDateTimeStr);
-                  if (publishDateTime.isAfter(_startDate.subtract(Duration(days: 1))) &&
-                      publishDateTime.isBefore(_endDate.add(Duration(days: 1)))) {
+                  if (publishDateTime.isAfter(_startDate.subtract(const Duration(days: 1))) &&
+                      publishDateTime.isBefore(_endDate.add(const Duration(days: 1)))) {
                     DateTime tripDate = DateTime(publishDateTime.year, publishDateTime.month, publishDateTime.day);
                     tripsCount[tripDate] = (tripsCount[tripDate] ?? 0) + 1;
                   }
@@ -52,101 +46,19 @@ class _RidesChartState extends State<RidesChart> {
               }
             }
           });
-
-          List<Map<String, dynamic>> formattedTripsData = tripsCount.entries.map((entry) {
-            return {
-              'tripDate': entry.key,
-              'count': entry.value,
-            };
-          }).toList();
-
-          setState(() {
-            tripsData = formattedTripsData;
-          });
         }
       }
+
+      return tripsCount.entries.map((entry) {
+        return {
+          'tripDate': entry.key,
+          'count': entry.value,
+        };
+      }).toList();
     } catch (error) {
       print('Error fetching data: $error');
+      return [];
     }
-  }
-
-  BarChart buildBarChart() {
-    Map<DateTime, int> chartData = {};
-    tripsData.forEach((trip) {
-      DateTime tripDate = trip['tripDate'];
-      int count = trip['count'];
-      chartData[tripDate] = count;
-    });
-
-    var sortedEntries = chartData.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
-
-    int maxYValue = sortedEntries.isNotEmpty
-        ? sortedEntries.map((e) => e.value).reduce((a, b) => a > b ? a : b)
-        : 0;
-
-    List<DateTime> xAxisDates = sortedEntries.map((entry) => entry.key).toList();
-
-    return BarChart(
-      BarChartData(
-        borderData: FlBorderData(show: false),
-        gridData: FlGridData(
-          show: true,
-          horizontalInterval: (maxYValue / 5).ceilToDouble(),
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.grey.withOpacity(0.5), strokeWidth: 1);
-          },
-          drawVerticalLine: false,
-        ),
-        barGroups: sortedEntries.map((entry) {
-          return BarChartGroupData(
-            x: xAxisDates.indexOf(entry.key),
-            barRods: [
-              BarChartRodData(
-                toY: entry.value.toDouble(),
-                color: Colors.blueAccent,
-                width: 20, // Adjusted for better spacing
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ],
-          );
-        }).toList(),
-        alignment: BarChartAlignment.spaceBetween,
-        groupsSpace: 8,
-        titlesData: FlTitlesData(
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                final DateTime date = xAxisDates[value.toInt()];
-                final formattedDate = DateFormat('MM/dd').format(date);
-                return SideTitleWidget(
-                  axisSide: meta.axisSide,
-                  child: Text(formattedDate, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                );
-              },
-              interval: 1,
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                if (value % 1 == 0) {
-                  return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Text(value.toInt().toString(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  );
-                }
-                return Container();
-              },
-              interval: (maxYValue / 5).ceilToDouble(),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
@@ -154,7 +66,7 @@ class _RidesChartState extends State<RidesChart> {
       context: context,
       initialDate: isStartDate ? _startDate : _endDate,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       setState(() {
@@ -163,17 +75,86 @@ class _RidesChartState extends State<RidesChart> {
         } else {
           _endDate = picked;
         }
-        getTripData();
+        if (_startDate.isAfter(_endDate)) {
+          _endDate = _startDate;
+        }
+        tripsDataFuture = getTripData();
       });
     }
   }
 
-  Widget _buildGraphCard() {
+  BarChart buildBarChart(List<Map<String, dynamic>> tripsData) {
+    if (tripsData.isEmpty) {
+      return BarChart(
+        BarChartData(
+          gridData: FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+          barGroups: [],
+        ),
+      );
+    }
+
+    Map<DateTime, int> chartData = {for (var trip in tripsData) trip['tripDate']: trip['count']};
+    List<DateTime> xAxisDates = chartData.keys.toList()..sort();
+
+    return BarChart(
+      BarChartData(
+        maxY: chartData.values.reduce((a, b) => a > b ? a : b).toDouble(),
+        gridData: FlGridData(
+          show: true,
+          horizontalInterval: 1,
+          getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade300, strokeWidth: 1),
+        ),
+        barGroups: xAxisDates.map((date) {
+          return BarChartGroupData(
+            x: xAxisDates.indexOf(date),
+            barRods: [
+              BarChartRodData(
+                toY: chartData[date]!.toDouble(),
+                color: Colors.blueAccent,
+                width: 16,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          );
+        }).toList(),
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final DateTime date = xAxisDates[value.toInt()];
+                return SideTitleWidget(
+                  axisSide: meta.axisSide,
+                  child: Text(DateFormat('MM/dd').format(date), style: const TextStyle(fontSize: 10)),
+                );
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value % 1 == 0) {
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(value.toInt().toString(), style: const TextStyle(fontSize: 10)),
+                  );
+                }
+                return Container();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGraphCard(List<Map<String, dynamic>> tripsData) {
     return Card(
-      elevation: 3,
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: double.infinity,
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,41 +164,48 @@ class _RidesChartState extends State<RidesChart> {
               children: [
                 const Text(
                   'Total Completed Rides',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
-                    InkWell(
-                      onTap: () => _selectDate(context, true),
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(DateFormat('MM/dd/yyyy').format(_startDate)),
-                      ),
-                    ),
+                    _buildDateSelector(context, 'From', _startDate, true),
                     const SizedBox(width: 8),
-                    const Text('to'),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () => _selectDate(context, false),
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(DateFormat('MM/dd/yyyy').format(_endDate)),
-                      ),
-                    ),
+                    _buildDateSelector(context, 'To', _endDate, false),
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            SizedBox(height: 300, child: buildBarChart()), // Limit chart height for responsiveness
+            Text(
+              'Selected Month: ${DateFormat('MMMM yyyy').format(_startDate)}',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 300,
+              child: tripsData.isEmpty
+                  ? Center(child: Text('No data available', style: TextStyle(fontSize: 16, color: Colors.redAccent)))
+                  : buildBarChart(tripsData),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateSelector(BuildContext context, String label, DateTime date, bool isStartDate) {
+    return InkWell(
+      onTap: () => _selectDate(context, isStartDate),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Text(DateFormat('MM/dd/yyyy').format(date)),
+            const Icon(Icons.calendar_today, size: 16),
           ],
         ),
       ),
@@ -226,9 +214,17 @@ class _RidesChartState extends State<RidesChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: _buildGraphCard(),
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: tripsDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return const Center(child: Text('Error loading data'));
+        } else {
+          return _buildGraphCard(snapshot.data ?? []);
+        }
+      },
     );
   }
 }

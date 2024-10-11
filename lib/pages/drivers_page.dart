@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:admin_web_panel/widgets/download_excel.dart';
@@ -6,6 +9,7 @@ import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:admin_web_panel/widgets/export_template.dart';
+
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -17,11 +21,11 @@ class DriversPage extends StatefulWidget {
 }
 
 class _DriversPageState extends State<DriversPage> {
+  final DataService _dataService = DataService();
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
-  List<DriversAccount> _selectedDrivers =
-      []; 
-  String selectedTagFilter = 'All'; 
+  List<DriversAccount> _selectedDrivers = [];
+  String selectedTagFilter = 'All';
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
@@ -38,7 +42,8 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _driverIdController = TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+
+  final ImagePicker _picker = ImagePicker(); // Initialize ImagePicker
 
   @override
   void initState() {
@@ -48,28 +53,18 @@ class _DriversPageState extends State<DriversPage> {
   }
 
   Future<void> _fetchDriversData() async {
-    List<DriversAccount> driversList = await _getDriversFromRealtimeDatabase();
-    if (mounted) {
-      setState(() {
-        _driversAccountList = driversList;
-        _filteredDriversList = driversList;
-      });
+    try {
+      List<DriversAccount> driversList =
+          await _dataService.getDriversFromRealtimeDatabase();
+      if (mounted) {
+        setState(() {
+          _driversAccountList = driversList;
+          _filteredDriversList = driversList;
+        });
+      }
+    } catch (e) {
+      print('Error fetching drivers: $e');
     }
-  }
-
-  Future<List<DriversAccount>> _getDriversFromRealtimeDatabase() async {
-    List<DriversAccount> driversList = [];
-    final snapshot = await _databaseRef.child('driversAccount').get();
-    if (snapshot.exists) {
-      final data = snapshot.value as Map<dynamic, dynamic>;
-      driversList = data.entries
-          .map((entry) =>
-              DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
-          .where((driver) => driver != null)
-          .cast<DriversAccount>()
-          .toList();
-    }
-    return driversList;
   }
 
   void _filterDrivers() {
@@ -141,7 +136,7 @@ class _DriversPageState extends State<DriversPage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: _fetchDriversData, 
+              onPressed: _fetchDriversData,
             ),
             DropdownButton<String>(
               value: selectedTagFilter,
@@ -152,7 +147,7 @@ class _DriversPageState extends State<DriversPage> {
                 );
               }).toList(),
               onChanged: _filterByTag,
-              underline: Container(), 
+              underline: Container(),
             ),
             ElevatedButton(
               onPressed: _showAddMemberDialog,
@@ -168,15 +163,12 @@ class _DriversPageState extends State<DriversPage> {
             const SizedBox(width: 10),
             ElevatedButton(
               onPressed: () {
-                
                 if (_selectedDrivers.isNotEmpty) {
-                  
-                  ExcelDownloader.downloadExcel(context, _driversAccountList,
-                      _selectedDrivers);
+                  ExcelDownloader.downloadExcel(
+                      context, _driversAccountList, _selectedDrivers);
                 } else {
-                  
-                  ExcelDownloader.downloadExcel(context, _driversAccountList,
-                      []); 
+                  ExcelDownloader.downloadExcel(
+                      context, _driversAccountList, []);
                 }
               },
               child: const Text('Download Excel'),
@@ -185,9 +177,7 @@ class _DriversPageState extends State<DriversPage> {
             BatchUpload(
               onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
                 List<DriversAccount> driversList = uploadedDrivers
-                    .map((driverData) {
-                      return DriversAccount.fromJson(driverData);
-                    })
+                    .map((driverData) => DriversAccount.fromJson(driverData))
                     .where((driver) => driver != null)
                     .cast<DriversAccount>()
                     .toList();
@@ -198,7 +188,7 @@ class _DriversPageState extends State<DriversPage> {
           ],
         ),
         body: StreamBuilder<DatabaseEvent>(
-          stream: _databaseRef.child('driversAccount').onValue,
+          stream: _dataService.getDriversStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -224,12 +214,10 @@ class _DriversPageState extends State<DriversPage> {
               driversAccountList: _filteredDriversList.isNotEmpty
                   ? _filteredDriversList
                   : driversList,
-              selectedDrivers:
-                  _selectedDrivers, 
+              selectedDrivers: _selectedDrivers,
               onSelectedDriversChanged: (List<DriversAccount> selected) {
                 setState(() {
-                  _selectedDrivers =
-                      selected;
+                  _selectedDrivers = selected;
                 });
               },
             );
@@ -302,31 +290,48 @@ class _DriversPageState extends State<DriversPage> {
       phoneNumber: _phoneNumberController.text,
       tag: _tagController.text,
       uid: _uidController.text,
-      driverPhoto: _driverPhotoController.text,
+      driverPhoto: _driverPhotoController.text, // Assuming this is a URL or a placeholder
       driverId: _driverIdController.text,
     );
-    await _databaseRef.child('driversAccount').push().set(newDriver.toJson());
 
-    _firstNameController.clear();
-    _lastNameController.clear();
-    _idNumberController.clear();
-    _bodyNumberController.clear();
-    _emailController.clear();
-    _birthdateController.clear();
-    _addressController.clear();
-    _phoneNumberController.clear();
-    _tagController.clear();
-    _uidController.clear();
-    _driverPhotoController.clear();
+    try {
+      Uint8List? imageBytes = await _pickImage(); // Pick the image
+      String? imageFileName = _getFileName(); // Get the file name
 
-    Navigator.of(context).pop(); 
-    _fetchDriversData(); 
+      if (imageBytes != null && imageFileName != null) {
+        await _dataService.addDriverToRealtimeDatabase(newDriver, imageBytes, imageFileName);
+        _fetchDriversData();
+        Navigator.of(context).pop(); // Close the dialog after adding
+      } else {
+        // Handle the case where image is not selected
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No image selected.')),
+        );
+      }
+    } catch (e) {
+      print('Error adding driver: $e');
+    }
   }
 
-  void _handleBatchUpload(List<DriversAccount> driversList) {
-    for (var driver in driversList) {
-      _databaseRef.child('driversAccount').push().set(driver.toJson());
+  Future<Uint8List?> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      return await pickedFile.readAsBytes(); // Read the image as bytes
     }
-    _fetchDriversData();
+    return null; // Return null if no image was picked
+  }
+
+  String? _getFileName() {
+    // Implement a way to retrieve the file name if needed
+    return null; // Return a file name or null if not applicable
+  }
+
+  void _handleBatchUpload(List<DriversAccount> driversList) async {
+    try {
+      await _dataService.batchUploadDrivers(driversList);
+      _fetchDriversData();
+    } catch (e) {
+      print('Error in batch upload: $e');
+    }
   }
 }

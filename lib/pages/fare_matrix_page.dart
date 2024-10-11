@@ -1,7 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/Style/fare_table_style.dart';
 import 'package:admin_web_panel/widgets/fare_table.dart';
+
 
 class FareMatrixPage extends StatefulWidget {
   static const String id = "webPageDriverManagement";
@@ -13,25 +15,23 @@ class FareMatrixPage extends StatefulWidget {
 }
 
 class _FareMatrixPageState extends State<FareMatrixPage> {
-  TextEditingController basefareController = TextEditingController();
-  TextEditingController addedkmController = TextEditingController();
-  TextEditingController totalfareFareController = TextEditingController();
+  final TextEditingController basefareController = TextEditingController();
+  final TextEditingController addedkmController = TextEditingController();
+  final TextEditingController totalfareFareController = TextEditingController();
+  final DataService _dataService = DataService(); 
 
-  bool isEditing = false; 
-  late DocumentSnapshot currentParameters; 
+  bool isEditing = false;
+  late DocumentSnapshot currentParameters;
 
   @override
   void initState() {
     super.initState();
-    _loadFareParameters(); 
+    _loadFareParameters();
   }
 
   Future<void> _loadFareParameters() async {
     try {
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('fareParameters')
-          .doc('currentParameters')
-          .get();
+      DocumentSnapshot doc = await _dataService.getFareParameters();
 
       setState(() {
         currentParameters = doc;
@@ -40,24 +40,20 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
         totalfareFareController.text = doc['durationPerMinuteAmount'].toString();
       });
     } catch (e) {
-      
       print('Error loading fare parameters: $e');
     }
   }
 
   Future<void> _saveFareParameters() async {
     try {
-      await FirebaseFirestore.instance
-          .collection('fareParameters')
-          .doc('currentParameters')
-          .update({
-        'baseFareAmount': double.parse(basefareController.text),
-        'distancePerKmAmount': double.parse(addedkmController.text),
-        'durationPerMinuteAmount': double.parse(totalfareFareController.text),
-      });
+      await _dataService.saveFareParameters(
+        baseFare: double.parse(basefareController.text),
+        distancePerKm: double.parse(addedkmController.text),
+        durationPerMinute: double.parse(totalfareFareController.text),
+      );
 
       setState(() {
-        isEditing = false; 
+        isEditing = false;
       });
     } catch (e) {
       print('Error saving fare parameters: $e');
@@ -66,19 +62,17 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
 
   void _toggleEditMode() {
     setState(() {
-      isEditing = !isEditing; 
+      isEditing = !isEditing;
     });
   }
 
   void _cancelEdit() {
     setState(() {
-      isEditing = false; 
-     
+      isEditing = false;
+
       basefareController.text = currentParameters['baseFareAmount'].toString();
-      addedkmController.text =
-          currentParameters['distancePerKmAmount'].toString();
-      totalfareFareController.text =
-          currentParameters['durationPerMinuteAmount'].toString();
+      addedkmController.text = currentParameters['distancePerKmAmount'].toString();
+      totalfareFareController.text = currentParameters['durationPerMinuteAmount'].toString();
     });
   }
 
@@ -141,7 +135,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                foregroundColor: Colors.black, 
+                foregroundColor: Colors.black,
               ),
             ),
           ],
@@ -210,7 +204,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               color: Colors.black,
                             ),
                           ),
-                          enabled: isEditing, 
+                          enabled: isEditing,
                           style: const TextStyle(color: Colors.black),
                         ),
                         const SizedBox(height: 10),
@@ -226,8 +220,8 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                               color: Colors.black,
                             ),
                           ),
-                          enabled: isEditing, 
-                          style: const TextStyle(color: Colors.black), 
+                          enabled: isEditing,
+                          style: const TextStyle(color: Colors.black),
                         ),
                         const SizedBox(height: 10),
                         TextFormField(
@@ -243,7 +237,7 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                             ),
                           ),
                           enabled: isEditing,
-                          style: const TextStyle(color: Colors.black), 
+                          style: const TextStyle(color: Colors.black),
                         ),
                         const SizedBox(height: 20),
                         Row(

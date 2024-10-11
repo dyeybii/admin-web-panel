@@ -37,7 +37,7 @@ class DriversAccount {
   final String address;
   final String phoneNumber;
   final String tag;
-  final String driverPhoto;
+   String driverPhoto;
   final String uid;
   final TotalRatings? totalRatings;
   final String? currentTripID;

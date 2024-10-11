@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/fund_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
+import 'package:admin_web_panel/pages/account_page.dart';
 import 'package:admin_web_panel/login.dart';
-import 'package:admin_web_panel/pages/profile_picture.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:admin_web_panel/pages/account_page.dart'; // Import Account Page
 
 class WebAdminPanel extends StatefulWidget {
   const WebAdminPanel({super.key});
@@ -17,16 +14,23 @@ class WebAdminPanel extends StatefulWidget {
 }
 
 class _WebAdminPanelState extends State<WebAdminPanel> {
-  String? selectedRoute = Dashboard.id;
+  int _selectedIndex = 0;
 
+  // Pages for navigation (kept alive with IndexedStack)
+  final List<Widget> _pages = [
+    const Dashboard(),
+    const DriversPage(),
+    const FundPage(),
+    const FareMatrixPage(),
+    AccountPage(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    
   }
 
- 
+  // Confirm Logout dialog
   Future<void> _confirmLogout() async {
     bool? confirmed = await showDialog<bool>(
       context: context,
@@ -53,25 +57,32 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     }
   }
 
+  // Logout functionality
   void _logout() {
     Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
   }
 
-  Widget _getSelectedScreen() {
-    switch (selectedRoute) {
-      case Dashboard.id:
-        return const Dashboard();
-      case DriversPage.id:
-        return const DriversPage();
-      case FundPage.id:
-        return FundPage(key: UniqueKey());
-      case FareMatrixPage.id:
-        return const FareMatrixPage();
-      case AccountPage.id: 
-        return AccountPage();
-      default:
-        return const Dashboard();
-    }
+  // Drawer items with navigation
+  Widget _buildDrawerItem(String title, IconData icon, int index) {
+    bool isSelected = _selectedIndex == index;
+
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.indigo : Colors.black,
+          fontSize: 16.0,
+        ),
+      ),
+      leading: Icon(icon, color: isSelected ? Colors.indigo : Colors.black),
+      selected: isSelected,
+      onTap: () {
+        setState(() {
+          _selectedIndex = index;
+        });
+        Navigator.pop(context); // Close the drawer
+      },
+    );
   }
 
   @override
@@ -80,27 +91,20 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
       appBar: AppBar(
         title: const Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  "TRI.CO",
-                  style: TextStyle(
-                    color: Colors.indigo,
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Text(
+              "TRI.CO",
+              style: TextStyle(
+                color: Colors.indigo,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(width: 20),
           ],
         ),
         actions: [
-          
           IconButton(icon: const Icon(Icons.logout), onPressed: _confirmLogout),
         ],
-        automaticallyImplyLeading: true,
       ),
       drawer: Drawer(
         child: ListView(
@@ -131,11 +135,11 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
                 ],
               ),
             ),
-            _buildDrawerItem('Dashboard', Icons.dashboard, Dashboard.id),
-            _buildDrawerItem('Member Management', Icons.directions_car, DriversPage.id),
-            _buildDrawerItem('Fund Collection', Icons.money, FundPage.id),
-            _buildDrawerItem('Fare Matrix', Icons.monetization_on, FareMatrixPage.id),
-            _buildDrawerItem('Account', Icons.account_circle, AccountPage.id), // Add Account option here
+            _buildDrawerItem('Dashboard', Icons.dashboard, 0),
+            _buildDrawerItem('Member Management', Icons.directions_car, 1),
+            _buildDrawerItem('Fund Collection', Icons.money, 2),
+            _buildDrawerItem('Fare Matrix', Icons.monetization_on, 3),
+            _buildDrawerItem('Account', Icons.account_circle, 4),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
@@ -145,29 +149,16 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
           ],
         ),
       ),
-      body: _getSelectedScreen(),
-    );
-  }
-
-  Widget _buildDrawerItem(String title, IconData icon, String? routeId) {
-    bool isSelected = selectedRoute == routeId;
-
-    return ListTile(
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isSelected ? Colors.indigo : Colors.black,
-          fontSize: 16.0,
-        ),
+      body: Row(
+        children: [
+          Expanded(
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
+            ),
+          ),
+        ],
       ),
-      leading: Icon(icon, color: isSelected ? Colors.indigo : Colors.black),
-      selected: isSelected,
-      onTap: () {
-        setState(() {
-          selectedRoute = routeId;
-        });
-        Navigator.pop(context);
-      },
     );
   }
 }

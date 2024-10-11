@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/widgets/note_reader.dart';
@@ -6,34 +7,29 @@ import 'package:admin_web_panel/widgets/note_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
-
 class FundPage extends StatefulWidget {
   static const String id = 'note_page';
 
-   const FundPage({Key? key}) : super(key: key);
-
+  const FundPage({Key? key}) : super(key: key);
 
   @override
   State<FundPage> createState() => _FundPageState();
 }
 
 class _FundPageState extends State<FundPage> {
-  void _addNote(String title, Timestamp creationDate, String content) async {
+  final DataService _dataService = DataService(); 
+
+  void _addNote(String title, String content) async {
     try {
       if (title.isEmpty || content.isEmpty) {
         throw Exception('Title and content cannot be empty');
       }
 
-    
       final random = Random();
-      final colorId = random.nextInt(7) + 1;
+      final colorId = random.nextInt(7); // Ensure color ID is within the expected range
+      final creationDate = Timestamp.fromDate(DateTime.now());
 
-      await FirebaseFirestore.instance.collection('Notes').add({
-        'note_title': title,
-        'creation_date': creationDate,
-        'note_content': content,
-        'color_id': colorId,
-      });
+      await _dataService.addNote(title, creationDate, content, colorId); // Use DataService to add note
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -65,7 +61,7 @@ class _FundPageState extends State<FundPage> {
                 showDialog(
                   context: context,
                   builder: (context) => AddNoteForm(
-                    onSubmit: _addNote,
+                    onSubmit: _addNote, // Pass the method directly
                   ),
                 );
               },
@@ -93,8 +89,7 @@ class _FundPageState extends State<FundPage> {
               ),
               const SizedBox(height: 20.0),
               StreamBuilder<QuerySnapshot>(
-                stream:
-                    FirebaseFirestore.instance.collection("Notes").snapshots(),
+                stream: _dataService.getNotesStream(), // Get notes stream from DataService
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -115,8 +110,7 @@ class _FundPageState extends State<FundPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        NoteReaderScreen(note),
+                                    builder: (context) => NoteReaderScreen(note),
                                   ),
                                 );
                               },

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddNoteForm extends StatefulWidget {
-  final void Function(String, Timestamp, String) onSubmit;
+  final void Function(String, String) onSubmit; // Accept title and content
 
   const AddNoteForm({
     Key? key,
@@ -40,7 +40,7 @@ class _AddNoteFormState extends State<AddNoteForm> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(height: 10.0,),
+                const SizedBox(height: 10.0),
                 TextField(
                   controller: _contentController,
                   decoration: const InputDecoration(labelText: 'Content', border: OutlineInputBorder()),
@@ -58,7 +58,6 @@ class _AddNoteFormState extends State<AddNoteForm> {
         TextButton(
           onPressed: () {
             Navigator.pop(context);
-            
           },
           child: const Text('Cancel'),
         ),
@@ -66,10 +65,10 @@ class _AddNoteFormState extends State<AddNoteForm> {
           onPressed: () {
             final title = _titleController.text.trim();
             final content = _contentController.text.trim();
-            final creationDate = Timestamp.fromDate(DateTime.now());
 
             if (title.isNotEmpty && content.isNotEmpty) {
-              widget.onSubmit(title, creationDate, content);
+              final creationDate = Timestamp.fromDate(DateTime.now());
+              widget.onSubmit(title, content); // Call the onSubmit function
               _titleController.clear();
               _contentController.clear();
               Navigator.pop(context);

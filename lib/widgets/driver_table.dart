@@ -22,7 +22,7 @@ class DriverTable extends StatefulWidget {
 
 class _DriverTableState extends State<DriverTable> {
   List<DriversAccount> filteredList = [];
-  int rowsPerPage = 7;
+  int rowsPerPage = 8;
   int currentPage = 0;
   bool isAllSelected = false;
 
@@ -84,10 +84,26 @@ class _DriverTableState extends State<DriverTable> {
                           ],
                         ),
                       ),
-                      const DataColumn2(label: Text('ID NO.')),
-                      const DataColumn2(label: Text('Full Name')),
-                      const DataColumn2(label: Text('Body NO.')),
-                      const DataColumn2(label: Text('Tag')),
+                      const DataColumn2(
+                          label: Text(
+                        'ID NO.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )),
+                      const DataColumn2(
+                          label: Text(
+                        'Full Name',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )),
+                      const DataColumn2(
+                          label: Text(
+                        'Body NO.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )),
+                      const DataColumn2(
+                          label: Text(
+                        'Tag',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )),
                     ],
                     rows: _getCurrentPageDrivers().map((driver) {
                       final isSelected =
@@ -98,7 +114,7 @@ class _DriverTableState extends State<DriverTable> {
                       return DataRow2(
                         selected: isSelected,
                         onTap: () {
-                          _navigateToEditDriverForm(context, driver);
+                          _showEditDialog(context, driver);
                         },
                         cells: [
                           DataCell(
@@ -131,53 +147,58 @@ class _DriverTableState extends State<DriverTable> {
                         ],
                       );
                     }).toList(),
-                    border: TableBorder(
-                      bottom:
-                          BorderSide(color: Colors.grey.shade300, width: 1.0),
-                    ),
                     headingRowColor: WidgetStateProperty.resolveWith(
                       (states) => const Color.fromARGB(255, 145, 179, 230),
                     ),
                     columnSpacing: 20,
                     horizontalMargin: 16,
-                    dataRowHeight: 60,
+                    dataRowHeight: 50,
                   ),
                 ),
               ),
             ),
+            SizedBox(
+              height: 20,
+            ),
             Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    // Total members and operators on the left
-    Row(
-      children: [
-        Text('Total Members: $totalMembers'),
-        const SizedBox(width: 20),
-        Text('Total Operators: $totalOperators'),
-      ],
-    ),
-    // Pagination on the right, wrapped in Flexible to handle constraints
-    Flexible(
-      fit: FlexFit.loose,
-      child: NumberPagination(
-        totalPages: totalPages,
-        currentPage: currentPage + 1, // Pagination uses 1-based index
-        onPageChanged: (int pageNumber) {
-          setState(() {
-            currentPage = pageNumber - 1;
-          });
-        },
-        controlButtonSize: const Size(20, 20), // Resize control buttons
-        numberButtonSize: const Size(20, 20), // Resize number buttons
-        selectedButtonColor: Color(0xFF2E3192), // Background for selected button
-        selectedNumberColor: Colors.white, // Text color for selected button
-        unSelectedButtonColor: Colors.white, // Background for unselected buttons
-        unSelectedNumberColor: Colors.black, // Text color for unselected buttons
-      ),
-    ),
-  ],
-),
-
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Total members and operators on the left
+                Row(
+                  children: [
+                    Text('Total Members: $totalMembers'),
+                    const SizedBox(width: 20),
+                    Text('Total Operators: $totalOperators'),
+                  ],
+                ),
+                SizedBox(width: 900),
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: NumberPagination(
+                    totalPages: totalPages,
+                    currentPage:
+                        currentPage + 1, // Pagination uses 1-based index
+                    onPageChanged: (int pageNumber) {
+                      setState(() {
+                        currentPage = pageNumber - 1;
+                      });
+                    },
+                    controlButtonSize:
+                        const Size(25, 25), // Resize control buttons
+                    numberButtonSize:
+                        const Size(25, 25), // Resize number buttons
+                    selectedButtonColor:
+                        Color(0xFF2E3192), // Background for selected button
+                    selectedNumberColor:
+                        Colors.white, // Text color for selected button
+                    unSelectedButtonColor:
+                        Colors.white, // Background for unselected buttons
+                    unSelectedNumberColor:
+                        Colors.black, // Text color for unselected buttons
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -191,24 +212,32 @@ class _DriverTableState extends State<DriverTable> {
     return filteredList.sublist(start, end);
   }
 
-  void _navigateToEditDriverForm(BuildContext context, DriversAccount driver) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditDriverForm(
-          driverId: driver.uid, // Pass the uid (which could be null or empty)
-          firstName: driver.firstName,
-          lastName: driver.lastName,
-          idNumber: driver.idNumber,
-          bodyNumber: driver.bodyNumber,
-          email: driver.email,
-          birthdate: driver.birthdate.isNotEmpty ? driver.birthdate : '',
-          address: driver.address.isNotEmpty ? driver.address : '',
-          phoneNumber: driver.phoneNumber,
-          tag: driver.tag,
-          driverPhoto: driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
-        ),
-      ),
+  void _showEditDialog(BuildContext context, DriversAccount driver) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final screenSize = MediaQuery.of(context).size;
+        return Dialog(
+          child: Container(
+            width: screenSize.width * 0.6, // 80% of screen width
+            height: screenSize.height * 0.8, // Increase height if necessary
+            child: EditDriverForm(
+              driverId: driver.uid,
+              firstName: driver.firstName,
+              lastName: driver.lastName,
+              idNumber: driver.idNumber,
+              bodyNumber: driver.bodyNumber,
+              email: driver.email,
+              birthdate: driver.birthdate.isNotEmpty ? driver.birthdate : '',
+              address: driver.address.isNotEmpty ? driver.address : '',
+              phoneNumber: driver.phoneNumber,
+              tag: driver.tag,
+              driverPhoto:
+                  driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
+            ),
+          ),
+        );
+      },
     );
   }
 }

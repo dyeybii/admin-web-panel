@@ -1,9 +1,6 @@
-import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditDriverForm extends StatefulWidget {
   final String driverId;
@@ -38,6 +35,7 @@ class EditDriverForm extends StatefulWidget {
 }
 
 class _EditDriverFormState extends State<EditDriverForm> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
   late TextEditingController _idNumberController;
@@ -48,7 +46,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
   late TextEditingController _phoneNumberController;
   late String _selectedTag;
   late String _driverPhotoUrl;
-  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   @override
@@ -65,6 +62,10 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _selectedTag = widget.tag;
     _driverPhotoUrl = widget.driverPhoto;
 
+    if (_driverPhotoUrl.isEmpty) {
+      _driverPhotoUrl = 'images/default_avatar.png';
+    }
+
     _fetchDriverByUID();
   }
 
@@ -76,15 +77,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
       DataSnapshot snapshot = await query.get();
 
       if (snapshot.exists) {
-        Map data = snapshot.value as Map;
         String? driverKey;
-
+        // Fetch the correct driver key
+        Map data = snapshot.value as Map;
         data.forEach((key, value) {
-          driverKey = key;
-          print('Driver Key: $key');
-          print('Driver Data: $value');
+          if (value['uid'] == widget.driverId) {
+            driverKey = key;
+          }
         });
-
         return driverKey;
       } else {
         print('No driver found with UID: ${widget.driverId}');
@@ -96,184 +96,289 @@ class _EditDriverFormState extends State<EditDriverForm> {
     }
   }
 
+  // Method to update the driver details
   Future<void> _updateDriver(String driverKey) async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
       try {
+        setState(() {
+          _isLoading = true;
+        });
+
         final driverRef =
             FirebaseDatabase.instance.ref('driversAccount/$driverKey');
 
-        Map<String, dynamic> updates = {};
-
-        if (_firstNameController.text != widget.firstName) {
-          updates['firstName'] = _firstNameController.text;
-        }
-        if (_lastNameController.text != widget.lastName) {
-          updates['lastName'] = _lastNameController.text;
-        }
-        if (_idNumberController.text != widget.idNumber) {
-          updates['idNumber'] = _idNumberController.text;
-        }
-        if (_bodyNumberController.text != widget.bodyNumber) {
-          updates['bodyNumber'] = _bodyNumberController.text;
-        }
-        if (_emailController.text != widget.email) {
-          updates['email'] = _emailController.text;
-        }
-        if (_birthdateController.text != widget.birthdate) {
-          updates['birthdate'] = _birthdateController.text;
-        }
-        if (_addressController.text != widget.address) {
-          updates['address'] = _addressController.text;
-        }
-        if (_phoneNumberController.text != widget.phoneNumber) {
-          updates['phoneNumber'] = _phoneNumberController.text;
-        }
-        if (_selectedTag != widget.tag) {
-          updates['tag'] = _selectedTag;
-        }
-        if (_driverPhotoUrl != widget.driverPhoto) {
-          updates['driverPhoto'] = _driverPhotoUrl;
-        }
-
-        if (updates.isNotEmpty) {
-          await driverRef.update(updates);
-          print('Driver information updated successfully.');
-        } else {
-          print('No changes to update.');
-        }
+        await driverRef.update({
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
+          'idNumber': _idNumberController.text,
+          'bodyNumber': _bodyNumberController.text,
+          'email': _emailController.text,
+          'birthdate': _birthdateController.text,
+          'address': _addressController.text,
+          'phoneNumber': _phoneNumberController.text,
+          'tag': _selectedTag,
+          'driverPhoto': _driverPhotoUrl, // Update photo if it exists
+        });
 
         setState(() {
           _isLoading = false;
         });
 
-        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Driver updated successfully!')),
+        );
+        Navigator.pop(context); // Close dialog after update
       } catch (e) {
         setState(() {
           _isLoading = false;
         });
+        print('Error updating driver: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating data: $e')),
+          SnackBar(content: Text('Error updating driver: $e')),
         );
       }
     }
   }
 
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _idNumberController.dispose();
-    _bodyNumberController.dispose();
-    _emailController.dispose();
-    _birthdateController.dispose();
-    _addressController.dispose();
-    _phoneNumberController.dispose();
-    super.dispose();
+  Future<void> _deleteDriver(String driverKey, String adminPassword) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      // Re-authenticate admin with password
+      final credential = EmailAuthProvider.credential(
+        email: user!.email!,
+        password: adminPassword,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+
+      final driverRef =
+          FirebaseDatabase.instance.ref('driversAccount/$driverKey');
+      await driverRef.remove();
+      print('Driver deleted successfully.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Driver deleted successfully.')),
+      );
+      Navigator.pop(context); // Close dialog after deletion
+    } catch (e) {
+      print('Error deleting driver: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting driver: $e')),
+      );
+    }
+  }
+
+  void _showDeleteConfirmation(String driverKey) {
+    final adminPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Re-enter your admin password to delete this account.'),
+            TextField(
+              controller: adminPasswordController,
+              decoration: const InputDecoration(labelText: 'Admin Password'),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final adminPassword = adminPasswordController.text;
+              await _deleteDriver(driverKey, adminPassword);
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: const Text('Delete'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Driver'),
+    return AlertDialog(
+      title: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black), // Change icon color to black
+            onPressed: () => Navigator.pop(context),
+          ),
+          const SizedBox(width: 8),
+          const Text('Edit Driver Account', style: TextStyle(color: Colors.black)), // Change text color to black
+        ],
       ),
-      body: Form(
+      content: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              TextFormField(
-                controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'First Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a first name';
-                  }
-                  return null;
-                },
+              // Driver Photo
+              Container(
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _driverPhotoUrl.isNotEmpty
+                      ? NetworkImage(_driverPhotoUrl)
+                      : const AssetImage('images/default_avatar.png')
+                          as ImageProvider,
+                ),
               ),
-              TextFormField(
-                controller: _lastNameController,
-                decoration: InputDecoration(labelText: 'Last Name'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a last name';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _idNumberController,
-                decoration: InputDecoration(labelText: 'ID Number'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an ID number';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _bodyNumberController,
-                decoration: InputDecoration(labelText: 'Body Number'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a body number';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty || !value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _birthdateController,
-                decoration: InputDecoration(labelText: 'Birthdate'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a birthdate';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(labelText: 'Address'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an address';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _phoneNumberController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
-                validator: (value) {
-                  if (value == null || value.isEmpty || value.length != 11) {
-                    return 'Please enter a valid phone number';
-                  }
-                  return null;
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _firstNameController,
+                          decoration: const InputDecoration(
+                            labelText: 'First Name',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a first name';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _idNumberController,
+                          decoration: const InputDecoration(
+                            labelText: 'ID Number',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter an ID number';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                !value.contains('@')) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _birthdateController,
+                          decoration: const InputDecoration(
+                            labelText: 'Birthdate',
+                            labelStyle: const TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a birthdate';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _lastNameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Last Name',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a last name';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _bodyNumberController,
+                          decoration: const InputDecoration(
+                            labelText: 'Body Number',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a body number';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _addressController,
+                          decoration: const InputDecoration(
+                            labelText: 'Address',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter an address';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _phoneNumberController,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone Number',
+                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                          ),
+                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value.length != 11) {
+                              return 'Please enter a valid phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               DropdownButtonFormField<String>(
                 value: _selectedTag.isNotEmpty ? _selectedTag : null,
-                decoration: InputDecoration(labelText: 'Tag'),
+                decoration: const InputDecoration(
+                  labelText: 'Tag',
+                  labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                ),
+                dropdownColor: Colors.grey[800],
                 items: ['Member', 'Operator']
                     .map((tag) => DropdownMenuItem(
                           value: tag,
-                          child: Text(tag),
+                          child: Text(tag, style: const TextStyle(color: Colors.black)), // Change text color to black
                         ))
                     .toList(),
                 onChanged: (newValue) {
@@ -288,7 +393,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isLoading
                     ? null
@@ -302,8 +407,23 @@ class _EditDriverFormState extends State<EditDriverForm> {
                         }
                       },
                 child: _isLoading
-                    ? CircularProgressIndicator()
-                    : Text('Update Driver'),
+                    ? const CircularProgressIndicator()
+                    : const Text('Update Driver'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  String? driverKey = await _fetchDriverByUID();
+                  if (driverKey != null) {
+                    _showDeleteConfirmation(driverKey);
+                  } else {
+                    print('Driver not found, cannot delete');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Text('Delete Driver'),
               ),
             ],
           ),

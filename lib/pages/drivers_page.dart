@@ -1,4 +1,4 @@
-import 'dart:typed_data'; 
+import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
@@ -123,25 +123,49 @@ class _DriversPageState extends State<DriversPage> {
                     controller: searchController,
                     decoration: InputDecoration(
                       labelText: 'Search by Name',
+                      labelStyle: const TextStyle(
+                        color: Color(0xFF2E3192),
+                      ),
                       border: OutlineInputBorder(
                         borderSide: const BorderSide(
-                          color: Color(0xFF2E3192), // Updated color
+                          color: Color(0xFF2E3192), // Outline color
                         ),
                         borderRadius: BorderRadius.circular(40),
                       ),
-                      suffixIcon: const Icon(Icons.search, color: Color(0xFF2E3192)), // Updated icon color
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Color(
+                              0xFF2E3192), // Outline color when not clicked
+                          width: 2.0, // Optional: Adjust width
+                        ),
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color:
+                              Color(0xFF2E3192), // Outline color when clicked
+                          width: 2.0, // Optional: Adjust width
+                        ),
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF2E3192), // Icon color
+                      ),
                       filled: true,
-                      fillColor: const Color.fromARGB(255, 255, 255, 255),
+                      fillColor: const Color.fromARGB(
+                          255, 255, 255, 255), // Background color
                     ),
                   ),
                 ),
-              ),
+              )
             ],
           ),
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFF2E3192)), // Updated refresh button color
+              icon: const Icon(Icons.refresh,
+                  color: Color(0xFF2E3192)), // Updated refresh button color
               onPressed: _fetchDriversData,
             ),
             DropdownButton<String>(
@@ -149,7 +173,10 @@ class _DriversPageState extends State<DriversPage> {
               items: ['All', 'Operator', 'Member'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: const TextStyle(color: Color(0xFF2E3192))), // Updated filter text color
+                  child: Text(value,
+                      style: const TextStyle(
+                          color:
+                              Color(0xFF2E3192))), // Updated filter text color
                 );
               }).toList(),
               onChanged: _filterByTag,
@@ -191,7 +218,10 @@ class _DriversPageState extends State<DriversPage> {
                 _handleBatchUpload(driversList);
               },
             ),
-            const SizedBox( width: 10, height: 10,)
+            const SizedBox(
+              width: 10,
+              height: 10,
+            )
           ],
         ),
         body: StreamBuilder<DatabaseEvent>(

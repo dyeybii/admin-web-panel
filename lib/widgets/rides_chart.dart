@@ -154,7 +154,19 @@ class _RidesChartState extends State<RidesChart> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+           borderRadius: BorderRadius.circular(16),
+          color: const Color.fromARGB(255, 255, 255, 255), // White background color
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300, // Grey box shadow
+              spreadRadius: 5,
+              blurRadius: 7,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

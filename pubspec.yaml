@@ -54,6 +54,7 @@ dependencies:
   cloud_functions: ^5.1.0
   data_table_2: ^2.5.15
   syncfusion_flutter_charts: ^26.2.14
+  number_pagination: ^1.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

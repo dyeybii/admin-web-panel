@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
+import 'package:number_pagination/number_pagination.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/edit_drivers_form.dart';
 
@@ -23,18 +24,23 @@ class _DriverTableState extends State<DriverTable> {
   List<DriversAccount> filteredList = [];
   int rowsPerPage = 7;
   int currentPage = 0;
-  bool isAllSelected = false; 
+  bool isAllSelected = false;
 
   @override
   void initState() {
     super.initState();
-    filteredList = widget.driversAccountList.where((driver) => driver.firstName.isNotEmpty).toList();
+    filteredList = widget.driversAccountList
+        .where((driver) => driver.firstName.isNotEmpty)
+        .toList();
     isAllSelected = widget.selectedDrivers.length == filteredList.length;
   }
 
   @override
   Widget build(BuildContext context) {
     int totalDrivers = filteredList.length;
+    int totalOperators =
+        filteredList.where((driver) => driver.tag == 'Operator').length;
+    int totalMembers = totalDrivers - totalOperators;
     int totalPages = (totalDrivers / rowsPerPage).ceil();
 
     return Scaffold(
@@ -64,14 +70,13 @@ class _DriverTableState extends State<DriverTable> {
                                 setState(() {
                                   isAllSelected = value!;
                                   if (isAllSelected) {
-
                                     widget.selectedDrivers.clear();
                                     widget.selectedDrivers.addAll(filteredList);
                                   } else {
-
                                     widget.selectedDrivers.clear();
                                   }
-                                  widget.onSelectedDriversChanged(widget.selectedDrivers);
+                                  widget.onSelectedDriversChanged(
+                                      widget.selectedDrivers);
                                 });
                               },
                             ),
@@ -79,18 +84,22 @@ class _DriverTableState extends State<DriverTable> {
                           ],
                         ),
                       ),
-                      const DataColumn2(label: Text('First Name')),
-                      const DataColumn2(label: Text('Last Name')),
-                      const DataColumn2(label: Text('ID Number')),
-                      const DataColumn2(label: Text('Body Number')),
-                      const DataColumn2(label: Text('Email')),
-                      const DataColumn2(label: Text('Phone Number')),
+                      const DataColumn2(label: Text('ID NO.')),
+                      const DataColumn2(label: Text('Full Name')),
+                      const DataColumn2(label: Text('Body NO.')),
                       const DataColumn2(label: Text('Tag')),
                     ],
                     rows: _getCurrentPageDrivers().map((driver) {
-                      final isSelected = widget.selectedDrivers.contains(driver);
+                      final isSelected =
+                          widget.selectedDrivers.contains(driver);
+                      final textColor =
+                          driver.tag == 'Operator' ? Colors.red : Colors.blue;
+
                       return DataRow2(
                         selected: isSelected,
+                        onTap: () {
+                          _navigateToEditDriverForm(context, driver);
+                        },
                         cells: [
                           DataCell(
                             Checkbox(
@@ -102,25 +111,29 @@ class _DriverTableState extends State<DriverTable> {
                                   } else {
                                     widget.selectedDrivers.remove(driver);
                                   }
-                                  widget.onSelectedDriversChanged(widget.selectedDrivers);
-
-                                  isAllSelected = widget.selectedDrivers.length == filteredList.length;
+                                  widget.onSelectedDriversChanged(
+                                      widget.selectedDrivers);
+                                  isAllSelected =
+                                      widget.selectedDrivers.length ==
+                                          filteredList.length;
                                 });
                               },
                             ),
                           ),
-                          DataCell(Text(driver.firstName)),
-                          DataCell(Text(driver.lastName)),
                           DataCell(Text(driver.idNumber)),
+                          DataCell(
+                              Text(driver.firstName + ' ' + driver.lastName)),
                           DataCell(Text(driver.bodyNumber)),
-                          DataCell(Text(driver.email)),
-                          DataCell(Text(driver.phoneNumber)),
-                          DataCell(Text(driver.tag)),
+                          DataCell(Text(
+                            driver.tag,
+                            style: TextStyle(color: textColor),
+                          )),
                         ],
                       );
                     }).toList(),
                     border: TableBorder(
-                      bottom: BorderSide(color: Colors.grey.shade300, width: 1.0),
+                      bottom:
+                          BorderSide(color: Colors.grey.shade300, width: 1.0),
                     ),
                     headingRowColor: WidgetStateProperty.resolveWith(
                       (states) => const Color.fromARGB(255, 145, 179, 230),
@@ -133,36 +146,38 @@ class _DriverTableState extends State<DriverTable> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total Drivers: $totalDrivers'),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: currentPage > 0
-                          ? () {
-                              setState(() {
-                                currentPage--;
-                              });
-                            }
-                          : null,
-                    ),
-                    Text('Page ${currentPage + 1} of $totalPages'),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_forward),
-                      onPressed: currentPage < totalPages - 1
-                          ? () {
-                              setState(() {
-                                currentPage++;
-                              });
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    // Total members and operators on the left
+    Row(
+      children: [
+        Text('Total Members: $totalMembers'),
+        const SizedBox(width: 20),
+        Text('Total Operators: $totalOperators'),
+      ],
+    ),
+    // Pagination on the right, wrapped in Flexible to handle constraints
+    Flexible(
+      fit: FlexFit.loose,
+      child: NumberPagination(
+        totalPages: totalPages,
+        currentPage: currentPage + 1, // Pagination uses 1-based index
+        onPageChanged: (int pageNumber) {
+          setState(() {
+            currentPage = pageNumber - 1;
+          });
+        },
+        controlButtonSize: const Size(20, 20), // Resize control buttons
+        numberButtonSize: const Size(20, 20), // Resize number buttons
+        selectedButtonColor: Color(0xFF2E3192), // Background for selected button
+        selectedNumberColor: Colors.white, // Text color for selected button
+        unSelectedButtonColor: Colors.white, // Background for unselected buttons
+        unSelectedNumberColor: Colors.black, // Text color for unselected buttons
+      ),
+    ),
+  ],
+),
+
           ],
         ),
       ),
@@ -174,5 +189,26 @@ class _DriverTableState extends State<DriverTable> {
     int end = start + rowsPerPage;
     end = end > filteredList.length ? filteredList.length : end;
     return filteredList.sublist(start, end);
+  }
+
+  void _navigateToEditDriverForm(BuildContext context, DriversAccount driver) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditDriverForm(
+          driverId: driver.uid, // Pass the uid (which could be null or empty)
+          firstName: driver.firstName,
+          lastName: driver.lastName,
+          idNumber: driver.idNumber,
+          bodyNumber: driver.bodyNumber,
+          email: driver.email,
+          birthdate: driver.birthdate.isNotEmpty ? driver.birthdate : '',
+          address: driver.address.isNotEmpty ? driver.address : '',
+          phoneNumber: driver.phoneNumber,
+          tag: driver.tag,
+          driverPhoto: driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
+        ),
+      ),
+    );
   }
 }

@@ -95,7 +95,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               "TRI.CO",
               style: TextStyle(
                 color: Colors.indigo,
-                fontSize: 30,
+                fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
             ),

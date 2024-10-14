@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:typed_data'; 
 import 'package:image_picker/image_picker.dart';
 import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,6 @@ import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/drivers_form.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:admin_web_panel/widgets/export_template.dart';
-
 
 class DriversPage extends StatefulWidget {
   static const String id = "/webPageDrivers";
@@ -116,16 +115,23 @@ class _DriversPageState extends State<DriversPage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Members and Operators'),
+              const Text('Members and Operator'),
               Center(
                 child: SizedBox(
                   width: 300,
                   child: TextField(
                     controller: searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Search',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.search),
+                    decoration: InputDecoration(
+                      labelText: 'Search by Name',
+                      border: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                          color: Color(0xFF2E3192), // Updated color
+                        ),
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      suffixIcon: const Icon(Icons.search, color: Color(0xFF2E3192)), // Updated icon color
+                      filled: true,
+                      fillColor: const Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
                 ),
@@ -135,7 +141,7 @@ class _DriversPageState extends State<DriversPage> {
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, color: Color(0xFF2E3192)), // Updated refresh button color
               onPressed: _fetchDriversData,
             ),
             DropdownButton<String>(
@@ -143,7 +149,7 @@ class _DriversPageState extends State<DriversPage> {
               items: ['All', 'Operator', 'Member'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value),
+                  child: Text(value, style: const TextStyle(color: Color(0xFF2E3192))), // Updated filter text color
                 );
               }).toList(),
               onChanged: _filterByTag,
@@ -151,7 +157,7 @@ class _DriversPageState extends State<DriversPage> {
             ),
             ElevatedButton(
               onPressed: _showAddMemberDialog,
-              child: const Text('Add Member'),
+              child: const Text('Add Driver'),
             ),
             const SizedBox(width: 10),
             ElevatedButton(
@@ -185,6 +191,7 @@ class _DriversPageState extends State<DriversPage> {
                 _handleBatchUpload(driversList);
               },
             ),
+            const SizedBox( width: 10, height: 10,)
           ],
         ),
         body: StreamBuilder<DatabaseEvent>(
@@ -290,7 +297,8 @@ class _DriversPageState extends State<DriversPage> {
       phoneNumber: _phoneNumberController.text,
       tag: _tagController.text,
       uid: _uidController.text,
-      driverPhoto: _driverPhotoController.text, // Assuming this is a URL or a placeholder
+      driverPhoto: _driverPhotoController
+          .text, // Assuming this is a URL or a placeholder
       driverId: _driverIdController.text,
     );
 
@@ -299,7 +307,8 @@ class _DriversPageState extends State<DriversPage> {
       String? imageFileName = _getFileName(); // Get the file name
 
       if (imageBytes != null && imageFileName != null) {
-        await _dataService.addDriverToRealtimeDatabase(newDriver, imageBytes, imageFileName);
+        await _dataService.addDriverToRealtimeDatabase(
+            newDriver, imageBytes, imageFileName);
         _fetchDriversData();
         Navigator.of(context).pop(); // Close the dialog after adding
       } else {

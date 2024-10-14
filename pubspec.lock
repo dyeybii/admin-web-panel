@@ -648,6 +648,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
+  number_pagination:
+    dependency: "direct main"
+    description:
+      name: number_pagination
+      sha256: "8466c5cc56e6960fde2618bad9bc01a08139256830a97efd354449cfa3da0c67"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.5"
   octo_image:
     dependency: transitive
     description:

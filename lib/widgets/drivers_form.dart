@@ -72,10 +72,18 @@ class _DriversFormState extends State<DriversForm> {
       Reference ref = FirebaseStorage.instance.ref().child('driver_photos/$fileName');
       UploadTask uploadTask = ref.putData(imageData, SettableMetadata(contentType: 'image/${fileName.split('.').last}'));
       TaskSnapshot snapshot = await uploadTask;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Image uploaded successfully!')),
+      );
+
       String downloadURL = await snapshot.ref.getDownloadURL();
       return downloadURL;
     } catch (e) {
       print('Error uploading image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading image. Please try again.')),
+      );
       return null;
     }
   }
@@ -328,5 +336,21 @@ class _DriversFormState extends State<DriversForm> {
         child: const Text('Add Driver'),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    widget.firstNameController.dispose();
+    widget.lastNameController.dispose();
+    widget.idNumberController.dispose();
+    widget.bodyNumberController.dispose();
+    widget.emailController.dispose();
+    widget.birthdateController.dispose();
+    widget.addressController.dispose();
+    widget.phoneNumberController.dispose();
+    widget.tagController.dispose();
+    widget.driverPhotoController.dispose();
+    widget.uidController.dispose();
+    super.dispose();
   }
 }

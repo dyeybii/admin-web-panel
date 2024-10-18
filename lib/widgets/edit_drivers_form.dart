@@ -212,11 +212,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
       title: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black), // Change icon color to black
+            icon: const Icon(Icons.arrow_back,
+                color: Colors.black), // Change icon color to black
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          const Text('Edit Driver Account', style: TextStyle(color: Colors.black)), // Change text color to black
+          const Text('Edit Driver Account',
+              style:
+                  TextStyle(color: Colors.black)), // Change text color to black
         ],
       ),
       content: Form(
@@ -244,9 +247,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _firstNameController,
                           decoration: const InputDecoration(
                             labelText: 'First Name',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a first name';
@@ -258,9 +265,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _idNumberController,
                           decoration: const InputDecoration(
                             labelText: 'ID Number',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter an ID number';
@@ -272,9 +283,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _emailController,
                           decoration: const InputDecoration(
                             labelText: 'Email',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null ||
                                 value.isEmpty ||
@@ -288,9 +303,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _birthdateController,
                           decoration: const InputDecoration(
                             labelText: 'Birthdate',
-                            labelStyle: const TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: const TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a birthdate';
@@ -309,9 +328,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _lastNameController,
                           decoration: const InputDecoration(
                             labelText: 'Last Name',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a last name';
@@ -323,9 +346,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _bodyNumberController,
                           decoration: const InputDecoration(
                             labelText: 'Body Number',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a body number';
@@ -337,9 +364,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _addressController,
                           decoration: const InputDecoration(
                             labelText: 'Address',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter an address';
@@ -351,9 +382,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           controller: _phoneNumberController,
                           decoration: const InputDecoration(
                             labelText: 'Phone Number',
-                            labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                            labelStyle: TextStyle(
+                                color: Colors
+                                    .black), // Change label color to black
                           ),
-                          style: const TextStyle(color: Colors.black), // Change input text color to black
+                          style: const TextStyle(
+                              color: Colors
+                                  .black), // Change input text color to black
                           validator: (value) {
                             if (value == null ||
                                 value.isEmpty ||
@@ -372,13 +407,16 @@ class _EditDriverFormState extends State<EditDriverForm> {
                 value: _selectedTag.isNotEmpty ? _selectedTag : null,
                 decoration: const InputDecoration(
                   labelText: 'Tag',
-                  labelStyle: TextStyle(color: Colors.black), // Change label color to black
+                  labelStyle: TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0)), // Change label color to black
                 ),
-                dropdownColor: Colors.grey[800],
+                dropdownColor: const Color.fromARGB(255, 255, 255, 255),
                 items: ['Member', 'Operator']
                     .map((tag) => DropdownMenuItem(
                           value: tag,
-                          child: Text(tag, style: const TextStyle(color: Colors.black)), // Change text color to black
+                          child: Text(tag,
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 0, 0, 0))), // Change text color to black
                         ))
                     .toList(),
                 onChanged: (newValue) {

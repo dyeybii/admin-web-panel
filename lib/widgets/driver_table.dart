@@ -55,109 +55,119 @@ class _DriverTableState extends State<DriverTable> {
               ],
             ),
             Expanded(
-              child: Card(
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: DataTable2(
-                    columns: [
-                      DataColumn2(
-                        label: Row(
-                          children: [
-                            Checkbox(
-                              value: isAllSelected,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  isAllSelected = value!;
-                                  if (isAllSelected) {
-                                    widget.selectedDrivers.clear();
-                                    widget.selectedDrivers.addAll(filteredList);
-                                  } else {
-                                    widget.selectedDrivers.clear();
-                                  }
-                                  widget.onSelectedDriversChanged(
-                                      widget.selectedDrivers);
-                                });
-                              },
-                            ),
-                            const Text('Select All'),
-                          ],
-                        ),
-                      ),
-                      const DataColumn2(
-                          label: Text(
-                        'ID NO.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )),
-                      const DataColumn2(
-                          label: Text(
-                        'Full Name',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )),
-                      const DataColumn2(
-                          label: Text(
-                        'Body NO.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )),
-                      const DataColumn2(
-                          label: Text(
-                        'Tag',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )),
-                    ],
-                    rows: _getCurrentPageDrivers().map((driver) {
-                      final isSelected =
-                          widget.selectedDrivers.contains(driver);
-                      final textColor =
-                          driver.tag == 'Operator' ? Colors.red : Colors.blue;
-
-                      return DataRow2(
-                        selected: isSelected,
-                        onTap: () {
-                          _showEditDialog(context, driver);
-                        },
-                        cells: [
-                          DataCell(
-                            Checkbox(
-                              value: isSelected,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  if (value!) {
-                                    widget.selectedDrivers.add(driver);
-                                  } else {
-                                    widget.selectedDrivers.remove(driver);
-                                  }
-                                  widget.onSelectedDriversChanged(
-                                      widget.selectedDrivers);
-                                  isAllSelected =
-                                      widget.selectedDrivers.length ==
-                                          filteredList.length;
-                                });
-                              },
-                            ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: DataTable2(
+                  columns: [
+                    DataColumn2(
+                      label: Row(
+                        children: [
+                          Checkbox(
+                            value: isAllSelected,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                isAllSelected = value!;
+                                if (isAllSelected) {
+                                  widget.selectedDrivers.clear();
+                                  widget.selectedDrivers.addAll(filteredList);
+                                } else {
+                                  widget.selectedDrivers.clear();
+                                }
+                                widget.onSelectedDriversChanged(
+                                    widget.selectedDrivers);
+                              });
+                            },
                           ),
-                          DataCell(Text(driver.idNumber)),
-                          DataCell(
-                              Text(driver.firstName + ' ' + driver.lastName)),
-                          DataCell(Text(driver.bodyNumber)),
-                          DataCell(Text(
-                            driver.tag,
-                            style: TextStyle(color: textColor),
-                          )),
+                          const Text('Select All'),
                         ],
-                      );
-                    }).toList(),
-                    headingRowColor: WidgetStateProperty.resolveWith(
-                      (states) => const Color.fromARGB(255, 145, 179, 230),
+                      ),
                     ),
-                    columnSpacing: 20,
-                    horizontalMargin: 16,
-                    dataRowHeight: 50,
+                    const DataColumn2(
+                        label: Text(
+                      'ID NO.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                    const DataColumn2(
+                        label: Text(
+                      'Full Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                    const DataColumn2(
+                        label: Text(
+                      'Body NO.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                    const DataColumn2(
+                        label: Text(
+                      'Tag',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                    const DataColumn2(
+                        label: Text(
+                      'Ratings',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                  ],
+                  rows: _getCurrentPageDrivers().map((driver) {
+                    final isSelected = widget.selectedDrivers.contains(driver);
+                    final textColor =
+                        driver.tag == 'Operator' ? Colors.red : Colors.blue;
+
+                    return DataRow2(
+                      selected: isSelected,
+                      onTap: () {
+                        _showEditDialog(context, driver);
+                      },
+                      cells: [
+                        DataCell(
+                          Checkbox(
+                            value: isSelected,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value!) {
+                                  widget.selectedDrivers.add(driver);
+                                } else {
+                                  widget.selectedDrivers.remove(driver);
+                                }
+                                widget.onSelectedDriversChanged(
+                                    widget.selectedDrivers);
+                                isAllSelected = widget.selectedDrivers.length ==
+                                    filteredList.length;
+                              });
+                            },
+                          ),
+                        ),
+                        DataCell(Text(driver.idNumber)),
+                        DataCell(
+                            Text(driver.firstName + ' ' + driver.lastName)),
+                        DataCell(Text(driver.bodyNumber)),
+                        DataCell(Text(
+                          driver.tag,
+                          style: TextStyle(color: textColor),
+                        )),
+                        DataCell(
+                          Row(
+                            children: _buildRatingWithStar(driver.totalRatings
+                                ?.averageRating), // Display number with star
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                  headingRowColor: WidgetStateProperty.resolveWith<Color>(
+                    (states) => const Color.fromARGB(255, 145, 179, 230),
                   ),
+                  headingRowDecoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  columnSpacing: 20,
+                  horizontalMargin: 16,
+                  dataRowHeight: 50,
                 ),
               ),
             ),
-            SizedBox(
+            const Divider(thickness: 2),
+            const SizedBox(
               height: 20,
             ),
             Row(
@@ -171,7 +181,7 @@ class _DriverTableState extends State<DriverTable> {
                     Text('Total Operators: $totalOperators'),
                   ],
                 ),
-                SizedBox(width: 900),
+                const SizedBox(width: 900),
                 Flexible(
                   fit: FlexFit.loose,
                   child: NumberPagination(
@@ -187,8 +197,8 @@ class _DriverTableState extends State<DriverTable> {
                         const Size(25, 25), // Resize control buttons
                     numberButtonSize:
                         const Size(25, 25), // Resize number buttons
-                    selectedButtonColor:
-                        Color(0xFF2E3192), // Background for selected button
+                    selectedButtonColor: const Color(
+                        0xFF2E3192), // Background for selected button
                     selectedNumberColor:
                         Colors.white, // Text color for selected button
                     unSelectedButtonColor:
@@ -239,5 +249,18 @@ class _DriverTableState extends State<DriverTable> {
         );
       },
     );
+  }
+
+  List<Widget> _buildRatingWithStar(double? averageRating) {
+    double rating = averageRating ?? 0.0;
+
+    // Keep the number with only 1 decimal place without rounding
+    String ratingText =
+        rating.toStringAsFixed(1); // Formats the number with 1 decimal
+
+    return [
+      Text(ratingText), // Display the rating number
+      const Icon(Icons.star, color: Colors.yellow), // Display star icon
+    ];
   }
 }

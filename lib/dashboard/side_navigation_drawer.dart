@@ -136,10 +136,10 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               ),
             ),
             _buildDrawerItem('Dashboard', Icons.dashboard, 0),
-            _buildDrawerItem('Member Management', Icons.directions_car, 1),
+            _buildDrawerItem('Member Management', Icons.person_add, 1),
             _buildDrawerItem('Fund Collection', Icons.money, 2),
             _buildDrawerItem('Fare Matrix', Icons.monetization_on, 3),
-            _buildDrawerItem('Account', Icons.account_circle, 4),
+            _buildDrawerItem('My Account', Icons.account_circle, 4),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

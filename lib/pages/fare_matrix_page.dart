@@ -1,4 +1,5 @@
 import 'package:admin_web_panel/Data_service.dart';
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:admin_web_panel/Style/fare_table_style.dart';
@@ -152,12 +153,14 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
         title: const Text("Fare Matrix"),
         actions: [
           ElevatedButton(
+            style: CustomButtonStyles.elevatedButtonStyle,
             onPressed: _showFareTableDialog,
             child: const Text(
               'Fare Table',
-              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
             ),
           ),
+          SizedBox(width: 10,)
         ],
       ),
       body: SingleChildScrollView(

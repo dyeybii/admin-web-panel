@@ -30,3 +30,11 @@ Colors.blueGrey.shade100,
 }
 
 
+class CustomButtonStyles {
+  static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
+    foregroundColor: Colors.white, backgroundColor: const Color(0xFF2E3192), // Text color
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  );
+}

@@ -1,8 +1,9 @@
 import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart';
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase Auth
+import 'package:firebase_database/firebase_database.dart'; // For Firebase Realtime Database
 import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
@@ -20,6 +21,8 @@ class DriversPage extends StatefulWidget {
 }
 
 class _DriversPageState extends State<DriversPage> {
+  bool isLoading = false;
+  bool noResultsFound = false;
   final DataService _dataService = DataService();
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
@@ -41,8 +44,6 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _driverIdController = TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
-
-  final ImagePicker _picker = ImagePicker(); // Initialize ImagePicker
 
   @override
   void initState() {
@@ -104,6 +105,7 @@ class _DriversPageState extends State<DriversPage> {
     _tagController.dispose();
     _driverPhotoController.dispose();
     _uidController.dispose();
+    _driverIdController.dispose();
     super.dispose();
   }
 
@@ -115,7 +117,7 @@ class _DriversPageState extends State<DriversPage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Members and Operator'),
+              const Text('Members and Operators'),
               Center(
                 child: SizedBox(
                   width: 300,
@@ -130,7 +132,7 @@ class _DriversPageState extends State<DriversPage> {
                         borderSide: const BorderSide(
                           color: Color(0xFF2E3192), // Outline color
                         ),
-                        borderRadius: BorderRadius.circular(40),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(
@@ -138,7 +140,7 @@ class _DriversPageState extends State<DriversPage> {
                               0xFF2E3192), // Outline color when not clicked
                           width: 2.0, // Optional: Adjust width
                         ),
-                        borderRadius: BorderRadius.circular(40),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: const BorderSide(
@@ -158,14 +160,13 @@ class _DriversPageState extends State<DriversPage> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh,
-                  color: Color(0xFF2E3192)), // Updated refresh button color
+              icon: const Icon(Icons.refresh, color: Color(0xFF2E3192)),
               onPressed: _fetchDriversData,
             ),
             DropdownButton<String>(
@@ -174,20 +175,22 @@ class _DriversPageState extends State<DriversPage> {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value,
-                      style: const TextStyle(
-                          color:
-                              Color(0xFF2E3192))), // Updated filter text color
+                      style: const TextStyle(color: Color(0xFF2E3192))),
                 );
               }).toList(),
               onChanged: _filterByTag,
               underline: Container(),
-            ),
-            ElevatedButton(
-              onPressed: _showAddMemberDialog,
-              child: const Text('Add Driver'),
+              iconEnabledColor: Color(0xFF2E3192), // Set the arrow color
             ),
             const SizedBox(width: 10),
             ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: _showAddMemberDialog,
+              child: const Text('+ Add Driver'),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
               onPressed: () {
                 ExcelTemplateDownloader.downloadExcelTemplate(context);
               },
@@ -195,6 +198,7 @@ class _DriversPageState extends State<DriversPage> {
             ),
             const SizedBox(width: 10),
             ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
               onPressed: () {
                 if (_selectedDrivers.isNotEmpty) {
                   ExcelDownloader.downloadExcel(
@@ -204,24 +208,47 @@ class _DriversPageState extends State<DriversPage> {
                       context, _driversAccountList, []);
                 }
               },
-              child: const Text('Download Excel'),
+              child: const Text('Download Table'),
             ),
             const SizedBox(width: 10),
-            BatchUpload(
-              onUpload: (List<Map<String, dynamic>> uploadedDrivers) {
-                List<DriversAccount> driversList = uploadedDrivers
-                    .map((driverData) => DriversAccount.fromJson(driverData))
-                    .where((driver) => driver != null)
-                    .cast<DriversAccount>()
-                    .toList();
-
-                _handleBatchUpload(driversList);
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: () {
+                // Show the BatchUpload dialog
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Batch Upload'),
+                      content: SizedBox(
+                        height: 300, // Set the desired height here
+                        width: 200,
+                        child: BatchUpload(
+                          onUpload: (List<Map<String, dynamic>> uploadedData) {
+                            // Handle the uploaded data if necessary
+                            print('Uploaded Data: $uploadedData');
+                            Navigator.of(context)
+                                .pop(); // Close the dialog after upload
+                          },
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          child: const Text('Close'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
+              child: const Text(
+                'Batch Upload',
+              ),
             ),
-            const SizedBox(
-              width: 10,
-              height: 10,
-            )
+            const SizedBox(width: 20),
           ],
         ),
         body: StreamBuilder<DatabaseEvent>(
@@ -282,95 +309,103 @@ class _DriversPageState extends State<DriversPage> {
             ],
           ),
           content: SingleChildScrollView(
-              child: DriversForm(
-            formKey: _formKey,
-            firstNameController: _firstNameController,
-            lastNameController: _lastNameController,
-            idNumberController: _idNumberController,
-            bodyNumberController: _bodyNumberController,
-            emailController: _emailController,
-            birthdateController: _birthdateController,
-            addressController: _addressController,
-            phoneNumberController: _phoneNumberController,
-            tagController: _tagController,
-            uidController: _uidController,
-            driverPhotoController: _driverPhotoController,
-            ontagSelected: (tag) {
-              _tagController.text = tag!;
-            },
-            onAddPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _addMemberToFirebaseAndRealtimeDatabase();
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please fill in all required fields.'),
-                  ),
-                );
-              }
-            },
-          )),
+            child: DriversForm(
+              formKey: _formKey,
+              firstNameController: _firstNameController,
+              lastNameController: _lastNameController,
+              idNumberController: _idNumberController,
+              bodyNumberController: _bodyNumberController,
+              emailController: _emailController,
+              birthdateController: _birthdateController,
+              addressController: _addressController,
+              phoneNumberController: _phoneNumberController,
+              tagController: _tagController,
+              uidController: _uidController,
+              driverPhotoController: _driverPhotoController,
+              ontagSelected: (tag) {
+                _tagController.text = tag!;
+              },
+              onAddPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _addMemberToFirebaseAndRealtimeDatabase();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill in all required fields.'),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
         );
       },
     );
   }
 
   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
-    final newDriver = DriversAccount(
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      idNumber: _idNumberController.text,
-      bodyNumber: _bodyNumberController.text,
-      email: _emailController.text,
-      birthdate: _birthdateController.text,
-      address: _addressController.text,
-      phoneNumber: _phoneNumberController.text,
-      tag: _tagController.text,
-      uid: _uidController.text,
-      driverPhoto: _driverPhotoController
-          .text, // Assuming this is a URL or a placeholder
-      driverId: _driverIdController.text,
-    );
+    final String email = _emailController.text.trim();
+    final String birthdate = _birthdateController.text.trim();
+    final String firstName = _firstNameController.text.trim();
+    final String lastName = _lastNameController.text.trim();
+    final String idNumber = _idNumberController.text.trim();
+    final String bodyNumber = _bodyNumberController.text.trim();
+    final String address = _addressController.text.trim();
+    final String phoneNumber = _phoneNumberController.text.trim();
+    final String tag = _tagController.text.trim();
+    final String driverPhoto = _driverPhotoController.text
+        .trim(); // This should be the image path or image URL.
+
+    Uint8List? imageBytes; // Prepare this if you are uploading an image
+    String?
+        imageFileName; // This should be the file name if you are uploading an image
 
     try {
-      Uint8List? imageBytes = await _pickImage(); // Pick the image
-      String? imageFileName = _getFileName(); // Get the file name
+      // Create the user in Firebase Auth using email and birthdate as password
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: birthdate);
 
+      final String uid = userCredential.user!.uid;
+
+      // Create a new reference for the driver in the Realtime Database
+      final newDriverRef = _dataService
+          .getDriversDatabaseReference()
+          .push(); // Generates a unique key
+
+      // Use the unique key from Firebase as the driverId
+      final String driverId = newDriverRef.key!;
+
+      // Create a new driver account object
+      final newDriver = DriversAccount(
+        firstName: firstName,
+        lastName: lastName,
+        idNumber: idNumber,
+        bodyNumber: bodyNumber,
+        email: email,
+        birthdate: birthdate,
+        address: address,
+        phoneNumber: phoneNumber,
+        tag: tag,
+        uid: uid,
+        driverPhoto: driverPhoto, // This should be the image URL if available
+        driverId: driverId, // Assign the auto-generated driverId
+      );
+
+      // Add the new driver to Firebase Realtime Database with the generated driverId
+      await newDriverRef.set(newDriver.toJson());
+
+      // Optionally, you can upload an image if available
       if (imageBytes != null && imageFileName != null) {
-        await _dataService.addDriverToRealtimeDatabase(
-            newDriver, imageBytes, imageFileName);
-        _fetchDriversData();
-        Navigator.of(context).pop(); // Close the dialog after adding
-      } else {
-        // Handle the case where image is not selected
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No image selected.')),
-        );
+        await _dataService.uploadImage(imageBytes, imageFileName);
       }
+
+      _fetchDriversData(); // Refresh the drivers list
+      Navigator.of(context).pop(); // Close the dialog after adding
     } catch (e) {
       print('Error adding driver: $e');
-    }
-  }
-
-  Future<Uint8List?> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      return await pickedFile.readAsBytes(); // Read the image as bytes
-    }
-    return null; // Return null if no image was picked
-  }
-
-  String? _getFileName() {
-    // Implement a way to retrieve the file name if needed
-    return null; // Return a file name or null if not applicable
-  }
-
-  void _handleBatchUpload(List<DriversAccount> driversList) async {
-    try {
-      await _dataService.batchUploadDrivers(driversList);
-      _fetchDriversData();
-    } catch (e) {
-      print('Error in batch upload: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding driver: $e')),
+      );
     }
   }
 }

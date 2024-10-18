@@ -3,16 +3,22 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore for fare matrix
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DataService {
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance; // Firestore reference
 
+  // Method to get the database reference for drivers
+  DatabaseReference getDriversDatabaseReference() {
+    return _databaseRef.child('driversAccount'); // Returns the reference to driversAccount
+  }
+
   // Realtime Database: Fetch drivers from Firebase Realtime Database
   Future<List<DriversAccount>> getDriversFromRealtimeDatabase() async {
     List<DriversAccount> driversList = [];
     try {
-      final snapshot = await _databaseRef.child('driversAccount').get();
+      final snapshot = await getDriversDatabaseReference().get();
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
         driversList = data.entries
@@ -30,7 +36,7 @@ class DataService {
 
   // Realtime Database: Stream for driver data
   Stream<DatabaseEvent> getDriversStream() {
-    return _databaseRef.child('driversAccount').onValue;
+    return getDriversDatabaseReference().onValue;
   }
 
   // Realtime Database: Add a new driver
@@ -48,10 +54,10 @@ class DataService {
         newDriver.driverPhoto = driverPhotoUrl; // Use driverPhoto directly
       }
 
-      await _databaseRef.child('driversAccount').push().set(newDriver.toJson());
+      await getDriversDatabaseReference().child(newDriver.driverId).set(newDriver.toJson());
     } catch (e) {
       print('Error adding driver: $e');
-      rethrow;
+      rethrow; // Ensure the error is propagated
     }
   }
 
@@ -68,7 +74,7 @@ class DataService {
       return downloadURL;
     } catch (e) {
       print('Error uploading image: $e');
-      return null;
+      return null; // Return null in case of an error
     }
   }
 
@@ -76,11 +82,11 @@ class DataService {
   Future<void> batchUploadDrivers(List<DriversAccount> driversList) async {
     try {
       for (var driver in driversList) {
-        await _databaseRef.child('driversAccount').push().set(driver.toJson());
+        await getDriversDatabaseReference().child(driver.driverId).set(driver.toJson());
       }
     } catch (e) {
       print('Error uploading drivers: $e');
-      rethrow;
+      rethrow; // Propagate the error
     }
   }
 
@@ -94,7 +100,7 @@ class DataService {
       return doc;
     } catch (e) {
       print('Error loading fare parameters: $e');
-      rethrow;
+      rethrow; // Propagate the error
     }
   }
 
@@ -112,7 +118,7 @@ class DataService {
       });
     } catch (e) {
       print('Error saving fare parameters: $e');
-      rethrow;
+      rethrow; // Propagate the error
     }
   }
 
@@ -127,7 +133,7 @@ class DataService {
       });
     } catch (e) {
       print('Error adding note: $e');
-      rethrow;
+      rethrow; // Propagate the error
     }
   }
 
@@ -143,7 +149,7 @@ class DataService {
       return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
     } catch (e) {
       print('Error fetching notes: $e');
-      rethrow;
+      rethrow; // Propagate the error
     }
   }
 }

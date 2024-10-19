@@ -1,9 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AccountPage extends StatelessWidget {
   static const String id = 'account_page';
@@ -35,6 +35,7 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
   String fullName = "";
   String password = "";
   String profileImage = "";
+  File? selectedAdminImage;
 
   final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
@@ -44,6 +45,8 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController newPasswordAdminController = TextEditingController();
+
+  String newAdminImageUrl = '';
 
   @override
   void initState() {
@@ -62,38 +65,67 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
     });
   }
 
-  void _pickImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+  Future<void> _pickAdminImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
-      // Only select the first file
       String? filePath = result.files.single.path;
       if (filePath != null) {
-        // Upload the selected image
-        String imageUrl = await _uploadImage(filePath);
         setState(() {
-          profileImage = imageUrl; // Update the state with the new image URL
+          selectedAdminImage = File(filePath); // Save the selected image for preview
         });
       }
     }
   }
 
-  // Method to upload the image to Firebase Storage and return the URL
-  Future<String> _uploadImage(String filePath) async {
+  Future<String> _uploadImage(String filePath, String folder) async {
     try {
-      // Create a reference to Firebase Storage
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg'; // Generate a unique file name
-      Reference ref = FirebaseStorage.instance.ref().child('profile_images/$fileName');
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg'; 
+      Reference ref = FirebaseStorage.instance.ref().child('$folder$fileName');
 
-      // Upload the image file
       UploadTask uploadTask = ref.putFile(File(filePath));
       TaskSnapshot snapshot = await uploadTask;
 
-      // Get the download URL of the uploaded file
       String downloadURL = await snapshot.ref.getDownloadURL();
       return downloadURL;
     } catch (e) {
       print('Error uploading image: $e');
-      return ''; // Return an empty string if there was an error
+      return ''; 
+    }
+  }
+
+  Future<void> _createAdmin() async {
+    try {
+      // Create an admin in Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: newPasswordAdminController.text,
+      );
+
+      // If the user selected an image, upload it to Firebase Storage
+      if (selectedAdminImage != null) {
+        newAdminImageUrl = await _uploadImage(selectedAdminImage!.path, 'admin_photos/');
+      }
+
+      // Add the admin's details to Firestore
+      await FirebaseFirestore.instance.collection('admin').doc(userCredential.user?.uid).set({
+        'contactNumber': contactNumberController.text,
+        'email': emailController.text,
+        'fullName': fullNameController.text,
+        'profileImage': newAdminImageUrl.isNotEmpty ? newAdminImageUrl : '',
+      });
+
+      // Clear the form and image preview
+      contactNumberController.clear();
+      emailController.clear();
+      fullNameController.clear();
+      newPasswordAdminController.clear();
+      setState(() {
+        selectedAdminImage = null;
+        newAdminImageUrl = '';
+      });
+    } catch (e) {
+      print('Error creating admin: $e');
+      _showErrorDialog(e.toString());
     }
   }
 
@@ -106,35 +138,17 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
         password = newPasswordController.text;
       });
     } else {
-      _showErrorDialog();
+      _showErrorDialog("Passwords do not match or incorrect old password.");
     }
   }
 
-  void _createAdmin() async {
-    await FirebaseFirestore.instance.collection('admin').add({
-      'contactNumber': contactNumberController.text,
-      'email': emailController.text,
-      'fullName': fullNameController.text,
-      'password': newPasswordAdminController.text,
-      'profileImage': profileImage.isNotEmpty ? profileImage : '', // Save the uploaded profile image URL
-    });
-    // Clear the text fields after submission
-    contactNumberController.clear();
-    emailController.clear();
-    fullNameController.clear();
-    newPasswordAdminController.clear();
-    setState(() {
-      profileImage = ''; // Clear the profile image state
-    });
-  }
-
-  void _showErrorDialog() {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Error"),
-          content: Text("Passwords do not match or incorrect old password."),
+          content: Text(message),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -179,10 +193,14 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
             ),
             Center(
               child: TextButton(
-                onPressed: _pickImage,
-                child: Text('Change Profile Image'),
+                onPressed: _pickAdminImage,
+                child: Text('Upload Profile Image'),
               ),
             ),
+            if (selectedAdminImage != null) ...[
+              SizedBox(height: 10),
+              Image.file(selectedAdminImage!, height: 150, width: 150), // Preview the selected image
+            ],
             SizedBox(height: 20),
             Text(
               fullName,
@@ -269,6 +287,13 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
                             decoration: InputDecoration(labelText: 'Password'),
                             obscureText: true,
                           ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: _pickAdminImage,
+                            child: Text(selectedAdminImage == null ? 'Upload Admin Image' : 'Change Admin Image'),
+                          ),
+                          if (selectedAdminImage != null) 
+                            Image.file(selectedAdminImage!, height: 100, width: 100), // Preview the selected image
                         ],
                       ),
                       actions: <Widget>[

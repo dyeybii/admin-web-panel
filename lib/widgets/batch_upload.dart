@@ -122,7 +122,7 @@ class _BatchUploadState extends State<BatchUpload> {
         _pickFileAndUpload(context); // Correctly passing BuildContext in a closure
       },
       child: DragTarget<html.File>(
-        onWillAccept: (data) {
+        onWillAcceptWithDetails: (data) {
           setState(() {
             _isDragging = true;
           });

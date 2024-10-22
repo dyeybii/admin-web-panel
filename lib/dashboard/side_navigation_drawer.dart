@@ -20,7 +20,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
   final List<Widget> _pages = [
     const Dashboard(),
     const DriversPage(),
-    //const FundPage(),
+    const FundPage(),
     const FareMatrixPage(),
     AccountPage(),
   ];

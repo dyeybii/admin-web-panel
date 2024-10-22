@@ -340,17 +340,7 @@ class _DriversFormState extends State<DriversForm> {
 
   @override
   void dispose() {
-    widget.firstNameController.dispose();
-    widget.lastNameController.dispose();
-    widget.idNumberController.dispose();
-    widget.bodyNumberController.dispose();
-    widget.emailController.dispose();
-    widget.birthdateController.dispose();
-    widget.addressController.dispose();
-    widget.phoneNumberController.dispose();
-    widget.tagController.dispose();
-    widget.driverPhotoController.dispose();
-    widget.uidController.dispose();
+
     super.dispose();
   }
 }

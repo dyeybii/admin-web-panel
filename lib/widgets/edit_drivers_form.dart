@@ -230,13 +230,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
               // Driver Photo
               Container(
                 margin: const EdgeInsets.only(bottom: 16.0),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: _driverPhotoUrl.isNotEmpty
-                      ? NetworkImage(_driverPhotoUrl)
-                      : const AssetImage('images/default_avatar.png')
-                          as ImageProvider,
-                ),
+                
               ),
               Row(
                 children: [

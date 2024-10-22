@@ -132,7 +132,7 @@ class _DriversPageState extends State<DriversPage> {
                         borderSide: const BorderSide(
                           color: Color(0xFF2E3192), // Outline color
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(40),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(
@@ -140,7 +140,7 @@ class _DriversPageState extends State<DriversPage> {
                               0xFF2E3192), // Outline color when not clicked
                           width: 2.0, // Optional: Adjust width
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(40),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: const BorderSide(
@@ -148,7 +148,7 @@ class _DriversPageState extends State<DriversPage> {
                               Color(0xFF2E3192), // Outline color when clicked
                           width: 2.0, // Optional: Adjust width
                         ),
-                        borderRadius: BorderRadius.circular(40),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       suffixIcon: const Icon(
                         Icons.search,

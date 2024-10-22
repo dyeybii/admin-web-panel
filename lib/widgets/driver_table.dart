@@ -229,7 +229,7 @@ class _DriverTableState extends State<DriverTable> {
         final screenSize = MediaQuery.of(context).size;
         return Dialog(
           child: Container(
-            width: screenSize.width * 0.6, // 80% of screen width
+            width: screenSize.width * 0.4, // 80% of screen width
             height: screenSize.height * 0.8, // Increase height if necessary
             child: EditDriverForm(
               driverId: driver.uid,
@@ -254,13 +254,13 @@ class _DriverTableState extends State<DriverTable> {
   List<Widget> _buildRatingWithStar(double? averageRating) {
     double rating = averageRating ?? 0.0;
 
-    // Keep the number with only 1 decimal place without rounding
+
     String ratingText =
-        rating.toStringAsFixed(1); // Formats the number with 1 decimal
+        rating.toStringAsFixed(1); 
 
     return [
-      Text(ratingText), // Display the rating number
-      const Icon(Icons.star, color: Colors.yellow), // Display star icon
+      Text(ratingText), 
+      const Icon(Icons.star, color: Colors.yellow),
     ];
   }
 }

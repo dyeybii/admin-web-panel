@@ -1,52 +1,30 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'package:admin_web_panel/Style/appstyle.dart';
+import 'package:admin_web_panel/widgets/admin_create.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:universal_io/io.dart' as universal_io;
 
-class AccountPage extends StatelessWidget {
-  static const String id = 'account_page';
-
+class AccountPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Page'),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 600),
-          child: AdminAccountPage(),
-        ),
-      ),
-    );
-  }
+  _AccountPageState createState() => _AccountPageState();
 }
 
-class AdminAccountPage extends StatefulWidget {
-  @override
-  _AdminAccountPageState createState() => _AdminAccountPageState();
-}
-
-class _AdminAccountPageState extends State<AdminAccountPage> {
+class _AccountPageState extends State<AccountPage> {
   String contactNumber = "";
   String email = "";
   String fullName = "";
-  String password = "";
   String profileImage = "";
   File? selectedAdminImage;
+  Uint8List? selectedImageBytes;
 
   final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController reenterPasswordController = TextEditingController();
-
-  final TextEditingController contactNumberController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController fullNameController = TextEditingController();
-  final TextEditingController newPasswordAdminController = TextEditingController();
-
-  String newAdminImageUrl = '';
 
   @override
   void initState() {
@@ -55,111 +33,62 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
   }
 
   Future<void> _fetchAdminData() async {
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('admin').doc('adminId').get();
-    setState(() {
-      contactNumber = doc['contactNumber'];
-      email = doc['email'];
-      fullName = doc['fullName'];
-      password = doc['password'];
-      profileImage = doc['profileImage'];
-    });
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('admin').doc(uid).get();
+      setState(() {
+        contactNumber = doc['contactNumber'] ?? '';
+        email = doc['email'] ?? '';
+        fullName = doc['fullName'] ?? '';
+        profileImage = doc['profileImage'] ?? '';
+      });
+    }
   }
 
+  // Pick Image for Admin Profile
   Future<void> _pickAdminImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    
     if (result != null) {
-      String? filePath = result.files.single.path;
-      if (filePath != null) {
+      if (universal_io.Platform.isAndroid || universal_io.Platform.isIOS || universal_io.Platform.isMacOS || universal_io.Platform.isLinux || universal_io.Platform.isWindows) {
+        String? filePath = result.files.single.path;
+        if (filePath != null) {
+          setState(() {
+            selectedAdminImage = File(filePath); // Save the selected image for preview
+          });
+        }
+      } else if (kIsWeb) {
         setState(() {
-          selectedAdminImage = File(filePath); // Save the selected image for preview
+          selectedImageBytes = result.files.single.bytes; // Save the selected image bytes for preview
         });
       }
     }
   }
 
-  Future<String> _uploadImage(String filePath, String folder) async {
+  // Upload Image to Firebase Storage
+  Future<String> _uploadImage(String folder) async {
     try {
       String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg'; 
       Reference ref = FirebaseStorage.instance.ref().child('$folder$fileName');
 
-      UploadTask uploadTask = ref.putFile(File(filePath));
-      TaskSnapshot snapshot = await uploadTask;
+      UploadTask uploadTask;
+      if (selectedAdminImage != null) {
+        uploadTask = ref.putFile(selectedAdminImage!);
+      } else if (selectedImageBytes != null) {
+        uploadTask = ref.putData(selectedImageBytes!);
+      } else {
+        return '';
+      }
 
+      TaskSnapshot snapshot = await uploadTask;
       String downloadURL = await snapshot.ref.getDownloadURL();
       return downloadURL;
     } catch (e) {
       print('Error uploading image: $e');
       return ''; 
     }
-  }
-
-  Future<void> _createAdmin() async {
-    try {
-      // Create an admin in Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: newPasswordAdminController.text,
-      );
-
-      // If the user selected an image, upload it to Firebase Storage
-      if (selectedAdminImage != null) {
-        newAdminImageUrl = await _uploadImage(selectedAdminImage!.path, 'admin_photos/');
-      }
-
-      // Add the admin's details to Firestore
-      await FirebaseFirestore.instance.collection('admin').doc(userCredential.user?.uid).set({
-        'contactNumber': contactNumberController.text,
-        'email': emailController.text,
-        'fullName': fullNameController.text,
-        'profileImage': newAdminImageUrl.isNotEmpty ? newAdminImageUrl : '',
-      });
-
-      // Clear the form and image preview
-      contactNumberController.clear();
-      emailController.clear();
-      fullNameController.clear();
-      newPasswordAdminController.clear();
-      setState(() {
-        selectedAdminImage = null;
-        newAdminImageUrl = '';
-      });
-    } catch (e) {
-      print('Error creating admin: $e');
-      _showErrorDialog(e.toString());
-    }
-  }
-
-  void _resetPassword() async {
-    if (oldPasswordController.text == password && newPasswordController.text == reenterPasswordController.text) {
-      await FirebaseFirestore.instance.collection('admin').doc('adminId').update({
-        'password': newPasswordController.text,
-      });
-      setState(() {
-        password = newPasswordController.text;
-      });
-    } else {
-      _showErrorDialog("Passwords do not match or incorrect old password.");
-    }
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Error"),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("Close"),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -176,141 +105,55 @@ class _AdminAccountPageState extends State<AdminAccountPage> {
               color: Colors.grey.withOpacity(0.5),
               spreadRadius: 5,
               blurRadius: 7,
-              offset: Offset(0, 3), // changes position of shadow
+              offset: Offset(0, 3),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: profileImage.isNotEmpty
-                    ? NetworkImage(profileImage) as ImageProvider
-                    : AssetImage('images/default_avatar.png'),
-              ),
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: profileImage.isNotEmpty
+                  ? NetworkImage(profileImage) 
+                  : AssetImage('images/default_avatar.png') as ImageProvider,
             ),
-            Center(
-              child: TextButton(
-                onPressed: _pickAdminImage,
-                child: Text('Upload Profile Image'),
-              ),
+            SizedBox(height: 10),
+            TextButton(
+              onPressed: _pickAdminImage,
+              child: Text('Upload Profile Image'),
             ),
             if (selectedAdminImage != null) ...[
               SizedBox(height: 10),
-              Image.file(selectedAdminImage!, height: 150, width: 150), // Preview the selected image
+              Image.file(selectedAdminImage!, height: 150, width: 150), // Image Preview
+            ] else if (selectedImageBytes != null) ...[
+              SizedBox(height: 10),
+              Image.memory(selectedImageBytes!, height: 150, width: 150), // Web Image Preview
             ],
             SizedBox(height: 20),
-            Text(
-              fullName,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              email,
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+            // Display full name and email below the upload button
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  fullName.isNotEmpty ? fullName : 'Full Name',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  email.isNotEmpty ? email : 'Email',
+                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                ),
+              ],
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
               onPressed: () {
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("Change Password"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextField(
-                            controller: oldPasswordController,
-                            decoration: InputDecoration(labelText: 'Old Password'),
-                            obscureText: true,
-                          ),
-                          TextField(
-                            controller: newPasswordController,
-                            decoration: InputDecoration(labelText: 'New Password'),
-                            obscureText: true,
-                          ),
-                          TextField(
-                            controller: reenterPasswordController,
-                            decoration: InputDecoration(labelText: 'Re-enter New Password'),
-                            obscureText: true,
-                          ),
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Cancel"),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            _resetPassword();
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Confirm'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: Text('Change Password'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("Create Admin"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextField(
-                            controller: fullNameController,
-                            decoration: InputDecoration(labelText: 'Full Name'),
-                          ),
-                          TextField(
-                            controller: emailController,
-                            decoration: InputDecoration(labelText: 'Email'),
-                          ),
-                          TextField(
-                            controller: contactNumberController,
-                            decoration: InputDecoration(labelText: 'Contact Number'),
-                          ),
-                          TextField(
-                            controller: newPasswordAdminController,
-                            decoration: InputDecoration(labelText: 'Password'),
-                            obscureText: true,
-                          ),
-                          SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: _pickAdminImage,
-                            child: Text(selectedAdminImage == null ? 'Upload Admin Image' : 'Change Admin Image'),
-                          ),
-                          if (selectedAdminImage != null) 
-                            Image.file(selectedAdminImage!, height: 100, width: 100), // Preview the selected image
-                        ],
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Cancel"),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            _createAdmin();
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Create'),
-                        ),
-                      ],
+                    return Dialog(
+                      child: AdminCreatePage(), // Open Admin Create Page within a Material context
                     );
                   },
                 );

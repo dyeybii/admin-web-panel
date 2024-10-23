@@ -140,88 +140,9 @@ class _EditDriverFormState extends State<EditDriverForm> {
     }
   }
 
-  Future<void> _deleteDriver(String driverKey, String adminPassword) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-
-      // Re-authenticate admin with password
-      final credential = EmailAuthProvider.credential(
-        email: user!.email!,
-        password: adminPassword,
-      );
-
-      await user.reauthenticateWithCredential(credential);
-
-      final driverRef =
-          FirebaseDatabase.instance.ref('driversAccount/$driverKey');
-      await driverRef.remove();
-      print('Driver deleted successfully.');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Driver deleted successfully.')),
-      );
-      Navigator.pop(context); // Close dialog after deletion
-    } catch (e) {
-      print('Error deleting driver: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting driver: $e')),
-      );
-    }
-  }
-
-  void _showDeleteConfirmation(String driverKey) {
-    final adminPasswordController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Re-enter your admin password to delete this account.'),
-            TextField(
-              controller: adminPasswordController,
-              decoration: const InputDecoration(labelText: 'Admin Password'),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final adminPassword = adminPasswordController.text;
-              await _deleteDriver(driverKey, adminPassword);
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: const Text('Delete'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back,
-                color: Colors.black), // Change icon color to black
-            onPressed: () => Navigator.pop(context),
-          ),
-          const SizedBox(width: 8),
-          const Text('Edit Driver Account',
-              style:
-                  TextStyle(color: Colors.black)), // Change text color to black
-        ],
-      ),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -230,7 +151,13 @@ class _EditDriverFormState extends State<EditDriverForm> {
               // Driver Photo
               Container(
                 margin: const EdgeInsets.only(bottom: 16.0),
-                
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _driverPhotoUrl.isNotEmpty
+                      ? NetworkImage(_driverPhotoUrl)
+                      : const AssetImage('images/default_avatar.png')
+                          as ImageProvider,
+                ),
               ),
               Row(
                 children: [
@@ -402,7 +329,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
                 decoration: const InputDecoration(
                   labelText: 'Tag',
                   labelStyle: TextStyle(
-                      color: Color.fromARGB(255, 0, 0, 0)), // Change label color to black
+                      color: Color.fromARGB(
+                          255, 0, 0, 0)), // Change label color to black
                 ),
                 dropdownColor: const Color.fromARGB(255, 255, 255, 255),
                 items: ['Member', 'Operator']
@@ -410,7 +338,8 @@ class _EditDriverFormState extends State<EditDriverForm> {
                           value: tag,
                           child: Text(tag,
                               style: const TextStyle(
-                                  color: Color.fromARGB(255, 0, 0, 0))), // Change text color to black
+                                  color: Color.fromARGB(255, 0, 0,
+                                      0))), // Change text color to black
                         ))
                     .toList(),
                 onChanged: (newValue) {
@@ -443,20 +372,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
                     : const Text('Update Driver'),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  String? driverKey = await _fetchDriverByUID();
-                  if (driverKey != null) {
-                    _showDeleteConfirmation(driverKey);
-                  } else {
-                    print('Driver not found, cannot delete');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
-                child: const Text('Delete Driver'),
-              ),
             ],
           ),
         ),

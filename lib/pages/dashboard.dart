@@ -109,13 +109,13 @@ class _DashboardState extends State<Dashboard> {
                       'Total Online Riders',
                       _totalOnlineRiders.toString(),
                       const Color(0xFF5096A9),
-                      'images/tricycle_icon.png',
+                      'images/mobile1.png',
                     ),
                     _buildStatCard(
                       'Total Members',
                       _totalMembers.toString(),
                       const Color(0xFF465D7C),
-                      'images/tricycle_icon.png',
+                      'images/total_members.png',
                     ),
                   ],
                 );

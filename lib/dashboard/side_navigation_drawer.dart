@@ -117,21 +117,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Admin Panel',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'COTODA Admin Dashboard',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
+
                 ],
               ),
             ),

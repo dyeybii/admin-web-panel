@@ -180,7 +180,7 @@ class _DriversPageState extends State<DriversPage> {
               }).toList(),
               onChanged: _filterByTag,
               underline: Container(),
-              iconEnabledColor: Color(0xFF2E3192), // Set the arrow color
+              iconEnabledColor: const Color(0xFF2E3192), // Set the arrow color
             ),
             const SizedBox(width: 10),
             ElevatedButton(
@@ -219,7 +219,31 @@ class _DriversPageState extends State<DriversPage> {
                   context: context,
                   builder: (context) {
                     return AlertDialog(
-                      title: const Text('Batch Upload'),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            15), // Set rounded corners for the dialog
+                      ),
+                      titlePadding:
+                          EdgeInsets.zero, // Remove default title padding
+                      title: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 16, horizontal: 24),
+                        decoration: const BoxDecoration(
+                          color: Color(
+                              0xFF2E3192), // Set background color for the entire header
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            topRight: Radius.circular(15),
+                          ), // Rounded corners at the top
+                        ),
+                        child: const Text(
+                          'Batch Upload',
+                          style: TextStyle(
+                            color: Colors.white, // Set text color to white
+                            fontSize: 18, // Adjust font size if necessary
+                          ),
+                        ),
+                      ),
                       content: SizedBox(
                         height: 300, // Set the desired height here
                         width: 200,
@@ -296,17 +320,40 @@ class _DriversPageState extends State<DriversPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Add Driver'),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(15), // Set rounded corners for the dialog
+          ),
+          titlePadding: EdgeInsets.zero, // Remove default title padding
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Color(
+                  0xFF2E3192), // Set background color for the entire header
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(15),
+                topRight: Radius.circular(15),
+              ), // Apply rounded corners only to the top
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Add Driver',
+                  style: TextStyle(
+                    color: Colors.white, // Set text color to white
+                    fontSize: 18, // Adjust font size if needed
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close,
+                      color: Colors.white), // Set icon color to white
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
           ),
           content: SingleChildScrollView(
             child: DriversForm(

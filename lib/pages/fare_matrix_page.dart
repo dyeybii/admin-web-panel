@@ -2,7 +2,6 @@ import 'package:admin_web_panel/Data_service.dart';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:admin_web_panel/Style/fare_table_style.dart';
 import 'package:admin_web_panel/widgets/fare_table.dart';
 
 

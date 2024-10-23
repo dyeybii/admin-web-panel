@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,31 +16,31 @@ class AdminCreatePage extends StatefulWidget {
 class _AdminCreatePageState extends State<AdminCreatePage> {
   File? _selectedAdminImage;
   Uint8List? _selectedImageBytes;
-  double _uploadProgress = 0.0; // For progress indicator
-  bool _isUploading = false; // To indicate upload state
-  String? _imageSize;
 
-  final TextEditingController _contactNumberController = TextEditingController();
+  bool _isUploading = false;
+
+  final TextEditingController _contactNumberController =
+      TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _newPasswordAdminController = TextEditingController();
+  final TextEditingController _newPasswordAdminController =
+      TextEditingController();
 
   // Pick Image for Admin Profile
   Future<void> _pickAdminImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null) {
       if (kIsWeb) {
         setState(() {
           _selectedImageBytes = result.files.single.bytes;
-          _imageSize = _formatFileSize(result.files.single.size);
         });
       } else {
         String? filePath = result.files.single.path;
         if (filePath != null) {
           setState(() {
             _selectedAdminImage = File(filePath);
-            _imageSize = _formatFileSize(_selectedAdminImage!.lengthSync());
           });
         }
       }
@@ -71,9 +72,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           : ref.putData(_selectedImageBytes!);
 
       uploadTask.snapshotEvents.listen((snapshot) {
-        setState(() {
-          _uploadProgress = snapshot.bytesTransferred / snapshot.totalBytes;
-        });
+        setState(() {});
       });
 
       TaskSnapshot snapshot = await uploadTask;
@@ -92,18 +91,23 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   Future<void> _createAdmin() async {
     try {
       // Create an admin in Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _newPasswordAdminController.text,
       );
 
       // Upload the admin image to Firebase Storage if selected
-      String newAdminImageUrl = _selectedAdminImage != null || _selectedImageBytes != null
-          ? await _uploadImage('adminProfile/')
-          : '';
+      String newAdminImageUrl =
+          _selectedAdminImage != null || _selectedImageBytes != null
+              ? await _uploadImage('adminProfile/')
+              : '';
 
       // Save the admin details to Firestore
-      await FirebaseFirestore.instance.collection('admin').doc(userCredential.user?.uid).set({
+      await FirebaseFirestore.instance
+          .collection('admin')
+          .doc(userCredential.user?.uid)
+          .set({
         'contactNumber': _contactNumberController.text,
         'email': _emailController.text,
         'fullName': _fullNameController.text,
@@ -111,6 +115,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
       });
 
       _clearForm();
+      _showSuccessDialog(); // Show success dialog after creation
     } catch (e) {
       print('Error creating admin: $e');
       _showErrorDialog(e.toString());
@@ -126,8 +131,6 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     setState(() {
       _selectedAdminImage = null;
       _selectedImageBytes = null;
-      _uploadProgress = 0.0;
-      _imageSize = null;
     });
   }
 
@@ -137,12 +140,34 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Error"),
+          title: const Text("Error"),
           content: Text(message),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("Close"),
+              child: const Text("Close"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Display Success Dialog
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Success"),
+          content: const Text("Admin account created successfully!"),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Close the form page
+              },
+              child: const Text("Close"),
             ),
           ],
         );
@@ -154,66 +179,84 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Create Admin"),
+        title: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: const Text(
+            "Create Admin",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        backgroundColor: const Color(0xFF2E3192),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "Create Admin",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            _buildTextField(_fullNameController, 'Full Name'),
-            _buildTextField(_emailController, 'Email'),
-            _buildTextField(_contactNumberController, 'Contact Number'),
-            _buildTextField(_newPasswordAdminController, 'Password', obscureText: true),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _pickAdminImage,
-              child: Text(_selectedAdminImage == null && _selectedImageBytes == null 
-                  ? 'Upload Admin Image' 
-                  : 'Change Admin Image'),
-            ),
-            if (_selectedAdminImage != null || _selectedImageBytes != null) ...[
-              SizedBox(height: 10),
-              Text('Selected Image Size: $_imageSize'),
-              SizedBox(height: 10),
-              LinearProgressIndicator(
-                value: _isUploading ? _uploadProgress : null, // Show progress if uploading
-                backgroundColor: Colors.grey[200],
-                color: Colors.blue,
-                minHeight: 5,
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Display the selected image at the top
+              if (_selectedAdminImage != null ||
+                  _selectedImageBytes != null) ...[
+                const SizedBox(height: 10),
+                _selectedAdminImage != null
+                    ? Image.file(_selectedAdminImage!, height: 150, width: 150)
+                    : Image.memory(_selectedImageBytes!,
+                        height: 150, width: 150),
+                const SizedBox(height: 10),
+                const SizedBox(height: 10),
+                _isUploading
+                    ? const CircularProgressIndicator()
+                    : const SizedBox.shrink(),
+              ],
+              // Upload Image Button
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: _pickAdminImage,
+                child: Text(
+                  _selectedAdminImage == null && _selectedImageBytes == null
+                      ? 'Upload Admin Image'
+                      : 'Change Admin Image',
+                ),
               ),
-              SizedBox(height: 10),
-              _isUploading 
-                  ? CircularProgressIndicator() // Show loading indicator while uploading
-                  : (_selectedAdminImage != null
-                      ? Image.file(_selectedAdminImage!, height: 150, width: 150)
-                      : Image.memory(_selectedImageBytes!, height: 150, width: 150)),
+              const SizedBox(height: 20),
+              _buildTextField(_fullNameController, 'Full Name'),
+              const SizedBox(height: 10),
+              _buildTextField(_emailController, 'Email'),
+              const SizedBox(height: 10),
+              _buildTextField(_contactNumberController, 'Contact Number'),
+              const SizedBox(height: 10),
+              _buildTextField(_newPasswordAdminController, 'Password',
+                  obscureText: true),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: _createAdmin,
+                child: const Text("Create Admin"),
+              ),
             ],
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _createAdmin,
-              child: Text("Create Admin"),
-            ),
-          ],
-        ),
-      ),
+          )),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, {bool obscureText = false}) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(labelText: label),
-      obscureText: obscureText,
+  Widget _buildTextField(TextEditingController controller, String label,
+      {bool obscureText = false}) {
+    return Center(
+      child: SizedBox(
+        width: 250,
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+          ),
+          obscureText: obscureText,
+        ),
+      ),
     );
   }
 }

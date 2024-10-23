@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -332,6 +333,7 @@ class _DriversFormState extends State<DriversForm> {
   Widget buildFormButtons() {
     return Center(
       child: ElevatedButton(
+        style: CustomButtonStyles.elevatedButtonStyle,
         onPressed: widget.onAddPressed,
         child: const Text('Add Driver'),
       ),

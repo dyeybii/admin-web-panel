@@ -84,10 +84,10 @@ class _DashboardState extends State<Dashboard> {
               'Welcome Back!',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            const Divider(thickness: 2), // Line divider added here
+            const Divider(thickness: 2), 
             const SizedBox(height: 20),
 
-            // Responsive grid view with stats
+            
             LayoutBuilder(
               builder: (context, constraints) {
                 int crossAxisCount = constraints.maxWidth > 800 ? 3 : 2;
@@ -123,20 +123,20 @@ class _DashboardState extends State<Dashboard> {
             ),
             const SizedBox(height: 20),
 
-            // Pie Chart and Rides Chart in two columns
+          
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 450, // Set a fixed height for the chart
+                    height: 450, 
                     child: RidesChart(),
                   ),
                 ),
-                const SizedBox(width: 16), // Space between columns
+                const SizedBox(width: 16), 
                 Expanded(
                   child: SizedBox(
-                    height: 450, // Set a fixed height for the chart
+                    height: 450, 
                     child: _buildPieChart(),
                   ),
                 ),
@@ -148,7 +148,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  // Build Stat Card with Icon
+
   Widget _buildStatCard(
       String title, String value, Color color, String iconPath) {
     return Container(
@@ -160,7 +160,7 @@ class _DashboardState extends State<Dashboard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Wrap the Column in a Flexible widget to prevent overflow
+  
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +173,7 @@ class _DashboardState extends State<Dashboard> {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
-                  overflow: TextOverflow.ellipsis, // Handle long text
+                  overflow: TextOverflow.ellipsis, 
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -183,28 +183,28 @@ class _DashboardState extends State<Dashboard> {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
-                  overflow: TextOverflow.ellipsis, // Handle long numbers
+                  overflow: TextOverflow.ellipsis, 
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8), // Space between text and icon
+          const SizedBox(width: 8), 
 
           // Icon with Circular Background
           Container(
             decoration: const BoxDecoration(
-              color: Color(0xFFD9D9D9), // Circle background color
+              color: Color(0xFFD9D9D9), 
               shape: BoxShape.circle,
             ),
             padding: const EdgeInsets.all(14.0),
             child: ColorFiltered(
               colorFilter: const ColorFilter.mode(
-                Colors.grey, // Make the icon grey
+                Colors.grey, 
                 BlendMode.srcIn,
               ),
               child: Image.asset(
                 iconPath,
-                height: 40, // Adjusted icon size
+                height: 40, 
                 width: 40,
                 fit: BoxFit.contain,
               ),

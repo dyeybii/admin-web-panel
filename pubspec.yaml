@@ -50,7 +50,7 @@ dependencies:
   image_picker: ^1.1.2
   fl_chart: ^0.69.0
   firebase_storage: ^12.2.0
-  cached_network_image: ^3.3.1
+  cached_network_image: ^3.3.3
   cloud_functions: ^5.1.0
   data_table_2: ^2.5.15
   syncfusion_flutter_charts: ^26.2.14

@@ -162,63 +162,48 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Create Admin",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              _buildTextField(_fullNameController, 'Full Name'),
-              _buildTextField(_emailController, 'Email'),
-              _buildTextField(_contactNumberController, 'Contact Number'),
-              _buildTextField(_newPasswordAdminController, 'Password', obscureText: true),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              "Create Admin",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            _buildTextField(_fullNameController, 'Full Name'),
+            _buildTextField(_emailController, 'Email'),
+            _buildTextField(_contactNumberController, 'Contact Number'),
+            _buildTextField(_newPasswordAdminController, 'Password', obscureText: true),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _pickAdminImage,
+              child: Text(_selectedAdminImage == null && _selectedImageBytes == null 
+                  ? 'Upload Admin Image' 
+                  : 'Change Admin Image'),
+            ),
+            if (_selectedAdminImage != null || _selectedImageBytes != null) ...[
               SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _pickAdminImage,
-                child: Text(_selectedAdminImage == null && _selectedImageBytes == null 
-                    ? 'Upload Admin Image' 
-                    : 'Change Admin Image'),
+              Text('Selected Image Size: $_imageSize'),
+              SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: _isUploading ? _uploadProgress : null, // Show progress if uploading
+                backgroundColor: Colors.grey[200],
+                color: Colors.blue,
+                minHeight: 5,
               ),
-              if (_selectedAdminImage != null || _selectedImageBytes != null) ...[
-                SizedBox(height: 10),
-                Text('Selected Image Size: $_imageSize'),
-                SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: _isUploading ? _uploadProgress : null, // Show progress if uploading
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.blue,
-                  minHeight: 5,
-                ),
-                SizedBox(height: 10),
-                _isUploading 
-                    ? CircularProgressIndicator() // Show loading indicator while uploading
-                    : (_selectedAdminImage != null
-                        ? Image.file(_selectedAdminImage!, height: 150, width: 150)
-                        : Image.memory(_selectedImageBytes!, height: 150, width: 150)),
-              ],
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _createAdmin,
-                child: Text("Create Admin"),
-              ),
+              SizedBox(height: 10),
+              _isUploading 
+                  ? CircularProgressIndicator() // Show loading indicator while uploading
+                  : (_selectedAdminImage != null
+                      ? Image.file(_selectedAdminImage!, height: 150, width: 150)
+                      : Image.memory(_selectedImageBytes!, height: 150, width: 150)),
             ],
-          ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _createAdmin,
+              child: Text("Create Admin"),
+            ),
+          ],
         ),
       ),
     );

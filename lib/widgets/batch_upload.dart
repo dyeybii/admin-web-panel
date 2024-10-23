@@ -152,7 +152,7 @@ class _BatchUploadState extends State<BatchUpload> {
         },
         builder: (context, candidateData, rejectedData) {
           return Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: _isDragging ? Colors.blue.shade50 : Colors.white,
               border: Border.all(
@@ -165,8 +165,8 @@ class _BatchUploadState extends State<BatchUpload> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.file_upload, size: 50, color: Colors.blue),
-                Text(
+                const Icon(Icons.file_upload, size: 50, color: Colors.blue),
+                const Text(
                   'Drag & drop files here or browse files',
                   style: TextStyle(color: Colors.blue),
                 ),
@@ -175,7 +175,7 @@ class _BatchUploadState extends State<BatchUpload> {
                     padding: const EdgeInsets.only(top: 10),
                     child: Text(
                       'Selected file: $_selectedFileName',
-                      style: TextStyle(color: Colors.green),
+                      style: const TextStyle(color: Colors.green),
                     ),
                   ),
                 if (errorMessage != null)

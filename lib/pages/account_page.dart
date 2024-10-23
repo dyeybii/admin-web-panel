@@ -2,13 +2,14 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/admin_create.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart'; // Updated import
 import 'package:universal_io/io.dart' as universal_io;
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AccountPage extends StatefulWidget {
   @override
@@ -25,6 +26,7 @@ class _AccountPageState extends State<AccountPage> {
 
   final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
+  final ImagePicker _picker = ImagePicker(); // ImagePicker instance
 
   @override
   void initState() {
@@ -37,40 +39,52 @@ class _AccountPageState extends State<AccountPage> {
     if (currentUser != null) {
       String uid = currentUser.uid;
 
-      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('admin').doc(uid).get();
-      setState(() {
-        contactNumber = doc['contactNumber'] ?? '';
-        email = doc['email'] ?? '';
-        fullName = doc['fullName'] ?? '';
-        profileImage = doc['profileImage'] ?? '';
-      });
+      try {
+        DocumentSnapshot doc =
+            await FirebaseFirestore.instance.collection('admin').doc(uid).get();
+
+        if (doc.exists) {
+          setState(() {
+            contactNumber = doc['contactNumber'] ?? '';
+            email = doc['email'] ?? '';
+            fullName = doc['fullName'] ?? '';
+            profileImage = doc['profileImage'] ?? '';
+          });
+        } else {
+          print('Admin document does not exist for uid: $uid');
+          setState(() {
+            contactNumber = '';
+            email = '';
+            fullName = '';
+            profileImage = '';
+          });
+        }
+      } catch (e) {
+        print('Error fetching admin data: $e');
+      }
     }
   }
 
-  // Pick Image for Admin Profile
   Future<void> _pickAdminImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    
-    if (result != null) {
-      if (universal_io.Platform.isAndroid || universal_io.Platform.isIOS || universal_io.Platform.isMacOS || universal_io.Platform.isLinux || universal_io.Platform.isWindows) {
-        String? filePath = result.files.single.path;
-        if (filePath != null) {
-          setState(() {
-            selectedAdminImage = File(filePath); // Save the selected image for preview
-          });
-        }
-      } else if (kIsWeb) {
+    // Use image_picker to select image
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      if (kIsWeb) {
+        // For web, use bytes
+        selectedImageBytes = await pickedFile.readAsBytes();
+      } else {
+        // For mobile, use File
         setState(() {
-          selectedImageBytes = result.files.single.bytes; // Save the selected image bytes for preview
+          selectedAdminImage = File(pickedFile.path);
         });
       }
     }
   }
 
-  // Upload Image to Firebase Storage
   Future<String> _uploadImage(String folder) async {
     try {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg'; 
+      String fileName =
+          DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
       Reference ref = FirebaseStorage.instance.ref().child('$folder$fileName');
 
       UploadTask uploadTask;
@@ -87,7 +101,22 @@ class _AccountPageState extends State<AccountPage> {
       return downloadURL;
     } catch (e) {
       print('Error uploading image: $e');
-      return ''; 
+      return '';
+    }
+  }
+
+  Future<void> _updateProfileImage(String downloadURL) async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      String uid = currentUser.uid;
+
+      await FirebaseFirestore.instance.collection('admin').doc(uid).update({
+        'profileImage': downloadURL,
+      });
+
+      setState(() {
+        profileImage = downloadURL;
+      });
     }
   }
 
@@ -95,72 +124,94 @@ class _AccountPageState extends State<AccountPage> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: Container(
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: profileImage.isNotEmpty
-                  ? NetworkImage(profileImage) 
-                  : AssetImage('images/default_avatar.png') as ImageProvider,
-            ),
-            SizedBox(height: 10),
-            TextButton(
-              onPressed: _pickAdminImage,
-              child: Text('Upload Profile Image'),
-            ),
-            if (selectedAdminImage != null) ...[
-              SizedBox(height: 10),
-              Image.file(selectedAdminImage!, height: 150, width: 150), // Image Preview
-            ] else if (selectedImageBytes != null) ...[
-              SizedBox(height: 10),
-              Image.memory(selectedImageBytes!, height: 150, width: 150), // Web Image Preview
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
             ],
-            SizedBox(height: 20),
-            // Display full name and email below the upload button
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  fullName.isNotEmpty ? fullName : 'Full Name',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Display profile image (using CachedNetworkImage or local selection)
+              CachedNetworkImage(
+                imageUrl: profileImage,
+                imageBuilder: (context, imageProvider) => CircleAvatar(
+                  radius: 50,
+                  backgroundImage: imageProvider,
                 ),
-                Text(
-                  email.isNotEmpty ? email : 'Email',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
+                placeholder: (context, url) =>
+                    const CircularProgressIndicator(),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () async {
+                  await _pickAdminImage();
+                  if (selectedAdminImage != null ||
+                      selectedImageBytes != null) {
+                    String downloadURL = await _uploadImage('admin_images/');
+                    if (downloadURL.isNotEmpty) {
+                      await _updateProfileImage(downloadURL);
+                    }
+                  }
+                },
+                child: const Text('Upload Profile Image'),
+              ),
+              if (selectedAdminImage != null) ...[
+                const SizedBox(height: 10),
+                Image.file(selectedAdminImage!, height: 150, width: 150),
+              ] else if (selectedImageBytes != null) ...[
+                const SizedBox(height: 10),
+                Image.memory(selectedImageBytes!, height: 150, width: 150),
               ],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: CustomButtonStyles.elevatedButtonStyle,
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Dialog(
-                      child: AdminCreatePage(), // Open Admin Create Page within a Material context
-                    );
-                  },
-                );
-              },
-              child: Text('Create Admin'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              // Display full name, email, and contact number
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    fullName.isNotEmpty ? fullName : 'Full Name',
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    email.isNotEmpty ? email : 'Email',
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                  Text(
+                    contactNumber.isNotEmpty ? contactNumber : 'Contact Number',
+                    style: const TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        child: AdminCreatePage(),
+                      );
+                    },
+                  );
+                },
+                child: const Text('Create Admin'),
+              ),
+            ],
+          ),
         ),
       ),
     );

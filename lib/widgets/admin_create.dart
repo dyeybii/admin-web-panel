@@ -16,20 +16,16 @@ class AdminCreatePage extends StatefulWidget {
 class _AdminCreatePageState extends State<AdminCreatePage> {
   File? _selectedAdminImage;
   Uint8List? _selectedImageBytes;
-
   bool _isUploading = false;
-
-  final TextEditingController _contactNumberController =
-      TextEditingController();
+  
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _contactNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _newPasswordAdminController =
-      TextEditingController();
+  final TextEditingController _newPasswordAdminController = TextEditingController();
 
-  // Pick Image for Admin Profile
   Future<void> _pickAdminImage() async {
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null) {
       if (kIsWeb) {
@@ -47,21 +43,12 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     }
   }
 
-  String _formatFileSize(int bytes) {
-    return bytes >= 1024 * 1024
-        ? '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB'
-        : '${(bytes / 1024).toStringAsFixed(2)} KB';
-  }
-
-  // Upload Image to Firebase Storage with Progress Indicator
   Future<String> _uploadImage(String folder) async {
     if (_selectedAdminImage == null && _selectedImageBytes == null) {
       return '';
     }
 
-    setState(() {
-      _isUploading = true; // Start the upload process
-    });
+    setState(() => _isUploading = true);
 
     try {
       String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -71,58 +58,46 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           ? ref.putFile(_selectedAdminImage!)
           : ref.putData(_selectedImageBytes!);
 
-      uploadTask.snapshotEvents.listen((snapshot) {
-        setState(() {});
-      });
-
       TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
     } catch (e) {
       print('Error uploading image: $e');
       return '';
     } finally {
-      setState(() {
-        _isUploading = false; // End the upload process
-      });
+      setState(() => _isUploading = false);
     }
   }
 
-  // Create Admin Profile and Upload Image to Firebase Storage
   Future<void> _createAdmin() async {
-    try {
-      // Create an admin in Firebase Authentication
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _newPasswordAdminController.text,
-      );
+    if (_formKey.currentState!.validate()) {
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text,
+          password: _newPasswordAdminController.text,
+        );
 
-      // Upload the admin image to Firebase Storage if selected
-      String newAdminImageUrl =
-          _selectedAdminImage != null || _selectedImageBytes != null
-              ? await _uploadImage('adminProfile/')
-              : '';
+        String newAdminImageUrl = _selectedAdminImage != null || _selectedImageBytes != null
+            ? await _uploadImage('adminProfile/')
+            : '';
 
-      // Save the admin details to Firestore
-      await FirebaseFirestore.instance
-          .collection('admin')
-          .doc(userCredential.user?.uid)
-          .set({
-        'contactNumber': _contactNumberController.text,
-        'email': _emailController.text,
-        'fullName': _fullNameController.text,
-        'profileImage': newAdminImageUrl,
-      });
+        await FirebaseFirestore.instance
+            .collection('admin')
+            .doc(userCredential.user?.uid)
+            .set({
+          'contactNumber': _contactNumberController.text,
+          'email': _emailController.text,
+          'fullName': _fullNameController.text,
+          'profileImage': newAdminImageUrl,
+        });
 
-      _clearForm();
-      _showSuccessDialog(); // Show success dialog after creation
-    } catch (e) {
-      print('Error creating admin: $e');
-      _showErrorDialog(e.toString());
+        _clearForm();
+        _showSuccessDialog();
+      } catch (e) {
+        print('Error creating admin: $e');
+      }
     }
   }
 
-  // Clear form fields after creation
   void _clearForm() {
     _contactNumberController.clear();
     _emailController.clear();
@@ -134,26 +109,6 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     });
   }
 
-  // Display Error Dialog
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Close"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Display Success Dialog
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -164,8 +119,8 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pop(); // Close the form page
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
               child: const Text("Close"),
             ),
@@ -179,39 +134,31 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20.0),
-          child: const Text(
-            "Create Admin",
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        title: const Text("Create Admin", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF2E3192),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Display the selected image at the top
-              if (_selectedAdminImage != null ||
-                  _selectedImageBytes != null) ...[
+              if (_selectedAdminImage != null || _selectedImageBytes != null) ...[
                 const SizedBox(height: 10),
                 _selectedAdminImage != null
                     ? Image.file(_selectedAdminImage!, height: 150, width: 150)
-                    : Image.memory(_selectedImageBytes!,
-                        height: 150, width: 150),
+                    : Image.memory(_selectedImageBytes!, height: 150, width: 150),
                 const SizedBox(height: 10),
-                const SizedBox(height: 10),
-                _isUploading
-                    ? const CircularProgressIndicator()
-                    : const SizedBox.shrink(),
+                _isUploading ? const CircularProgressIndicator() : const SizedBox.shrink(),
               ],
-              // Upload Image Button
               ElevatedButton(
                 style: CustomButtonStyles.elevatedButtonStyle,
                 onPressed: _pickAdminImage,
@@ -222,31 +169,51 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTextField(_fullNameController, 'Full Name'),
+              _buildTextField(_fullNameController, 'Full Name', (value) {
+                if (value == null || value.isEmpty) return 'Full Name is required';
+                return null;
+              }),
               const SizedBox(height: 10),
-              _buildTextField(_emailController, 'Email'),
+              _buildTextField(_emailController, 'Email', (value) {
+                if (value == null || value.isEmpty) return 'Email is required';
+                if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                  return 'Enter a valid email address';
+                }
+                return null;
+              }),
               const SizedBox(height: 10),
-              _buildTextField(_contactNumberController, 'Contact Number'),
+              _buildTextField(_contactNumberController, 'Contact Number', (value) {
+                if (value == null || value.isEmpty) return 'Contact Number is required';
+                if (!RegExp(r'^\d{11}$').hasMatch(value)) {
+                  return 'Enter a valid 10-digit number';
+                }
+                return null;
+              }),
               const SizedBox(height: 10),
-              _buildTextField(_newPasswordAdminController, 'Password',
-                  obscureText: true),
+              _buildTextField(_newPasswordAdminController, 'Password', (value) {
+                if (value == null || value.isEmpty) return 'Password is required';
+                if (value.length < 6) return 'Password must be at least 6 characters';
+                return null;
+              }, obscureText: true),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: CustomButtonStyles.elevatedButtonStyle,
                 onPressed: _createAdmin,
-                child: const Text("Create Admin"),
+                child: const Text("Sign up"),
               ),
             ],
-          )),
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
+  Widget _buildTextField(TextEditingController controller, String label, String? Function(String?) validator,
       {bool obscureText = false}) {
     return Center(
       child: SizedBox(
         width: 250,
-        child: TextField(
+        child: TextFormField(
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
@@ -255,6 +222,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
             ),
           ),
           obscureText: obscureText,
+          validator: validator,
         ),
       ),
     );

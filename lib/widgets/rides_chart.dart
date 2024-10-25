@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class RidesChart extends StatefulWidget {
   @override
@@ -61,26 +62,44 @@ class _RidesChartState extends State<RidesChart> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
+  void _showDateRangePicker(BuildContext context) {
+    showDialog(
       context: context,
-      initialDate: isStartDate ? _startDate : _endDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2E3192),
+          title: const Text(
+            'Select Date Range',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: SizedBox(
+            width: 300,
+            height: 400,
+            child: SfDateRangePicker(
+              selectionMode: DateRangePickerSelectionMode.range,
+              onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
+                setState(() {
+                  if (args.value is PickerDateRange) {
+                    _startDate = args.value.startDate!;
+                    _endDate = args.value.endDate ?? _startDate;
+                    tripsDataFuture = getTripData();
+                  }
+                });
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
-        }
-        if (_startDate.isAfter(_endDate)) {
-          _endDate = _startDate;
-        }
-        tripsDataFuture = getTripData();
-      });
-    }
   }
 
   BarChart buildBarChart(List<Map<String, dynamic>> tripsData) {
@@ -156,14 +175,14 @@ class _RidesChartState extends State<RidesChart> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         decoration: BoxDecoration(
-           borderRadius: BorderRadius.circular(16),
-          color: const Color.fromARGB(255, 255, 255, 255), // White background color
+          borderRadius: BorderRadius.circular(16),
+          color: const Color.fromARGB(255, 255, 255, 255),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade300, // Grey box shadow
+              color: Colors.grey.shade300,
               spreadRadius: 5,
               blurRadius: 7,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -178,46 +197,27 @@ class _RidesChartState extends State<RidesChart> {
                   'Total Completed Rides',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                Row(
-                  children: [
-                    _buildDateSelector(context, 'From', _startDate, true),
-                    const SizedBox(width: 8),
-                    _buildDateSelector(context, 'To', _endDate, false),
-                  ],
+                TextButton(
+                  onPressed: () => _showDateRangePicker(context),
+                  child: const Text(
+                    'Select Date Range',
+                    style: TextStyle(color: Colors.blueAccent),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Text(
-              'Selected Month: ${DateFormat('MMMM yyyy').format(_startDate)}',
+              'Selected Range: ${DateFormat('MM/dd/yyyy').format(_startDate)} - ${DateFormat('MM/dd/yyyy').format(_endDate)}',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 16),
             SizedBox(
               height: 300,
               child: tripsData.isEmpty
-                  ? Center(child: Text('No data available', style: TextStyle(fontSize: 16, color: Colors.redAccent)))
+                  ? const Center(child: Text('No data available', style: TextStyle(fontSize: 16, color: Colors.redAccent)))
                   : buildBarChart(tripsData),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateSelector(BuildContext context, String label, DateTime date, bool isStartDate) {
-    return InkWell(
-      onTap: () => _selectDate(context, isStartDate),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Text(DateFormat('MM/dd/yyyy').format(date)),
-            const Icon(Icons.calendar_today, size: 16),
           ],
         ),
       ),

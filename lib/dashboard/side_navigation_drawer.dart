@@ -3,7 +3,7 @@ import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/fund_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
-import 'package:admin_web_panel/pages/account_page.dart';
+import 'package:admin_web_panel/pages/settings_page.dart';
 import 'package:admin_web_panel/login.dart';
 
 class WebAdminPanel extends StatefulWidget {
@@ -22,7 +22,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     const DriversPage(),
     const FundPage(),
     const FareMatrixPage(),
-    AccountPage(),
+    settingsPage(),
   ];
 
   @override
@@ -117,7 +117,21 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
+                  Text(
+                    'Admin Panel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'COTODA Admin Dashboard',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -125,7 +139,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
             _buildDrawerItem('Member Management', Icons.person_add, 1),
             //_buildDrawerItem('Fund Collection', Icons.money, 2),
             _buildDrawerItem('Fare Matrix', Icons.monetization_on, 3),
-            _buildDrawerItem('My Account', Icons.account_circle, 4),
+            _buildDrawerItem('Settings', Icons.settings, 4),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

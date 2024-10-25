@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   cloud_firestore: ^5.3.0
-  syncfusion_flutter_datagrid: ^26.2.12
+  syncfusion_flutter_datagrid: ^27.1.56
   firebase_core: ^3.4.0
   firebase_database: ^11.1.0
   cupertino_icons:
@@ -41,7 +41,7 @@ dependencies:
   google_sign_in: ^6.2.1
   excel: ^4.0.3
   path_provider: ^2.1.2
-  syncfusion_flutter_xlsio: ^26.2.12
+  syncfusion_flutter_xlsio: ^27.1.56
   google_fonts: ^6.2.1
   intl: ^0.19.0
   universal_html: ^2.2.4
@@ -53,12 +53,13 @@ dependencies:
   cached_network_image: ^3.3.3
   cloud_functions: ^5.1.0
   data_table_2: ^2.5.15
-  syncfusion_flutter_charts: ^26.2.14
+  syncfusion_flutter_charts: ^27.1.56
   number_pagination: ^1.1.5
+  syncfusion_flutter_datepicker: ^27.1.56
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 
 # For information on the generic Dart part of this file, see the
@@ -77,7 +78,6 @@ flutter:
   - images/tricycle_icon.png
   - images/Peso_sign.png
   - images/default_avatar.png
-  - images/mobile_phone.png
   - images/total_members.png
   - images/mobile1.png
   - images/

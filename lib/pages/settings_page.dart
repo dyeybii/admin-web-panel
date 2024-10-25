@@ -13,12 +13,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:universal_io/io.dart' as universal_io;
 import 'package:cached_network_image/cached_network_image.dart';
 
-class AccountPage extends StatefulWidget {
+class settingsPage extends StatefulWidget {
   @override
-  _AccountPageState createState() => _AccountPageState();
+  _settingsPageState createState() => _settingsPageState();
 }
 
-class _AccountPageState extends State<AccountPage> {
+class _settingsPageState extends State<settingsPage> {
   String contactNumber = "";
   String email = "";
   String fullName = "";
@@ -125,7 +125,7 @@ class _AccountPageState extends State<AccountPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Account'),
+        title: const Text('Settings'),
         actions: [
           ElevatedButton(
             style: CustomButtonStyles.elevatedButtonStyle,

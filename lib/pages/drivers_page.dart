@@ -256,14 +256,7 @@ class _DriversPageState extends State<DriversPage> {
                           },
                         ),
                       ),
-                      actions: [
-                        TextButton(
-                          child: const Text('Close'),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
+                      
                     );
                   },
                 );

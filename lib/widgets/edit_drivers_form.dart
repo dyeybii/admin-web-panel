@@ -113,7 +113,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
           'idNumber': _idNumberController.text,
           'bodyNumber': _bodyNumberController.text,
           'email': _emailController.text,
-          'birthdate': _birthdateController.text,
+          'birthday': _birthdateController.text,
           'address': _addressController.text,
           'phoneNumber': _phoneNumberController.text,
           'tag': _selectedTag,
@@ -223,7 +223,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
                         TextFormField(
                           controller: _birthdateController,
                           decoration: const InputDecoration(
-                            labelText: 'Birthdate',
+                            labelText: 'Birthday',
                             labelStyle: const TextStyle(
                                 color: Colors
                                     .black), // Change label color to black
@@ -251,11 +251,11 @@ class _EditDriverFormState extends State<EditDriverForm> {
                             labelText: 'Last Name',
                             labelStyle: TextStyle(
                                 color: Colors
-                                    .black), // Change label color to black
+                                    .black), 
                           ),
                           style: const TextStyle(
                               color: Colors
-                                  .black), // Change input text color to black
+                                  .black), 
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a last name';

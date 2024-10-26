@@ -41,6 +41,8 @@ class _DriversPageState extends State<DriversPage> {
   final TextEditingController _tagController = TextEditingController();
   final TextEditingController _driverPhotoController = TextEditingController();
   final TextEditingController _uidController = TextEditingController();
+  final TextEditingController _codingSchemeController = TextEditingController();
+  final TextEditingController _statusController = TextEditingController();
   final TextEditingController _driverIdController = TextEditingController();
 
   final TextEditingController searchController = TextEditingController();
@@ -113,198 +115,205 @@ class _DriversPageState extends State<DriversPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Members and Operators'),
-              Center(
-                child: SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search by Name',
-                      labelStyle: const TextStyle(
-                        color: Color(0xFF2E3192),
-                      ),
-                      border: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Color(0xFF2E3192), // Outline color
+          appBar: AppBar(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Members and Operators'),
+                Center(
+                  child: SizedBox(
+                    width: 300,
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        labelText: 'Search by Name',
+                        labelStyle: const TextStyle(
+                          color: Color(0xFF2E3192),
                         ),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color: Color(
-                              0xFF2E3192), // Outline color when not clicked
-                          width: 2.0, // Optional: Adjust width
+                        border: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color(0xFF2E3192), // Outline color
+                          ),
+                          borderRadius: BorderRadius.circular(40),
                         ),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                          color:
-                              Color(0xFF2E3192), // Outline color when clicked
-                          width: 2.0, // Optional: Adjust width
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Color(
+                                0xFF2E3192), // Outline color when not clicked
+                            width: 2.0, // Optional: Adjust width
+                          ),
+                          borderRadius: BorderRadius.circular(40),
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color:
+                                Color(0xFF2E3192), // Outline color when clicked
+                            width: 2.0, // Optional: Adjust width
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        suffixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF2E3192), // Icon color
+                        ),
+                        filled: true,
+                        fillColor: const Color.fromARGB(
+                            255, 255, 255, 255), // Background color
                       ),
-                      suffixIcon: const Icon(
-                        Icons.search,
-                        color: Color(0xFF2E3192), // Icon color
-                      ),
-                      filled: true,
-                      fillColor: const Color.fromARGB(
-                          255, 255, 255, 255), // Background color
                     ),
                   ),
                 ),
+              ],
+            ),
+            automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: Color(0xFF2E3192)),
+                onPressed: _fetchDriversData,
               ),
-            ],
-          ),
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Color(0xFF2E3192)),
-              onPressed: _fetchDriversData,
-            ),
-            DropdownButton<String>(
-              value: selectedTagFilter,
-              items: ['All', 'Operator', 'Member'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value,
-                      style: const TextStyle(color: Color(0xFF2E3192))),
-                );
-              }).toList(),
-              onChanged: _filterByTag,
-              underline: Container(),
-              iconEnabledColor: const Color(0xFF2E3192), // Set the arrow color
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              style: CustomButtonStyles.elevatedButtonStyle,
-              onPressed: _showAddMemberDialog,
-              child: const Text('+ Add Driver'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              style: CustomButtonStyles.elevatedButtonStyle,
-              onPressed: () {
-                ExcelTemplateDownloader.downloadExcelTemplate(context);
-              },
-              child: const Text('Export Template'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              style: CustomButtonStyles.elevatedButtonStyle,
-              onPressed: () {
-                if (_selectedDrivers.isNotEmpty) {
-                  ExcelDownloader.downloadExcel(
-                      context, _driversAccountList, _selectedDrivers);
-                } else {
-                  ExcelDownloader.downloadExcel(
-                      context, _driversAccountList, []);
-                }
-              },
-              child: const Text('Download Table'),
-            ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              style: CustomButtonStyles.elevatedButtonStyle,
-              onPressed: () {
-                // Show the BatchUpload dialog
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            15), // Set rounded corners for the dialog
-                      ),
-                      titlePadding:
-                          EdgeInsets.zero, // Remove default title padding
-                      title: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 24),
-                        decoration: const BoxDecoration(
-                          color: Color(
-                              0xFF2E3192), // Set background color for the entire header
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            topRight: Radius.circular(15),
-                          ), // Rounded corners at the top
+              DropdownButton<String>(
+                value: selectedTagFilter,
+                items: ['All', 'Operator', 'Member'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value,
+                        style: const TextStyle(color: Color(0xFF2E3192))),
+                  );
+                }).toList(),
+                onChanged: _filterByTag,
+                underline: Container(),
+                iconEnabledColor:
+                    const Color(0xFF2E3192), // Set the arrow color
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: _showAddMemberDialog,
+                child: const Text('+ Add Driver'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: () {
+                  ExcelTemplateDownloader.downloadExcelTemplate(context);
+                },
+                child: const Text('Export Template'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: () {
+                  if (_selectedDrivers.isNotEmpty) {
+                    ExcelDownloader.downloadExcel(
+                        context, _driversAccountList, _selectedDrivers);
+                  } else {
+                    ExcelDownloader.downloadExcel(
+                        context, _driversAccountList, []);
+                  }
+                },
+                child: const Text('Download Table'),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: () {
+                  // Show the BatchUpload dialog
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              15), // Set rounded corners for the dialog
                         ),
-                        child: const Text(
-                          'Batch Upload',
-                          style: TextStyle(
-                            color: Colors.white, // Set text color to white
-                            fontSize: 18, // Adjust font size if necessary
+                        titlePadding:
+                            EdgeInsets.zero, // Remove default title padding
+                        title: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 16, horizontal: 24),
+                          decoration: const BoxDecoration(
+                            color: Color(
+                                0xFF2E3192), // Set background color for the entire header
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15),
+                            ), // Rounded corners at the top
+                          ),
+                          child: const Text(
+                            'Batch Upload',
+                            style: TextStyle(
+                              color: Colors.white, // Set text color to white
+                              fontSize: 18, // Adjust font size if necessary
+                            ),
                           ),
                         ),
-                      ),
-                      content: SizedBox(
-                        height: 300, // Set the desired height here
-                        width: 200,
-                        child: BatchUpload(
-                          onUpload: (List<Map<String, dynamic>> uploadedData) {
-                            // Handle the uploaded data if necessary
-                            print('Uploaded Data: $uploadedData');
-                            Navigator.of(context)
-                                .pop(); // Close the dialog after upload
-                          },
+                        content: SizedBox(
+                          height: 300, // Set the desired height here
+                          width: 200,
+                          child: BatchUpload(
+                            onUpload:
+                                (List<Map<String, dynamic>> uploadedData) {
+                              // Handle the uploaded data if necessary
+                              print('Uploaded Data: $uploadedData');
+                              Navigator.of(context)
+                                  .pop(); // Close the dialog after upload
+                            },
+                          ),
                         ),
-                      ),
-                      
-                    );
+                      );
+                    },
+                  );
+                },
+                child: const Text(
+                  'Batch Upload',
+                ),
+              ),
+              const SizedBox(width: 20),
+            ],
+          ),
+          body: StreamBuilder<DatabaseEvent>(
+            stream: _dataService.getDriversStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
+                return const Center(child: Text('No drivers found.'));
+              }
+
+              final data = snapshot.data!.snapshot.value;
+
+              // Check if data is a Map before proceeding
+              if (data is Map<dynamic, dynamic>) {
+                final driversList = data.entries
+                    .map((entry) => DriversAccount.fromJson(
+                        Map<String, dynamic>.from(entry.value)))
+                    .where((driver) => driver != null)
+                    .cast<DriversAccount>()
+                    .toList();
+
+                return DriverTable(
+                  driversAccountList: _filteredDriversList.isNotEmpty
+                      ? _filteredDriversList
+                      : driversList,
+                  selectedDrivers: _selectedDrivers,
+                  onSelectedDriversChanged: (List<DriversAccount> selected) {
+                    setState(() {
+                      _selectedDrivers = selected;
+                    });
                   },
                 );
-              },
-              child: const Text(
-                'Batch Upload',
-              ),
-            ),
-            const SizedBox(width: 20),
-          ],
-        ),
-        body: StreamBuilder<DatabaseEvent>(
-          stream: _dataService.getDriversStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-
-            if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-              return const Center(child: Text('No drivers found.'));
-            }
-
-            final data = snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
-            final driversList = data.entries
-                .map((entry) => DriversAccount.fromJson(
-                    Map<String, dynamic>.from(entry.value)))
-                .where((driver) => driver != null)
-                .cast<DriversAccount>()
-                .toList();
-
-            return DriverTable(
-              driversAccountList: _filteredDriversList.isNotEmpty
-                  ? _filteredDriversList
-                  : driversList,
-              selectedDrivers: _selectedDrivers,
-              onSelectedDriversChanged: (List<DriversAccount> selected) {
-                setState(() {
-                  _selectedDrivers = selected;
-                });
-              },
-            );
-          },
-        ),
-      ),
+              } else {
+                // Handle the case where the data is not a Map
+                return const Center(child: Text('Unexpected data format.'));
+              }
+            },
+          )),
     );
   }
 
@@ -313,72 +322,87 @@ class _DriversPageState extends State<DriversPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(15), // Set rounded corners for the dialog
-          ),
-          titlePadding: EdgeInsets.zero, // Remove default title padding
-          title: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-            decoration: const BoxDecoration(
-              color: Color(
-                  0xFF2E3192), // Set background color for the entire header
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
-              ), // Apply rounded corners only to the top
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                  15), // Set rounded corners for the dialog
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Add Driver',
-                  style: TextStyle(
-                    color: Colors.white, // Set text color to white
-                    fontSize: 18, // Adjust font size if needed
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close,
-                      color: Colors.white), // Set icon color to white
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: DriversForm(
-              formKey: _formKey,
-              firstNameController: _firstNameController,
-              lastNameController: _lastNameController,
-              idNumberController: _idNumberController,
-              bodyNumberController: _bodyNumberController,
-              emailController: _emailController,
-              birthdateController: _birthdateController,
-              addressController: _addressController,
-              phoneNumberController: _phoneNumberController,
-              tagController: _tagController,
-              uidController: _uidController,
-              driverPhotoController: _driverPhotoController,
-              ontagSelected: (tag) {
-                _tagController.text = tag!;
-              },
-              onAddPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _addMemberToFirebaseAndRealtimeDatabase();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill in all required fields.'),
+            titlePadding: EdgeInsets.zero, // Remove default title padding
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              decoration: const BoxDecoration(
+                color: Color(
+                    0xFF2E3192), // Set background color for the entire header
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ), // Apply rounded corners only to the top
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Add Driver',
+                    style: TextStyle(
+                      color: Colors.white, 
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                }
-              },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close,
+                        color: Colors.white), 
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
+            content: Container(
+              child: DriversForm(
+                formKey: _formKey,
+                firstNameController: _firstNameController,
+                lastNameController: _lastNameController,
+                idNumberController: _idNumberController,
+                bodyNumberController: _bodyNumberController,
+                emailController: _emailController,
+                birthdateController: _birthdateController,
+                addressController: _addressController,
+                phoneNumberController: _phoneNumberController,
+                tagController: _tagController,
+                uidController: _uidController,
+                driverPhotoController: _driverPhotoController,
+                codingSchemeController: _codingSchemeController,
+                statusController: _statusController,
+                onTagSelected: (tag) {
+                  _tagController.text = tag!;
+                },
+                onAddPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _addMemberToFirebaseAndRealtimeDatabase();
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Error'),
+                          content:
+                              const Text('Please fill in all required fields.'),
+                          actions: [
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ));
       },
     );
   }
@@ -393,29 +417,22 @@ class _DriversPageState extends State<DriversPage> {
     final String address = _addressController.text.trim();
     final String phoneNumber = _phoneNumberController.text.trim();
     final String tag = _tagController.text.trim();
-    final String driverPhoto = _driverPhotoController.text
-        .trim(); // This should be the image path or image URL.
-
-    Uint8List? imageBytes; // Prepare this if you are uploading an image
-    String?
-        imageFileName; // This should be the file name if you are uploading an image
+    final String codingScheme = _codingSchemeController.text.trim();
+    final String status = _statusController.text.trim().isEmpty
+        ? "offline"
+        : _statusController.text.trim();
+    final String driverPhoto = _driverPhotoController.text.trim();
 
     try {
-      // Create the user in Firebase Auth using email and birthdate as password
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: birthdate);
 
       final String uid = userCredential.user!.uid;
 
-      // Create a new reference for the driver in the Realtime Database
-      final newDriverRef = _dataService
-          .getDriversDatabaseReference()
-          .push(); // Generates a unique key
+      final newDriverRef = _dataService.getDriversDatabaseReference().push();
 
-      // Use the unique key from Firebase as the driverId
       final String driverId = newDriverRef.key!;
 
-      // Create a new driver account object
       final newDriver = DriversAccount(
         firstName: firstName,
         lastName: lastName,
@@ -427,6 +444,8 @@ class _DriversPageState extends State<DriversPage> {
         phoneNumber: phoneNumber,
         tag: tag,
         uid: uid,
+        codingScheme: codingScheme,
+        status: status,
         driverPhoto: driverPhoto, // This should be the image URL if available
         driverId: driverId, // Assign the auto-generated driverId
       );
@@ -435,16 +454,27 @@ class _DriversPageState extends State<DriversPage> {
       await newDriverRef.set(newDriver.toJson());
 
       // Optionally, you can upload an image if available
-      if (imageBytes != null && imageFileName != null) {
-        await _dataService.uploadImage(imageBytes, imageFileName);
-      }
 
       _fetchDriversData(); // Refresh the drivers list
       Navigator.of(context).pop(); // Close the dialog after adding
     } catch (e) {
       print('Error adding driver: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding driver: $e')),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text('Error adding driver: $e'),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
     }
   }

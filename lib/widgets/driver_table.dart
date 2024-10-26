@@ -104,6 +104,11 @@ class _DriverTableState extends State<DriverTable> {
                     )),
                     const DataColumn2(
                         label: Text(
+                      'Status',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    )),
+                    const DataColumn2(
+                        label: Text(
                       'Ratings',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     )),
@@ -145,6 +150,7 @@ class _DriverTableState extends State<DriverTable> {
                           driver.tag,
                           style: TextStyle(color: textColor),
                         )),
+                        DataCell(Text(driver.status)),
                         DataCell(
                           Row(
                             children: _buildRatingWithStar(driver.totalRatings
@@ -228,22 +234,67 @@ class _DriverTableState extends State<DriverTable> {
       builder: (context) {
         final screenSize = MediaQuery.of(context).size;
         return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(15), // Set rounded corners for the dialog
+          ),
           child: Container(
-            width: screenSize.width * 0.4, // 80% of screen width
-            height: screenSize.height * 0.8, // Increase height if necessary
-            child: EditDriverForm(
-              driverId: driver.uid,
-              firstName: driver.firstName,
-              lastName: driver.lastName,
-              idNumber: driver.idNumber,
-              bodyNumber: driver.bodyNumber,
-              email: driver.email,
-              birthdate: driver.birthdate.isNotEmpty ? driver.birthdate : '',
-              address: driver.address.isNotEmpty ? driver.address : '',
-              phoneNumber: driver.phoneNumber,
-              tag: driver.tag,
-              driverPhoto:
-                  driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
+            width: screenSize.width * 0.6, 
+            height: screenSize.height * 0.9, 
+            child: Column(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: const BoxDecoration(
+                    color: Color(
+                        0xFF2E3192), // Set background color for the entire header
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                    ), // Apply rounded corners only to the top
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Edit Information',
+                        style: TextStyle(
+                          color: Colors.white, // Set text color to white
+                          fontSize: 18, // Adjust font size if needed
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close,
+                            color: Colors.white), // Set icon color to white
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: EditDriverForm(
+                    driverId: driver.uid,
+                    firstName: driver.firstName,
+                    lastName: driver.lastName,
+                    idNumber: driver.idNumber,
+                    bodyNumber: driver.bodyNumber,
+                    email: driver.email,
+                    birthdate:
+                        driver.birthdate.isNotEmpty ? driver.birthdate : '',
+                    address: driver.address.isNotEmpty ? driver.address : '',
+                    phoneNumber: driver.phoneNumber,
+                    tag: driver.tag,
+                    codingScheme: driver.codingScheme,
+                    status: driver.status,
+                    driverPhoto:
+                        driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -254,12 +305,10 @@ class _DriverTableState extends State<DriverTable> {
   List<Widget> _buildRatingWithStar(double? averageRating) {
     double rating = averageRating ?? 0.0;
 
-
-    String ratingText =
-        rating.toStringAsFixed(1); 
+    String ratingText = rating.toStringAsFixed(1);
 
     return [
-      Text(ratingText), 
+      Text(ratingText),
       const Icon(Icons.star, color: Colors.yellow),
     ];
   }

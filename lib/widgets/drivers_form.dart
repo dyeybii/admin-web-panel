@@ -1,11 +1,9 @@
 import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'form_validation.dart'; 
+import 'form_validation.dart';
 
 class DriversForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
@@ -20,7 +18,9 @@ class DriversForm extends StatefulWidget {
   final TextEditingController tagController;
   final TextEditingController driverPhotoController;
   final TextEditingController uidController;
-  final void Function(String?)? ontagSelected;
+  final TextEditingController codingSchemeController;
+  final TextEditingController statusController;
+  final void Function(String?)? onTagSelected;
   final Function()? onAddPressed;
   final Function()? onEditPressed;
 
@@ -37,7 +37,9 @@ class DriversForm extends StatefulWidget {
     required this.tagController,
     required this.driverPhotoController,
     required this.uidController,
-    required this.ontagSelected,
+    required this.codingSchemeController,
+    required this.statusController,
+    required this.onTagSelected,
     required this.onAddPressed,
     this.onEditPressed,
   });
@@ -47,47 +49,8 @@ class DriversForm extends StatefulWidget {
 }
 
 class _DriversFormState extends State<DriversForm> {
-  Uint8List? _image;
-  String? _imageFileName;
   String? _selectedTag;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<void> selectImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      if (result.files.single.extension == 'png' || result.files.single.extension == 'jpg') {
-        setState(() {
-          _image = result.files.single.bytes;
-          _imageFileName = result.files.single.name;
-        });
-      } else {
-        _showAlertDialog('Only PNG and JPG files are supported.');
-      }
-    } else {
-      print('User canceled image selection.');
-    }
-  }
-
-  Future<String?> uploadImage(Uint8List imageData, String fileName) async {
-    try {
-      Reference ref = FirebaseStorage.instance.ref().child('driver_photos/$fileName');
-      UploadTask uploadTask = ref.putData(imageData, SettableMetadata(contentType: 'image/${fileName.split('.').last}'));
-      TaskSnapshot snapshot = await uploadTask;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Image uploaded successfully!')),
-      );
-
-      String downloadURL = await snapshot.ref.getDownloadURL();
-      return downloadURL;
-    } catch (e) {
-      print('Error uploading image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading image. Please try again.')),
-      );
-      return null;
-    }
-  }
 
   void resetFormFields() {
     final controllers = [
@@ -99,6 +62,7 @@ class _DriversFormState extends State<DriversForm> {
       widget.birthdateController,
       widget.addressController,
       widget.phoneNumberController,
+      widget.codingSchemeController,
       widget.tagController,
     ];
     for (var controller in controllers) {
@@ -106,8 +70,6 @@ class _DriversFormState extends State<DriversForm> {
     }
     setState(() {
       _selectedTag = null;
-      _image = null;
-      _imageFileName = null;
     });
   }
 
@@ -156,60 +118,29 @@ class _DriversFormState extends State<DriversForm> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
-        child: Container(
-          height: 600.0,
-          width: 800.0,
-          child: Form(
-            key: widget.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                buildProfilePicture(),
-                const SizedBox(height: 30.0),
-                buildFormFields(),
-                const SizedBox(height: 20.0),
-                buildFormButtons(),
-              ],
-            ),
+        height: 600.0,
+        width: 800.0,
+        child: Form(
+          key: widget.formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 30.0),
+              buildFormFields(),
+              const SizedBox(height: 20.0),
+              buildFormButtons(),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget buildProfilePicture() {
-    return Center(
-      child: Stack(
-        children: [
-          _image != null
-              ? CircleAvatar(
-                  radius: 50,
-                  backgroundImage: MemoryImage(_image!),
-                )
-              : const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('images/default_avatar.png'),
-                ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: IconButton(
-              onPressed: () {
-                selectImage();
-              },
-              icon: const Icon(Icons.add_a_photo),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildTextField(TextEditingController controller, String labelText, {int? maxLength}) {
+  Widget buildTextField(TextEditingController controller, String labelText,
+      {int? maxLength}) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -219,7 +150,9 @@ class _DriversFormState extends State<DriversForm> {
       maxLength: maxLength,
       maxLines: null,
       validator: (value) {
-        if (controller == widget.idNumberController || controller == widget.bodyNumberController || controller == widget.phoneNumberController) {
+        if (controller == widget.idNumberController ||
+            controller == widget.bodyNumberController ||
+            controller == widget.phoneNumberController) {
           return FormValidation.validateNumber(value);
         }
         return FormValidation.validateRequired(value);
@@ -262,6 +195,7 @@ class _DriversFormState extends State<DriversForm> {
               const SizedBox(height: 10.0),
               buildTextField(widget.emailController, 'Email'),
               const SizedBox(height: 10.0),
+              buildTextField(widget.codingSchemeController, 'Coding Scheme', maxLength: 4),
               buildTagSelection(),
             ],
           ),
@@ -307,7 +241,7 @@ class _DriversFormState extends State<DriversForm> {
                   setState(() {
                     _selectedTag = value as String?;
                   });
-                  widget.ontagSelected!(value as String?);
+                  widget.onTagSelected!(value as String?);
                 },
               ),
             ),
@@ -320,7 +254,7 @@ class _DriversFormState extends State<DriversForm> {
                   setState(() {
                     _selectedTag = value as String?;
                   });
-                  widget.ontagSelected!(value as String?);
+                  widget.onTagSelected!(value as String?);
                 },
               ),
             ),
@@ -340,9 +274,5 @@ class _DriversFormState extends State<DriversForm> {
     );
   }
 
-  @override
-  void dispose() {
 
-    super.dispose();
-  }
 }

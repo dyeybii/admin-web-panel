@@ -37,6 +37,8 @@ class DriversAccount {
   final String address;
   final String phoneNumber;
   final String tag;
+  final String codingScheme;
+  final String status;
    String driverPhoto;
   final String uid;
   final TotalRatings? totalRatings;
@@ -56,6 +58,8 @@ class DriversAccount {
     required this.tag,
     required this.driverPhoto,
     required this.uid,
+    required this.status,
+    required this.codingScheme,
     this.totalRatings,
     this.currentTripID,
     this.deviceToken,
@@ -80,6 +84,8 @@ class DriversAccount {
       tag: json['tag'] ?? '',
       driverPhoto: json['driverPhoto'] ?? '',
       driverId: json['driverId'] ?? '',
+      status: json['status']?? '',
+      codingScheme: json['codingScheme']?? '',
       totalRatings: json['totalRatings'] != null
           ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))
           : null,
@@ -101,6 +107,8 @@ class DriversAccount {
       'phoneNumber': phoneNumber,
       'tag': tag,
       'driverPhoto': driverPhoto,
+      'status':status,
+      'codingScheme': codingScheme,
       'driverId': driverId,
       if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),
       if (currentTripID != null) 'currentTripID': currentTripID,

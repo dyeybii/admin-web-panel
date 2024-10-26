@@ -21,13 +21,15 @@ class _RidesChartState extends State<RidesChart> {
   }
 
   Future<List<Map<String, dynamic>>> getTripData() async {
-    DatabaseReference tripRef = FirebaseDatabase.instance.ref().child("tripRequests");
+    DatabaseReference tripRef =
+        FirebaseDatabase.instance.ref().child("tripRequests");
     Map<DateTime, int> tripsCount = {};
 
     try {
       DatabaseEvent snapshot = await tripRef.once();
       if (snapshot.snapshot.value != null) {
-        Map<dynamic, dynamic>? data = snapshot.snapshot.value as Map<dynamic, dynamic>?;
+        Map<dynamic, dynamic>? data =
+            snapshot.snapshot.value as Map<dynamic, dynamic>?;
 
         if (data != null) {
           data.forEach((key, value) {
@@ -36,9 +38,12 @@ class _RidesChartState extends State<RidesChart> {
               if (publishDateTimeStr != null) {
                 try {
                   DateTime publishDateTime = DateTime.parse(publishDateTimeStr);
-                  if (publishDateTime.isAfter(_startDate.subtract(const Duration(days: 1))) &&
-                      publishDateTime.isBefore(_endDate.add(const Duration(days: 1)))) {
-                    DateTime tripDate = DateTime(publishDateTime.year, publishDateTime.month, publishDateTime.day);
+                  if (publishDateTime.isAfter(
+                          _startDate.subtract(const Duration(days: 1))) &&
+                      publishDateTime
+                          .isBefore(_endDate.add(const Duration(days: 1)))) {
+                    DateTime tripDate = DateTime(publishDateTime.year,
+                        publishDateTime.month, publishDateTime.day);
                     tripsCount[tripDate] = (tripsCount[tripDate] ?? 0) + 1;
                   }
                 } catch (e) {
@@ -67,25 +72,60 @@ class _RidesChartState extends State<RidesChart> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF2E3192),
-          title: const Text(
-            'Select Date Range',
-            style: TextStyle(color: Colors.white),
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(15), // Optional: Add rounded corners
           ),
-          content: SizedBox(
-            width: 300,
-            height: 400,
-            child: SfDateRangePicker(
-              selectionMode: DateRangePickerSelectionMode.range,
-              onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
-                setState(() {
-                  if (args.value is PickerDateRange) {
-                    _startDate = args.value.startDate!;
-                    _endDate = args.value.endDate ?? _startDate;
-                    tripsDataFuture = getTripData();
-                  }
-                });
-              },
+          titlePadding: EdgeInsets.zero, // Remove default title padding
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF2E3192), // Set background color for the header
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(15),
+                topRight: Radius.circular(15),
+              ), // Apply rounded corners only to the top
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Select Date Range',
+                  style: TextStyle(
+                    color: Colors.white, // Set text color to white
+                    fontSize: 18, // Adjust font size if needed
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close,
+                      color: Colors.white), // Set icon color to white
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+          content: Container(
+            color: Colors.white, // Set background color for the body
+            child: SizedBox(
+              width: 300,
+              height: 400,
+              child: SfDateRangePicker(
+                selectionMode: DateRangePickerSelectionMode.range,
+                maxDate: DateTime.now(), // Restrict future dates
+                selectionColor:
+                    Color(0xFF2E3192), // Set the color for the selected date
+                onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
+                  setState(() {
+                    if (args.value is PickerDateRange) {
+                      _startDate = args.value.startDate!;
+                      _endDate = args.value.endDate ?? _startDate;
+                      tripsDataFuture = getTripData();
+                    }
+                  });
+                },
+              ),
             ),
           ),
           actions: [
@@ -93,7 +133,9 @@ class _RidesChartState extends State<RidesChart> {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text(
                 'OK',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                    color:
+                        Color(0xFF2E3192)), // Match button text color to header
               ),
             ),
           ],
@@ -113,7 +155,9 @@ class _RidesChartState extends State<RidesChart> {
       );
     }
 
-    Map<DateTime, int> chartData = {for (var trip in tripsData) trip['tripDate']: trip['count']};
+    Map<DateTime, int> chartData = {
+      for (var trip in tripsData) trip['tripDate']: trip['count']
+    };
     List<DateTime> xAxisDates = chartData.keys.toList()..sort();
 
     return BarChart(
@@ -121,8 +165,6 @@ class _RidesChartState extends State<RidesChart> {
         maxY: chartData.values.reduce((a, b) => a > b ? a : b).toDouble(),
         gridData: FlGridData(
           show: true,
-          horizontalInterval: 1,
-          getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade300, strokeWidth: 1),
         ),
         barGroups: xAxisDates.map((date) {
           return BarChartGroupData(
@@ -130,7 +172,7 @@ class _RidesChartState extends State<RidesChart> {
             barRods: [
               BarChartRodData(
                 toY: chartData[date]!.toDouble(),
-                color: Colors.blueAccent,
+                color: Color(0xFF2E3192),
                 width: 16,
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -145,7 +187,8 @@ class _RidesChartState extends State<RidesChart> {
                 final DateTime date = xAxisDates[value.toInt()];
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
-                  child: Text(DateFormat('MM/dd').format(date), style: const TextStyle(fontSize: 10)),
+                  child: Text(DateFormat('MM/dd').format(date),
+                      style: const TextStyle(fontSize: 10)),
                 );
               },
             ),
@@ -157,7 +200,8 @@ class _RidesChartState extends State<RidesChart> {
                 if (value % 1 == 0) {
                   return SideTitleWidget(
                     axisSide: meta.axisSide,
-                    child: Text(value.toInt().toString(), style: const TextStyle(fontSize: 10)),
+                    child: Text(value.toInt().toString(),
+                        style: const TextStyle(fontSize: 10)),
                   );
                 }
                 return Container();
@@ -199,11 +243,29 @@ class _RidesChartState extends State<RidesChart> {
                 ),
                 TextButton(
                   onPressed: () => _showDateRangePicker(context),
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(Color(0xFF2E3192)),
+                    padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                    ),
+                    minimumSize: WidgetStateProperty.all(
+                        Size(120, 40)), // Use the same size as the container
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: Colors.white),
+                      ),
+                    ),
+                  ),
                   child: const Text(
                     'Select Date Range',
-                    style: TextStyle(color: Colors.blueAccent),
+                    style: TextStyle(
+                      color: Colors.white, // Text color
+                      fontSize: 14, // Font size
+                    ),
                   ),
-                ),
+                )
               ],
             ),
             const SizedBox(height: 16),
@@ -215,7 +277,10 @@ class _RidesChartState extends State<RidesChart> {
             SizedBox(
               height: 300,
               child: tripsData.isEmpty
-                  ? const Center(child: Text('No data available', style: TextStyle(fontSize: 16, color: Colors.redAccent)))
+                  ? const Center(
+                      child: Text('No data available',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.redAccent)))
                   : buildBarChart(tripsData),
             ),
           ],

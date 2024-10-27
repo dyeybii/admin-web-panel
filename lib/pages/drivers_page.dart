@@ -324,18 +324,18 @@ class _DriversPageState extends State<DriversPage> {
         return AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(
-                  15), // Set rounded corners for the dialog
+                  15), 
             ),
-            titlePadding: EdgeInsets.zero, // Remove default title padding
+            titlePadding: EdgeInsets.zero, 
             title: Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               decoration: const BoxDecoration(
                 color: Color(
-                    0xFF2E3192), // Set background color for the entire header
+                    0xFF2E3192), 
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(15),
                   topRight: Radius.circular(15),
-                ), // Apply rounded corners only to the top
+                ), 
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -343,14 +343,13 @@ class _DriversPageState extends State<DriversPage> {
                   const Text(
                     'Add Driver',
                     style: TextStyle(
-                      color: Colors.white, 
+                      color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close,
-                        color: Colors.white), 
+                    icon: const Icon(Icons.close, color: Colors.white),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },

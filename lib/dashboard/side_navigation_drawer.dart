@@ -80,7 +80,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         setState(() {
           _selectedIndex = index;
         });
-        Navigator.pop(context); // Close the drawer
+        Navigator.pop(context);
       },
     );
   }

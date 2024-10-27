@@ -11,13 +11,12 @@ class EditDriverForm extends StatefulWidget {
   final String birthdate;
   final String address;
   final String phoneNumber;
+  final String codingScheme;
   final String tag;
   final String driverPhoto;
-  final String codingScheme; 
-  final String status; 
+  final String status;
 
-  const EditDriverForm({
-    Key? key,
+  EditDriverForm({
     required this.driverId,
     required this.firstName,
     required this.lastName,
@@ -27,11 +26,11 @@ class EditDriverForm extends StatefulWidget {
     required this.birthdate,
     required this.address,
     required this.phoneNumber,
+    required this.codingScheme,
     required this.tag,
     required this.driverPhoto,
-    required this.codingScheme, 
-    required this.status, 
-  }) : super(key: key);
+    required this.status,
+  });
 
   @override
   _EditDriverFormState createState() => _EditDriverFormState();
@@ -43,16 +42,15 @@ class _EditDriverFormState extends State<EditDriverForm> {
   late TextEditingController _lastNameController;
   late TextEditingController _idNumberController;
   late TextEditingController _bodyNumberController;
-  late TextEditingController _emailController;
-  late TextEditingController _birthdateController;
   late TextEditingController _addressController;
   late TextEditingController _phoneNumberController;
-  late TextEditingController _codingSchemeController; 
+  late TextEditingController _codingSchemeController;
   late String _selectedTag;
   late String _driverPhotoUrl;
   String _status = '';
   bool _isLoading = false;
-  bool _isEditing = false; 
+  bool _isEditing = false;
+
   @override
   void initState() {
     super.initState();
@@ -60,19 +58,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _lastNameController = TextEditingController(text: widget.lastName);
     _idNumberController = TextEditingController(text: widget.idNumber);
     _bodyNumberController = TextEditingController(text: widget.bodyNumber);
-    _emailController = TextEditingController(text: widget.email);
-    _birthdateController = TextEditingController(text: widget.birthdate);
     _addressController = TextEditingController(text: widget.address);
     _phoneNumberController = TextEditingController(text: widget.phoneNumber);
-    _codingSchemeController = TextEditingController(text: widget.codingScheme); 
+    _codingSchemeController = TextEditingController(text: widget.codingScheme);
     _selectedTag = widget.tag;
-    _driverPhotoUrl = widget.driverPhoto;
-    _status = widget.status; 
-
-    if (_driverPhotoUrl.isEmpty) {
-      _driverPhotoUrl = 'images/default_avatar.png';
-    }
-
+    _driverPhotoUrl = widget.driverPhoto.isEmpty
+        ? 'images/default_avatar.png'
+        : widget.driverPhoto;
+    _status = widget.status;
     _fetchDriverByUID();
   }
 
@@ -82,7 +75,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
     try {
       DataSnapshot snapshot = await query.get();
-
       if (snapshot.exists) {
         String? driverKey;
         Map data = snapshot.value as Map;
@@ -111,30 +103,28 @@ class _EditDriverFormState extends State<EditDriverForm> {
 
         final driverRef =
             FirebaseDatabase.instance.ref('driversAccount/$driverKey');
-
         await driverRef.update({
           'firstName': _firstNameController.text,
           'lastName': _lastNameController.text,
           'idNumber': _idNumberController.text,
           'bodyNumber': _bodyNumberController.text,
-          'email': _emailController.text,
-          'birthday': _birthdateController.text,
           'address': _addressController.text,
           'phoneNumber': _phoneNumberController.text,
           'tag': _selectedTag,
           'driverPhoto': _driverPhotoUrl,
-          'codingScheme': _codingSchemeController.text, 
-          'status': _status, 
+          'codingScheme': _codingSchemeController.text,
+          'status': _status,
         });
 
         setState(() {
           _isLoading = false;
+          _isEditing = false;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Driver updated successfully!')),
         );
-        Navigator.pop(context); 
+        Navigator.pop(context);
       } catch (e) {
         setState(() {
           _isLoading = false;
@@ -147,248 +137,148 @@ class _EditDriverFormState extends State<EditDriverForm> {
     }
   }
 
-  void _toggleEdit() {
-    setState(() {
-      _isEditing = !_isEditing;
-    });
+  Widget buildTextField(TextEditingController controller, String labelText,
+      {int? maxLength, bool isEditable = true}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: const OutlineInputBorder(),
+      ),
+      maxLength: maxLength,
+      enabled: isEditable && _isEditing,
+    );
   }
 
+  Widget buildFormFields() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              buildTextField(_firstNameController, 'First Name'),
+              const SizedBox(height: 10.0),
+              buildTextField(_lastNameController, 'Last Name'),
+              const SizedBox(height: 10.0),
+              buildTextField(_idNumberController, 'ID Number', maxLength: 4),
+              const SizedBox(height: 10.0),
+              buildTextField(_bodyNumberController, 'Body Number',
+                  maxLength: 4),
+              const SizedBox(height: 10.0),
+              TextFormField(
+                controller: TextEditingController(text: widget.birthdate),
+                decoration: const InputDecoration(
+                  labelText: 'Date of Birth',
+                  border: OutlineInputBorder(),
+                ),
+                enabled: false,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20.0),
+        Expanded(
+          child: Column(
+            children: [
+              buildTextField(_addressController, 'Address'),
+              const SizedBox(height: 10.0),
+              buildTextField(_phoneNumberController, 'Mobile Number',
+                  maxLength: 11),
+              const SizedBox(height: 10.0),
+              TextFormField(
+                controller: TextEditingController(text: widget.email),
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                enabled: false,
+              ),
+              const SizedBox(height: 10.0),
+              buildTextField(_codingSchemeController, 'Coding Scheme',
+                  maxLength: 4),
+              const SizedBox(height: 10.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Tag',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile(
+                          title: const Text('Member'),
+                          value: 'Member',
+                          groupValue: _selectedTag,
+                          onChanged: _isEditing
+                              ? (value) =>
+                                  setState(() => _selectedTag = value as String)
+                              : null,
+                        ),
+                      ),
+                      Expanded(
+                        child: RadioListTile(
+                          title: const Text('Operator'),
+                          value: 'Operator',
+                          groupValue: _selectedTag,
+                          onChanged: _isEditing
+                              ? (value) =>
+                                  setState(() => _selectedTag = value as String)
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
           child: Column(
             children: [
-              // Driver Photo with Status Indicator
-              Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundImage: _driverPhotoUrl.isNotEmpty
-                        ? NetworkImage(_driverPhotoUrl)
-                        : const AssetImage('images/default_avatar.png')
-                            as ImageProvider,
-                  ),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _status == 'online'
-                          ? Colors.green
-                          : _status == 'Offline'
-                              ? Colors.grey
-                              : Colors.red,
-                    ),
-                  ),
-                ],
+              CircleAvatar(
+                backgroundImage: NetworkImage(_driverPhotoUrl),
+                radius: 50,
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
+              const SizedBox(height: 10.0),
+              buildFormFields(),
+              const SizedBox(height: 10.0),
+              _isEditing
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        TextFormField(
-                          controller: _firstNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'First Name',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a first name';
-                            }
-                            return null;
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() => _isEditing = false);
                           },
+                          child: const Text('Cancel'),
                         ),
-                        TextFormField(
-                          controller: _idNumberController,
-                          decoration: const InputDecoration(
-                            labelText: 'ID Number',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter an ID number';
+                        ElevatedButton(
+                          onPressed: () async {
+                            String? driverKey = await _fetchDriverByUID();
+                            if (driverKey != null) {
+                              _updateDriver(driverKey);
                             }
-                            return null;
                           },
-                        ),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null ||
-                                value.isEmpty ||
-                                !value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _birthdateController,
-                          decoration: const InputDecoration(
-                            labelText: 'Birthday',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a birthdate';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _codingSchemeController, 
-                          decoration: const InputDecoration(
-                            labelText: 'Coding Scheme',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a coding scheme';
-                            }
-                            return null;
-                          },
+                          child: const Text('Update Driver'),
                         ),
                       ],
+                    )
+                  : ElevatedButton(
+                      onPressed: () => setState(() => _isEditing = true),
+                      child: const Text('Edit Information'),
                     ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _lastNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Last Name',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a last name';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _bodyNumberController,
-                          decoration: const InputDecoration(
-                            labelText: 'Body Number',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a body number';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _addressController,
-                          decoration: const InputDecoration(
-                            labelText: 'Address',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter an address';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _phoneNumberController,
-                          decoration: const InputDecoration(
-                            labelText: 'Phone Number',
-                          ),
-                          style: const TextStyle(color: Colors.black),
-                          enabled: _isEditing,
-                          validator: (value) {
-                            if (value == null ||
-                                value.isEmpty ||
-                                value.length != 11) {
-                              return 'Please enter a valid phone number';
-                            }
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedTag.isNotEmpty ? _selectedTag : null,
-                decoration: const InputDecoration(
-                  labelText: 'Tag',
-                ),
-                dropdownColor: Colors.white,
-                items: ['Member', 'Operator']
-                    .map((tag) => DropdownMenuItem(
-                          value: tag,
-                          child: Text(tag,
-                              style: const TextStyle(color: Colors.black)),
-                        ))
-                    .toList(),
-                onChanged: _isEditing
-                    ? (newValue) {
-                        setState(() {
-                          _selectedTag = newValue!;
-                        });
-                      }
-                    : null,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select a tag';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        String? driverKey = await _fetchDriverByUID();
-
-                        if (driverKey != null) {
-                          await _updateDriver(driverKey);
-                        } else {
-                          print('Driver not found, cannot update');
-                        }
-                      },
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Update Driver'),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: _toggleEdit,
-                    child: Text(_isEditing ? 'Cancel Edit' : 'Edit'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         ),

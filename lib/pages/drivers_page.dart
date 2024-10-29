@@ -2,8 +2,8 @@ import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/Data_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // For Firebase Auth
-import 'package:firebase_database/firebase_database.dart'; // For Firebase Realtime Database
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:firebase_database/firebase_database.dart'; 
 import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
@@ -132,33 +132,33 @@ class _DriversPageState extends State<DriversPage> {
                         ),
                         border: OutlineInputBorder(
                           borderSide: const BorderSide(
-                            color: Color(0xFF2E3192), // Outline color
+                            color: Color(0xFF2E3192), 
                           ),
                           borderRadius: BorderRadius.circular(40),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
                             color: Color(
-                                0xFF2E3192), // Outline color when not clicked
-                            width: 2.0, // Optional: Adjust width
+                                0xFF2E3192), 
+                            width: 2.0, 
                           ),
                           borderRadius: BorderRadius.circular(40),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
                             color:
-                                Color(0xFF2E3192), // Outline color when clicked
-                            width: 2.0, // Optional: Adjust width
+                                Color(0xFF2E3192), 
+                            width: 2.0, 
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         suffixIcon: const Icon(
                           Icons.search,
-                          color: Color(0xFF2E3192), // Icon color
+                          color: Color(0xFF2E3192), 
                         ),
                         filled: true,
                         fillColor: const Color.fromARGB(
-                            255, 255, 255, 255), // Background color
+                            255, 255, 255, 255), 
                       ),
                     ),
                   ),
@@ -182,8 +182,7 @@ class _DriversPageState extends State<DriversPage> {
                 }).toList(),
                 onChanged: _filterByTag,
                 underline: Container(),
-                iconEnabledColor:
-                    const Color(0xFF2E3192), // Set the arrow color
+                iconEnabledColor: const Color(0xFF2E3192),
               ),
               const SizedBox(width: 10),
               ElevatedButton(
@@ -217,46 +216,59 @@ class _DriversPageState extends State<DriversPage> {
               ElevatedButton(
                 style: CustomButtonStyles.elevatedButtonStyle,
                 onPressed: () {
-                  // Show the BatchUpload dialog
                   showDialog(
                     context: context,
                     builder: (context) {
                       return AlertDialog(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              15), // Set rounded corners for the dialog
+                              15),
                         ),
                         titlePadding:
-                            EdgeInsets.zero, // Remove default title padding
+                            EdgeInsets.zero, 
                         title: Container(
                           padding: const EdgeInsets.symmetric(
                               vertical: 16, horizontal: 24),
                           decoration: const BoxDecoration(
                             color: Color(
-                                0xFF2E3192), // Set background color for the entire header
+                                0xFF2E3192), 
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(15),
                               topRight: Radius.circular(15),
-                            ), // Rounded corners at the top
+                            ), 
                           ),
-                          child: const Text(
-                            'Batch Upload',
-                            style: TextStyle(
-                              color: Colors.white, // Set text color to white
-                              fontSize: 18, // Adjust font size if necessary
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Batch Upload',
+                                style: TextStyle(
+                                  color:
+                                      Colors.white, 
+                                  fontSize: 18, 
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close,
+                                    color: Colors
+                                        .white), 
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
                           ),
                         ),
                         content: SizedBox(
-                          height: 300, // Set the desired height here
+                          height: 300, 
                           width: 200,
                           child: BatchUpload(
                             onUpload:
                                 (List<Map<String, dynamic>> uploadedData) {
-                              // Handle the uploaded data if necessary
+                             
                               print('Uploaded Data: $uploadedData');
                               Navigator.of(context)
-                                  .pop(); // Close the dialog after upload
+                                  .pop();
                             },
                           ),
                         ),
@@ -288,7 +300,7 @@ class _DriversPageState extends State<DriversPage> {
 
               final data = snapshot.data!.snapshot.value;
 
-              // Check if data is a Map before proceeding
+           
               if (data is Map<dynamic, dynamic>) {
                 final driversList = data.entries
                     .map((entry) => DriversAccount.fromJson(
@@ -309,7 +321,7 @@ class _DriversPageState extends State<DriversPage> {
                   },
                 );
               } else {
-                // Handle the case where the data is not a Map
+             
                 return const Center(child: Text('Unexpected data format.'));
               }
             },
@@ -323,25 +335,23 @@ class _DriversPageState extends State<DriversPage> {
       builder: (BuildContext context) {
         return AlertDialog(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                  15), 
+              borderRadius: BorderRadius.circular(15),
             ),
-            titlePadding: EdgeInsets.zero, 
+            titlePadding: EdgeInsets.zero,
             title: Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               decoration: const BoxDecoration(
-                color: Color(
-                    0xFF2E3192), 
+                color: Color(0xFF2E3192),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(15),
                   topRight: Radius.circular(15),
-                ), 
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Add Driver',
+                    'Add new Driver',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -445,17 +455,17 @@ class _DriversPageState extends State<DriversPage> {
         uid: uid,
         codingScheme: codingScheme,
         status: status,
-        driverPhoto: driverPhoto, // This should be the image URL if available
-        driverId: driverId, // Assign the auto-generated driverId
+        driverPhoto: driverPhoto,
+        driverId: driverId, 
       );
 
-      // Add the new driver to Firebase Realtime Database with the generated driverId
+    
       await newDriverRef.set(newDriver.toJson());
 
-      // Optionally, you can upload an image if available
+      
 
-      _fetchDriversData(); // Refresh the drivers list
-      Navigator.of(context).pop(); // Close the dialog after adding
+      _fetchDriversData(); 
+      Navigator.of(context).pop(); 
     } catch (e) {
       print('Error adding driver: $e');
       showDialog(

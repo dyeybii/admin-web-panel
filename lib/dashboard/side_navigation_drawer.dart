@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
-import 'package:admin_web_panel/pages/fund_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
-import 'package:admin_web_panel/pages/settings_page.dart';
+import 'package:admin_web_panel/pages/profile_page.dart';
 import 'package:admin_web_panel/login.dart';
 
 class WebAdminPanel extends StatefulWidget {
@@ -16,38 +15,90 @@ class WebAdminPanel extends StatefulWidget {
 class _WebAdminPanelState extends State<WebAdminPanel> {
   int _selectedIndex = 0;
 
-  // Pages for navigation (kept alive with IndexedStack)
   final List<Widget> _pages = [
     const Dashboard(),
     const DriversPage(),
-    const FundPage(),
     const FareMatrixPage(),
-    settingsPage(),
+    profilePage(),
   ];
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // Confirm Logout dialog
   Future<void> _confirmLogout() async {
     bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              width: 400,
+              color: Color(0xFF2E3192),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2E3192),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(15)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Confirm Logout',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Are you sure you want to log out?',
+                          style: TextStyle(color: Color(0xFF2E3192)),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              style: TextButton.styleFrom(
+                                backgroundColor: Color(0xFF505050),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFFFF0000),
+                              ),
+                              child: const Text('Logout'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Logout'),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -57,24 +108,22 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     }
   }
 
-  // Logout functionality
   void _logout() {
     Navigator.pushNamedAndRemoveUntil(context, LoginPage.id, (route) => false);
   }
 
-  // Drawer items with navigation
-  Widget _buildDrawerItem(String title, IconData icon, int index) {
+  Widget _buildDrawerItem(String title, Widget icon, int index) {
     bool isSelected = _selectedIndex == index;
 
     return ListTile(
       title: Text(
         title,
         style: TextStyle(
-          color: isSelected ? Colors.indigo : Colors.black,
+          color: isSelected ? Color(0xFF2E3192) : Colors.black,
           fontSize: 16.0,
         ),
       ),
-      leading: Icon(icon, color: isSelected ? Colors.indigo : Colors.black),
+      leading: icon,
       selected: isSelected,
       onTap: () {
         setState(() {
@@ -94,7 +143,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
             Text(
               "TRI.CO",
               style: TextStyle(
-                color: Colors.indigo,
+                color: Color(0xFF2E3192),
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),
@@ -112,7 +161,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
           children: <Widget>[
             const DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.indigo,
+                color: Color(0xFF2E3192),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,11 +184,22 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
                 ],
               ),
             ),
-            _buildDrawerItem('Dashboard', Icons.dashboard, 0),
-            _buildDrawerItem('Member Management', Icons.person_add, 1),
-            //_buildDrawerItem('Fund Collection', Icons.money, 2),
-            _buildDrawerItem('Fare Matrix', Icons.monetization_on, 3),
-            _buildDrawerItem('Settings', Icons.settings, 4),
+            _buildDrawerItem('Dashboard', const Icon(Icons.dashboard), 0),
+            _buildDrawerItem(
+                'Member Management', const Icon(Icons.person_add), 1),
+            _buildDrawerItem(
+              'Fare Matrix',
+              Image.asset(
+                'images/Peso_sign.png',
+                height: 20,
+                width: 20,
+                color: _selectedIndex == 2
+                    ? Color(0xFF2E3192)
+                    : const Color.fromARGB(255, 56, 56, 56),
+              ),
+              2,
+            ),
+            _buildDrawerItem('Profile', const Icon(Icons.person), 3),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

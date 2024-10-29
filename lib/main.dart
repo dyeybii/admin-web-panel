@@ -2,10 +2,10 @@ import 'package:admin_web_panel/dashboard/side_navigation_drawer.dart';
 import 'package:admin_web_panel/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-//import 'package:flutter/rendering.dart';
+
 
 void main() async {
-  //debugPaintSizeEnabled = true;
+
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
       options: const FirebaseOptions(

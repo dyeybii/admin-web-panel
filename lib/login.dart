@@ -228,24 +228,24 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
-        // Sign in with Firebase Authentication
+      
         await _auth.signInWithEmailAndPassword(
           email: _usernameController.text,
           password: _passwordController.text,
         );
 
-        // Get user details from Firestore (check admin privileges)
+        
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore.instance
             .collection('admin')
             .where('email', isEqualTo: _usernameController.text)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // User is an admin, proceed to dashboard
+          
           print('Admin user found in Firestore');
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
-          // User is not an admin
+     
           setState(() {
             _loading = false;
             _errorMessage = 'Access Restricted: Admins Only.';

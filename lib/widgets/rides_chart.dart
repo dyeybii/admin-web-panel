@@ -74,17 +74,17 @@ class _RidesChartState extends State<RidesChart> {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(15), // Optional: Add rounded corners
+                BorderRadius.circular(15), 
           ),
-          titlePadding: EdgeInsets.zero, // Remove default title padding
+          titlePadding: EdgeInsets.zero, 
           title: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             decoration: const BoxDecoration(
-              color: Color(0xFF2E3192), // Set background color for the header
+              color: Color(0xFF2E3192), 
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
-              ), // Apply rounded corners only to the top
+              ), 
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -92,13 +92,13 @@ class _RidesChartState extends State<RidesChart> {
                 const Text(
                   'Select Date Range',
                   style: TextStyle(
-                    color: Colors.white, // Set text color to white
-                    fontSize: 18, // Adjust font size if needed
+                    color: Colors.white, 
+                    fontSize: 18, 
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close,
-                      color: Colors.white), // Set icon color to white
+                      color: Colors.white), 
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -107,15 +107,15 @@ class _RidesChartState extends State<RidesChart> {
             ),
           ),
           content: Container(
-            color: Colors.white, // Set background color for the body
+            color: Colors.white, 
             child: SizedBox(
               width: 300,
               height: 400,
               child: SfDateRangePicker(
                 selectionMode: DateRangePickerSelectionMode.range,
-                maxDate: DateTime.now(), // Restrict future dates
+                maxDate: DateTime.now(), 
                 selectionColor:
-                    Color(0xFF2E3192), // Set the color for the selected date
+                    Color(0xFF2E3192), 
                 onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
                   setState(() {
                     if (args.value is PickerDateRange) {
@@ -135,7 +135,7 @@ class _RidesChartState extends State<RidesChart> {
                 'OK',
                 style: TextStyle(
                     color:
-                        Color(0xFF2E3192)), // Match button text color to header
+                        Color(0xFF2E3192)), 
               ),
             ),
           ],
@@ -250,7 +250,7 @@ class _RidesChartState extends State<RidesChart> {
                       const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                     ),
                     minimumSize: WidgetStateProperty.all(
-                        Size(120, 40)), // Use the same size as the container
+                        Size(120, 40)), 
                     shape: WidgetStateProperty.all(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -261,8 +261,8 @@ class _RidesChartState extends State<RidesChart> {
                   child: const Text(
                     'Select Date Range',
                     style: TextStyle(
-                      color: Colors.white, // Text color
-                      fontSize: 14, // Font size
+                      color: Colors.white, 
+                      fontSize: 14, 
                     ),
                   ),
                 )

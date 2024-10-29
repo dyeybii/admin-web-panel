@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -259,12 +260,14 @@ class _EditDriverFormState extends State<EditDriverForm> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         ElevatedButton(
+                           style: CustomButtonStyles.elevatedButtonStyle,
                           onPressed: () {
                             setState(() => _isEditing = false);
                           },
                           child: const Text('Cancel'),
                         ),
                         ElevatedButton(
+                           style: CustomButtonStyles.elevatedButtonStyle,
                           onPressed: () async {
                             String? driverKey = await _fetchDriverByUID();
                             if (driverKey != null) {
@@ -276,6 +279,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
                       ],
                     )
                   : ElevatedButton(
+                     style: CustomButtonStyles.elevatedButtonStyle,
                       onPressed: () => setState(() => _isEditing = true),
                       child: const Text('Edit Information'),
                     ),

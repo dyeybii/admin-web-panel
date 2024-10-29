@@ -81,3 +81,7 @@ class FareTableStyle {
     fontWeight: FontWeight.bold,
   );
 }
+
+  Color get specialColor {
+    return Color(0xFF2E3192); // Return the desired color
+  }

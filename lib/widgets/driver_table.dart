@@ -154,7 +154,7 @@ class _DriverTableState extends State<DriverTable> {
                         DataCell(
                           Row(
                             children: _buildRatingWithStar(driver.totalRatings
-                                ?.averageRating), // Display number with star
+                                ?.averageRating), 
                           ),
                         ),
                       ],
@@ -179,7 +179,7 @@ class _DriverTableState extends State<DriverTable> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Total members and operators on the left
+               
                 Row(
                   children: [
                     Text('Total Members: $totalMembers'),
@@ -193,24 +193,24 @@ class _DriverTableState extends State<DriverTable> {
                   child: NumberPagination(
                     totalPages: totalPages,
                     currentPage:
-                        currentPage + 1, // Pagination uses 1-based index
+                        currentPage + 1, 
                     onPageChanged: (int pageNumber) {
                       setState(() {
                         currentPage = pageNumber - 1;
                       });
                     },
                     controlButtonSize:
-                        const Size(25, 25), // Resize control buttons
+                        const Size(25, 25), 
                     numberButtonSize:
-                        const Size(25, 25), // Resize number buttons
+                        const Size(25, 25), 
                     selectedButtonColor: const Color(
-                        0xFF2E3192), // Background for selected button
+                        0xFF2E3192), 
                     selectedNumberColor:
-                        Colors.white, // Text color for selected button
+                        Colors.white, 
                     unSelectedButtonColor:
-                        Colors.white, // Background for unselected buttons
+                        Colors.white, 
                     unSelectedNumberColor:
-                        Colors.black, // Text color for unselected buttons
+                        Colors.black, 
                   ),
                 ),
               ],
@@ -236,7 +236,7 @@ class _DriverTableState extends State<DriverTable> {
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(15), // Set rounded corners for the dialog
+                BorderRadius.circular(15), 
           ),
           child: Container(
             width: screenSize.width * 0.6, 
@@ -248,11 +248,11 @@ class _DriverTableState extends State<DriverTable> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: const BoxDecoration(
                     color: Color(
-                        0xFF2E3192), // Set background color for the entire header
+                        0xFF2E3192), 
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15),
-                    ), // Apply rounded corners only to the top
+                    ), 
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -260,14 +260,14 @@ class _DriverTableState extends State<DriverTable> {
                       const Text(
                         'Edit Information',
                         style: TextStyle(
-                          color: Colors.white, // Set text color to white
-                          fontSize: 18, // Adjust font size if needed
+                          color: Colors.white, 
+                          fontSize: 18, 
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close,
-                            color: Colors.white), // Set icon color to white
+                            color: Colors.white), 
                         onPressed: () {
                           Navigator.of(context).pop();
                         },

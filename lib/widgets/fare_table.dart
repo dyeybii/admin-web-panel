@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Fare {
   final String from;
   final String to;
@@ -12,7 +14,14 @@ class Fare {
     required this.minimumFare,
     required this.special,
   });
+
+  // Method to determine color based on special value
+  Color get specialColor {
+    // You can customize the color logic based on the special value
+    return const Color(0xFF2E3192);
+  }
 }
+
 
 final List<Fare> fareTable = [
   Fare(from: 'Cotoda Terminal Malanday via Coloong I', to: 'Sanfranciso Street.', distance: 1.03, minimumFare: 11.5, special: 46),

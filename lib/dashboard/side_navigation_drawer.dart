@@ -19,7 +19,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     const Dashboard(),
     const DriversPage(),
     const FareMatrixPage(),
-    profilePage(),
+    const profilePage(),
   ];
 
   Future<void> _confirmLogout() async {

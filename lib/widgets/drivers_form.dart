@@ -130,7 +130,7 @@ class _DriversFormState extends State<DriversForm> {
             children: [
               const SizedBox(height: 30.0),
               buildFormFields(),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 40.0),
               buildFormButtons(),
             ],
           ),
@@ -266,6 +266,7 @@ class _DriversFormState extends State<DriversForm> {
 
   Widget buildFormButtons() {
     return Center(
+      
       child: ElevatedButton(
         style: CustomButtonStyles.elevatedButtonStyle,
         onPressed: widget.onAddPressed,

@@ -15,7 +15,7 @@ class EditDriverForm extends StatefulWidget {
   final String codingScheme;
   final String tag;
   final String driverPhoto;
-  final String status;
+  
 
   EditDriverForm({
     required this.driverId,
@@ -30,7 +30,7 @@ class EditDriverForm extends StatefulWidget {
     required this.codingScheme,
     required this.tag,
     required this.driverPhoto,
-    required this.status,
+    
   });
 
   @override
@@ -48,7 +48,6 @@ class _EditDriverFormState extends State<EditDriverForm> {
   late TextEditingController _codingSchemeController;
   late String _selectedTag;
   late String _driverPhotoUrl;
-  String _status = '';
   bool _isLoading = false;
   bool _isEditing = false;
 
@@ -66,7 +65,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
     _driverPhotoUrl = widget.driverPhoto.isEmpty
         ? 'images/default_avatar.png'
         : widget.driverPhoto;
-    _status = widget.status;
+   
     _fetchDriverByUID();
   }
 
@@ -114,7 +113,7 @@ class _EditDriverFormState extends State<EditDriverForm> {
           'tag': _selectedTag,
           'driverPhoto': _driverPhotoUrl,
           'codingScheme': _codingSchemeController.text,
-          'status': _status,
+
         });
 
         setState(() {

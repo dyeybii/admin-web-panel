@@ -11,6 +11,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class profilePage extends StatefulWidget {
+
+  const profilePage({Key? key}) : super(key: key);
+  
   @override
   _profilePageState createState() => _profilePageState();
 }

@@ -210,113 +210,112 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildPieChart() {
-  // Calculate the total number of users
-  final int totalUsers = _totalTricycleLine; // Assuming this is the total riders count
-  final double onlinePercentage = totalUsers > 0
-      ? (_totalOnlineRiders / totalUsers) * 100
-      : 0.0;
-  final double offlinePercentage = totalUsers > 0
-      ? (1 - (_totalOnlineRiders / totalUsers)) * 100
-      : 100.0; // 100% if there are no total users
+    // Calculate the total number of users
+    final int totalUsers = _totalMembers; // Assuming this is the total riders count
+    final double onlinePercentage = totalUsers > 0
+        ? (_totalOnlineRiders / totalUsers) * 100
+        : 0.0;
+    final double offlinePercentage = totalUsers > 0
+        ? (1 - (_totalOnlineRiders / totalUsers)) * 100
+        : 100.0; // 100% if there are no total users
 
-  // Ensure percentages do not exceed logical bounds
-  final double clampedOnlinePercentage = onlinePercentage.clamp(0.0, 100.0);
-  final double clampedOfflinePercentage = offlinePercentage.clamp(0.0, 100.0);
+    // Ensure percentages do not exceed logical bounds
+    final double clampedOnlinePercentage = onlinePercentage.clamp(0.0, 100.0);
+    final double clampedOfflinePercentage = offlinePercentage.clamp(0.0, 100.0);
 
-  return Container(
-    padding: const EdgeInsets.all(16.0),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.shade300,
-          blurRadius: 8,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Online Riders in Coloong',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 370,
-          child: Stack(
-            children: [
-              PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: clampedOnlinePercentage,
-                      color: Colors.green,
-                      title: '${clampedOnlinePercentage.toStringAsFixed(1)}%',
-                      radius: 150,
-                      titleStyle: const TextStyle(color: Colors.white),
-                    ),
-                    PieChartSectionData(
-                      value: clampedOfflinePercentage,
-                      color: Colors.red,
-                      title: '${clampedOfflinePercentage.toStringAsFixed(1)}%',
-                      radius: 150,
-                      titleStyle: const TextStyle(color: Colors.white),
-                    ),
-                  ],
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 0,
-                  centerSpaceRadius: 0,
-                ),
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Online',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Container(
-                          width: 20,
-                          height: 20,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Offline',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Online Riders in Coloong',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 370,
+            child: Stack(
+              children: [
+                PieChart(
+                  PieChartData(
+                    sections: [
+                      PieChartSectionData(
+                        value: clampedOnlinePercentage,
+                        color: Colors.green,
+                        title: '${clampedOnlinePercentage.toStringAsFixed(1)}%',
+                        radius: 150,
+                        titleStyle: const TextStyle(color: Colors.white),
+                      ),
+                      PieChartSectionData(
+                        value: clampedOfflinePercentage,
+                        color: Colors.red,
+                        title: '${clampedOfflinePercentage.toStringAsFixed(1)}%',
+                        radius: 150,
+                        titleStyle: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0,
+                    centerSpaceRadius: 0,
+                  ),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Online',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Offline',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

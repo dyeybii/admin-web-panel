@@ -1,0 +1,37 @@
+    {
+  "rules": {
+"driversAccount": {
+ ".read": true,
+  ".write": true,
+  ".indexOn": ["uid", "email"]
+},
+    "driversLocation": {
+      ".read": "auth != null",
+      ".write": "auth != null && data.child('uid').val() === auth.uid"
+    },
+    "onlineDrivers": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["g"]
+    },
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+"tripRequests": {
+  ".read": true,
+  ".write": true
+},
+    "userData": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "currentFareAmount": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+
+  }
+}

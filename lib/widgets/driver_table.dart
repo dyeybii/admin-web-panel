@@ -104,11 +104,6 @@ class _DriverTableState extends State<DriverTable> {
                     )),
                     const DataColumn2(
                         label: Text(
-                      'Status',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    )),
-                    const DataColumn2(
-                        label: Text(
                       'Ratings',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     )),
@@ -150,11 +145,10 @@ class _DriverTableState extends State<DriverTable> {
                           driver.tag,
                           style: TextStyle(color: textColor),
                         )),
-                        DataCell(Text(driver.status)),
                         DataCell(
                           Row(
-                            children: _buildRatingWithStar(driver.totalRatings
-                                ?.averageRating), 
+                            children: _buildRatingWithStar(
+                                driver.totalRatings?.averageRating),
                           ),
                         ),
                       ],
@@ -179,7 +173,6 @@ class _DriverTableState extends State<DriverTable> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-               
                 Row(
                   children: [
                     Text('Total Members: $totalMembers'),
@@ -192,25 +185,18 @@ class _DriverTableState extends State<DriverTable> {
                   fit: FlexFit.loose,
                   child: NumberPagination(
                     totalPages: totalPages,
-                    currentPage:
-                        currentPage + 1, 
+                    currentPage: currentPage + 1,
                     onPageChanged: (int pageNumber) {
                       setState(() {
                         currentPage = pageNumber - 1;
                       });
                     },
-                    controlButtonSize:
-                        const Size(25, 25), 
-                    numberButtonSize:
-                        const Size(25, 25), 
-                    selectedButtonColor: const Color(
-                        0xFF2E3192), 
-                    selectedNumberColor:
-                        Colors.white, 
-                    unSelectedButtonColor:
-                        Colors.white, 
-                    unSelectedNumberColor:
-                        Colors.black, 
+                    controlButtonSize: const Size(25, 25),
+                    numberButtonSize: const Size(25, 25),
+                    selectedButtonColor: const Color(0xFF2E3192),
+                    selectedNumberColor: Colors.white,
+                    unSelectedButtonColor: Colors.white,
+                    unSelectedNumberColor: Colors.black,
                   ),
                 ),
               ],
@@ -235,24 +221,22 @@ class _DriverTableState extends State<DriverTable> {
         final screenSize = MediaQuery.of(context).size;
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(15), 
+            borderRadius: BorderRadius.circular(15),
           ),
           child: Container(
-            width: screenSize.width * 0.6, 
-            height: screenSize.height * 0.9, 
+            width: screenSize.width * 0.6,
+            height: screenSize.height * 0.9,
             child: Column(
               children: [
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: const BoxDecoration(
-                    color: Color(
-                        0xFF2E3192), 
+                    color: Color(0xFF2E3192),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15),
-                    ), 
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -260,14 +244,13 @@ class _DriverTableState extends State<DriverTable> {
                       const Text(
                         'Edit Information',
                         style: TextStyle(
-                          color: Colors.white, 
-                          fontSize: 18, 
+                          color: Colors.white,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close,
-                            color: Colors.white), 
+                        icon: const Icon(Icons.close, color: Colors.white),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
@@ -289,7 +272,6 @@ class _DriverTableState extends State<DriverTable> {
                     phoneNumber: driver.phoneNumber,
                     tag: driver.tag,
                     codingScheme: driver.codingScheme,
-                    status: driver.status,
                     driverPhoto:
                         driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
                   ),

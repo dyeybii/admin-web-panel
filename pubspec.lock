@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  avatars:
+    dependency: "direct main"
+    description:
+      name: avatars
+      sha256: c7860372742c627a297e7bacca8193306a0bc6bd766cdf045f5bfca1e0b68df2
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   boolean_selector:
     dependency: transitive
     description:

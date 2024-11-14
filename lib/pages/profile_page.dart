@@ -10,15 +10,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class profilePage extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
 
-  const profilePage({Key? key}) : super(key: key);
+  const ProfilePage({Key? key}) : super(key: key);
   
   @override
   _profilePageState createState() => _profilePageState();
 }
 
-class _profilePageState extends State<profilePage> {
+class _profilePageState extends State<ProfilePage> {
   String contactNumber = "";
   String email = "";
   String fullName = "";
@@ -428,7 +428,7 @@ class _profilePageState extends State<profilePage> {
                     Text(
                       contactNumber.isNotEmpty
                           ? contactNumber
-                          : 'Contact Number',
+                          : 'Contact Number', maxLines: 11,
                       style: const TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                   ],

@@ -4,17 +4,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
 import 'package:universal_html/html.dart' show AnchorElement;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
 
 class ExcelDownloader {
 
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
+
   static Future<void> downloadExcel(
       BuildContext context, List<DriversAccount> allDrivers, List<DriversAccount> selectedDrivers) async {
- 
-    List<DriversAccount> driversToDownload = selectedDrivers.isNotEmpty ? selectedDrivers : allDrivers;
 
+    List<DriversAccount> driversToDownload = selectedDrivers.isNotEmpty ? selectedDrivers : allDrivers;
 
     final Workbook workbook = Workbook();
     final Worksheet sheet = workbook.worksheets[0];
@@ -29,7 +33,6 @@ class ExcelDownloader {
     sheet.getRangeByName('H1').setText('Email');
     sheet.getRangeByName('I1').setText('Tag');
 
- 
     int row = 2;
     for (var driver in driversToDownload) {
       sheet.getRangeByIndex(row, 1).setText(driver.firstName);
@@ -44,24 +47,20 @@ class ExcelDownloader {
       row++;
     }
 
-
     for (int col = 1; col <= 9; col++) {
       sheet.autoFitColumn(col);
     }
-
 
     final List<int> bytes = workbook.saveAsStream();
     workbook.dispose();
 
     if (kIsWeb) {
-
       AnchorElement(
           href:
               'data:application/octet-stream;charset=utf-16le;base64,${base64.encode(bytes)}')
         ..setAttribute('download', 'Drivers Information.xlsx')
         ..click();
     } else {
-
       final String path = (await getApplicationSupportDirectory()).path;
       final String fileName =
           Platform.isWindows ? '$path\\Drivers Information.xlsx' : '$path/drivers_data.xlsx';
@@ -75,5 +74,18 @@ class ExcelDownloader {
         content: Text('Excel file downloaded.'),
       ),
     );
+
+    await _addAuditLogEntry("Downloaded drivers data file");
+  }
+
+  static Future<void> _addAuditLogEntry(String action) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore.collection('audit_logs').add({
+        'adminId': user.uid,
+        'action': action,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
   }
 }

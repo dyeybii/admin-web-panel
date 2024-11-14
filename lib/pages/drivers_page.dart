@@ -1,9 +1,9 @@
-import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/Data_service.dart';
+import 'package:admin_web_panel/widgets/blacklist.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; 
-import 'package:firebase_database/firebase_database.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
@@ -122,7 +122,7 @@ class _DriversPageState extends State<DriversPage> {
                 const Text('Members and Operators'),
                 Center(
                   child: SizedBox(
-                    width: 300,
+                    width: 250,
                     child: TextField(
                       controller: searchController,
                       decoration: InputDecoration(
@@ -132,33 +132,30 @@ class _DriversPageState extends State<DriversPage> {
                         ),
                         border: OutlineInputBorder(
                           borderSide: const BorderSide(
-                            color: Color(0xFF2E3192), 
+                            color: Color(0xFF2E3192),
                           ),
                           borderRadius: BorderRadius.circular(40),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
-                            color: Color(
-                                0xFF2E3192), 
-                            width: 2.0, 
+                            color: Color(0xFF2E3192),
+                            width: 2.0,
                           ),
                           borderRadius: BorderRadius.circular(40),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
-                            color:
-                                Color(0xFF2E3192), 
-                            width: 2.0, 
+                            color: Color(0xFF2E3192),
+                            width: 2.0,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         suffixIcon: const Icon(
                           Icons.search,
-                          color: Color(0xFF2E3192), 
+                          color: Color(0xFF2E3192),
                         ),
                         filled: true,
-                        fillColor: const Color.fromARGB(
-                            255, 255, 255, 255), 
+                        fillColor: const Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
                   ),
@@ -183,6 +180,19 @@ class _DriversPageState extends State<DriversPage> {
                 onChanged: _filterByTag,
                 underline: Container(),
                 iconEnabledColor: const Color(0xFF2E3192),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                style: CustomButtonStyles.elevatedButtonStyle,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return BlacklistDialog();
+                    },
+                  );
+                },
+                child: const Text('Blacklist'),
               ),
               const SizedBox(width: 10),
               ElevatedButton(
@@ -221,21 +231,18 @@ class _DriversPageState extends State<DriversPage> {
                     builder: (context) {
                       return AlertDialog(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                              15),
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        titlePadding:
-                            EdgeInsets.zero, 
+                        titlePadding: EdgeInsets.zero,
                         title: Container(
                           padding: const EdgeInsets.symmetric(
                               vertical: 16, horizontal: 24),
                           decoration: const BoxDecoration(
-                            color: Color(
-                                0xFF2E3192), 
+                            color: Color(0xFF2E3192),
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(15),
                               topRight: Radius.circular(15),
-                            ), 
+                            ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -243,15 +250,13 @@ class _DriversPageState extends State<DriversPage> {
                               const Text(
                                 'Batch Upload',
                                 style: TextStyle(
-                                  color:
-                                      Colors.white, 
-                                  fontSize: 18, 
+                                  color: Colors.white,
+                                  fontSize: 18,
                                 ),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.close,
-                                    color: Colors
-                                        .white), 
+                                    color: Colors.white),
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
@@ -260,15 +265,13 @@ class _DriversPageState extends State<DriversPage> {
                           ),
                         ),
                         content: SizedBox(
-                          height: 300, 
+                          height: 300,
                           width: 200,
                           child: BatchUpload(
                             onUpload:
                                 (List<Map<String, dynamic>> uploadedData) {
-                             
                               print('Uploaded Data: $uploadedData');
-                              Navigator.of(context)
-                                  .pop();
+                              Navigator.of(context).pop();
                             },
                           ),
                         ),
@@ -300,7 +303,6 @@ class _DriversPageState extends State<DriversPage> {
 
               final data = snapshot.data!.snapshot.value;
 
-           
               if (data is Map<dynamic, dynamic>) {
                 final driversList = data.entries
                     .map((entry) => DriversAccount.fromJson(
@@ -321,7 +323,6 @@ class _DriversPageState extends State<DriversPage> {
                   },
                 );
               } else {
-             
                 return const Center(child: Text('Unexpected data format.'));
               }
             },
@@ -416,7 +417,7 @@ class _DriversPageState extends State<DriversPage> {
     );
   }
 
-  Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
+   Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     final String email = _emailController.text.trim();
     final String birthdate = _birthdateController.text.trim();
     final String firstName = _firstNameController.text.trim();
@@ -462,7 +463,8 @@ class _DriversPageState extends State<DriversPage> {
     
       await newDriverRef.set(newDriver.toJson());
 
-      
+       // Send email verification
+    await _sendEmailVerification(userCredential.user!);
 
       _fetchDriversData(); 
       Navigator.of(context).pop(); 
@@ -487,4 +489,19 @@ class _DriversPageState extends State<DriversPage> {
       );
     }
   }
+
+  
+Future<void> _sendEmailVerification(User user) async {
+  try {
+    await user.sendEmailVerification();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Verification email sent!')),
+    );
+  } catch (e) {
+    print('Error sending email verification: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error sending verification email: $e')),
+    );
+  }
+}
 }

@@ -11,7 +11,7 @@ class TotalRatings {
 
   factory TotalRatings.fromJson(Map<String, dynamic> json) {
     return TotalRatings(
-      averageRating: (json['averageRating'] as num).toDouble(),
+      averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
       ratingCount: json['ratingCount'] ?? 0,
       ratingSum: json['ratingSum'] ?? 0,
     );
@@ -38,8 +38,8 @@ class DriversAccount {
   final String phoneNumber;
   final String tag;
   final String codingScheme;
-  final String status;
-   String driverPhoto;
+  String status;
+  String driverPhoto;
   final String uid;
   final TotalRatings? totalRatings;
   final String? currentTripID;
@@ -65,10 +65,14 @@ class DriversAccount {
     this.deviceToken,
   });
 
-  static DriversAccount? fromJson(Map<dynamic, dynamic> json) {
+  void toggleStatus() {
+    status = (status == 'blocked') ? 'unblocked' : 'blocked';
+  }
 
+  // Updated fromJson to handle missing fields and better type checks
+  static DriversAccount? fromJson(Map<dynamic, dynamic> json) {
     if (json['firstName'] == null || (json['firstName'] as String).isEmpty) {
-      return null; 
+      return null;
     }
 
     return DriversAccount(
@@ -84,8 +88,8 @@ class DriversAccount {
       tag: json['tag'] ?? '',
       driverPhoto: json['driverPhoto'] ?? '',
       driverId: json['driverId'] ?? '',
-      status: json['status']?? '',
-      codingScheme: json['codingScheme']?? '',
+      status: json['status'] ?? 'unblocked',
+      codingScheme: json['codingScheme'] ?? '',
       totalRatings: json['totalRatings'] != null
           ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))
           : null,
@@ -107,12 +111,18 @@ class DriversAccount {
       'phoneNumber': phoneNumber,
       'tag': tag,
       'driverPhoto': driverPhoto,
-      'status':status,
+      'status': status,
       'codingScheme': codingScheme,
       'driverId': driverId,
       if (totalRatings != null) 'totalRatings': totalRatings!.toJson(),
       if (currentTripID != null) 'currentTripID': currentTripID,
       if (deviceToken != null) 'deviceToken': deviceToken,
     };
+  }
+
+  // This is an empty placeholder function for when you need a limited subset of fields
+  static fromLimitedJson(Map<String, dynamic> map) {
+    // Implementation for partial or limited data can go here
+    // For example, you might return a DriversAccount object with only some fields filled
   }
 }

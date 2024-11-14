@@ -16,7 +16,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _showPassword = false;
   bool _loading = false;
@@ -135,10 +134,10 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 20.0),
           _buildTextField(
             controller: _usernameController,
-            labelText: 'Username',
+            labelText: 'Log in using Email',
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please enter your username';
+                return 'Please enter your email';
               }
               return null;
             },
@@ -228,24 +227,23 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
-      
-        await _auth.signInWithEmailAndPassword(
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
           email: _usernameController.text,
           password: _passwordController.text,
         );
 
-        
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore.instance
             .collection('admin')
             .where('email', isEqualTo: _usernameController.text)
             .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          
+          // Log the login action to Firestore
+          await _addLogEntry("Login", userCredential.user!.uid);
+
           print('Admin user found in Firestore');
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
-     
           setState(() {
             _loading = false;
             _errorMessage = 'Access Restricted: Admins Only.';
@@ -268,5 +266,14 @@ class _LoginPageState extends State<LoginPage> {
         print('Error signing in: $e');
       }
     }
+  }
+
+  Future<void> _addLogEntry(String action, String adminId) async {
+    final logEntry = {
+      'adminId': adminId,
+      'action': action,
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+    await FirebaseFirestore.instance.collection('audit_logs').add(logEntry);
   }
 }

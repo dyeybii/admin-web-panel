@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:excel/excel.dart' as excel; 
+import 'package:excel/excel.dart' as excel;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'dart:typed_data'; 
-import 'dart:html' as html; 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:typed_data';
+import 'dart:html' as html;
 
 class BatchUpload extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onUpload;
@@ -18,10 +19,10 @@ class BatchUpload extends StatefulWidget {
 class _BatchUploadState extends State<BatchUpload> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child('driversAccount');
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? errorMessage;
   bool _isDragging = false;
   String? _selectedFileName;
-
 
   Future<void> _pickFileAndUpload(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -37,9 +38,8 @@ class _BatchUploadState extends State<BatchUpload> {
     }
   }
 
-  
   void _processExcelFile(Uint8List bytes) {
-    var spreadsheet = excel.Excel.decodeBytes(bytes); 
+    var spreadsheet = excel.Excel.decodeBytes(bytes);
 
     List<Map<String, dynamic>> data = [];
     errorMessage = null;
@@ -56,7 +56,6 @@ class _BatchUploadState extends State<BatchUpload> {
           String email = row[7]?.value?.toString() ?? '';
           String tag = row[8]?.value?.toString() ?? '';
 
-          
           final driverData = {
             'uid': '',
             'firstName': row[0]?.value?.toString(),
@@ -83,29 +82,39 @@ class _BatchUploadState extends State<BatchUpload> {
     _createUserAccountsAndUploadData(context, data);
   }
 
-
   Future<void> _createUserAccountsAndUploadData(BuildContext context, List<Map<String, dynamic>> data) async {
     for (var driverData in data) {
       try {
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: driverData['email'],
-          password: driverData['birthdate'], 
+          password: driverData['birthdate'],
         );
 
-     
         driverData['uid'] = userCredential.user?.uid ?? '';
 
-      
         await _databaseRef.push().set(driverData);
 
         widget.onUpload(data);
 
-        _setError(null); 
+        _setError(null);
+
+        await _addAuditLogEntry("Batch uploaded driver data for ${driverData['firstName']} ${driverData['lastName']}");
       } on FirebaseAuthException catch (e) {
         _setError(e.message ?? 'An error occurred during user creation.');
       } catch (e) {
         _setError('An unknown error occurred.');
       }
+    }
+  }
+
+  Future<void> _addAuditLogEntry(String action) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _firestore.collection('audit_logs').add({
+        'adminId': user.uid,
+        'action': action,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
     }
   }
 
@@ -119,7 +128,7 @@ class _BatchUploadState extends State<BatchUpload> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        _pickFileAndUpload(context); 
+        _pickFileAndUpload(context);
       },
       child: DragTarget<html.File>(
         onWillAcceptWithDetails: (data) {
@@ -136,12 +145,11 @@ class _BatchUploadState extends State<BatchUpload> {
         onAccept: (html.File data) async {
           setState(() {
             _isDragging = false;
-            _selectedFileName = data.name; 
+            _selectedFileName = data.name;
           });
 
-      
           final reader = html.FileReader();
-          reader.readAsArrayBuffer(data); 
+          reader.readAsArrayBuffer(data);
 
           reader.onLoadEnd.listen((event) {
             if (reader.result != null) {

@@ -1,12 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:admin_web_panel/pages/dashboard.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/fare_matrix_page.dart';
 import 'package:admin_web_panel/pages/profile_page.dart';
+import 'package:admin_web_panel/pages/audit_log_page.dart';
 import 'package:admin_web_panel/login.dart';
 
 class WebAdminPanel extends StatefulWidget {
-  const WebAdminPanel({super.key});
+  const WebAdminPanel({Key? key}) : super(key: key);
 
   @override
   State<WebAdminPanel> createState() => _WebAdminPanelState();
@@ -14,27 +19,59 @@ class WebAdminPanel extends StatefulWidget {
 
 class _WebAdminPanelState extends State<WebAdminPanel> {
   int _selectedIndex = 0;
+  String? _profileImageUrl;
+  String? _fullName;
 
   final List<Widget> _pages = [
     const Dashboard(),
     const DriversPage(),
     const FareMatrixPage(),
-    const profilePage(),
+    const ProfilePage(),
+    const AuditlogPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAdminData();
+  }
+
+  Future<void> _fetchAdminData() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String uid = user.uid;
+        DocumentSnapshot doc =
+            await FirebaseFirestore.instance.collection('admin').doc(uid).get();
+        String? imageUrl = doc['profileImage'] ?? null;
+        String? name = doc['fullName'] ?? 'Admin';
+
+        setState(() {
+          _profileImageUrl = imageUrl;
+          _fullName = name;
+        });
+      }
+    } catch (e) {
+      print('Error fetching admin data: $e');
+      setState(() {
+        _profileImageUrl = null;
+        _fullName = 'Admin';
+      });
+    }
+  }
 
   Future<void> _confirmLogout() async {
     bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(15),
             child: Container(
               width: 400,
-              color: Color(0xFF2E3192),
+              color: const Color(0xFF2E3192),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -45,17 +82,9 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(15)),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Confirm Logout',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      'Confirm Logout',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                   ),
                   Container(
@@ -75,19 +104,15 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
                               style: TextButton.styleFrom(
-                                backgroundColor: Color(0xFF505050),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                                  backgroundColor: const Color(0xFF505050)),
+                              child: const Text('Cancel',
+                                  style: TextStyle(color: Colors.white)),
                             ),
                             const SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: () => Navigator.pop(context, true),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFFF0000),
-                              ),
+                                  backgroundColor: const Color(0xFFFF0000)),
                               child: const Text('Logout'),
                             ),
                           ],
@@ -159,26 +184,47 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
+              
               decoration: BoxDecoration(
-                color: Color(0xFF2E3192),
+                image: DecorationImage(
+                  image: AssetImage(
+                      'images/background.jpg'), 
+                  fit: BoxFit.cover, 
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Admin Panel',
+                  const SizedBox(height: 10),
+                  _profileImageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: _profileImageUrl!,
+                          imageBuilder: (context, imageProvider) =>
+                              CircleAvatar(
+                            radius: 30, // Adjust the size here
+                            backgroundImage: imageProvider,
+                          ),
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => Container(
+                            width: 60,
+                          ),
+                        )
+                      : Container(),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Welcome back,',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 10),
                   Text(
-                    'COTODA Admin Dashboard',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
+                    _fullName ?? 'Admin',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
                     ),
                   ),
                 ],
@@ -200,6 +246,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
               2,
             ),
             _buildDrawerItem('Profile', const Icon(Icons.person), 3),
+            _buildDrawerItem('Audit Log', const Icon(Icons.history), 4),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),

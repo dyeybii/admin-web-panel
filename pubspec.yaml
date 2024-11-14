@@ -56,7 +56,7 @@ dependencies:
   syncfusion_flutter_charts: ^27.1.56
   number_pagination: ^1.1.5
   syncfusion_flutter_datepicker: ^27.1.56
-  avatars: ^3.0.2
+  sidebarx: ^0.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,6 +81,7 @@ flutter:
   - images/default_avatar.png
   - images/total_members.png
   - images/mobile1.png
+  - images/background.jpg
   - images/
   
   

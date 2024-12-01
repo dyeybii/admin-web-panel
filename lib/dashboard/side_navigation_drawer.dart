@@ -27,7 +27,7 @@ class _WebAdminPanelState extends State<WebAdminPanel> {
     const DriversPage(),
     const FareMatrixPage(),
     const ProfilePage(),
-    const AuditlogPage(),
+    AuditLogPage(),
   ];
 
   @override

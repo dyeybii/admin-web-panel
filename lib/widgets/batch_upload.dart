@@ -1,3 +1,5 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
+import 'package:admin_web_panel/widgets/export_template.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart' as excel;
@@ -5,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
-import 'dart:html' as html;
 
 class BatchUpload extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onUpload;
@@ -18,13 +19,17 @@ class BatchUpload extends StatefulWidget {
 
 class _BatchUploadState extends State<BatchUpload> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref().child('driversAccount');
+  final DatabaseReference _databaseRef =
+      FirebaseDatabase.instance.ref().child('driversAccount');
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String? errorMessage;
-  bool _isDragging = false;
-  String? _selectedFileName;
 
-  Future<void> _pickFileAndUpload(BuildContext context) async {
+  String? errorMessage;
+  Uint8List? _selectedFileBytes;
+  String? _selectedFileName;
+  double? _selectedFileSize;
+  bool _isUploading = false;
+
+  Future<void> _pickFile(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['xlsx'],
@@ -32,21 +37,33 @@ class _BatchUploadState extends State<BatchUpload> {
     );
 
     if (result != null && result.files.single.bytes != null) {
-      _processExcelFile(result.files.single.bytes!);
+      setState(() {
+        _selectedFileBytes = result.files.single.bytes;
+        _selectedFileName = result.files.single.name;
+        _selectedFileSize =
+            result.files.single.bytes!.lengthInBytes / (1024 * 1024); // In MB
+        errorMessage = null;
+      });
     } else {
       _setError('No file selected.');
     }
   }
 
-  void _processExcelFile(Uint8List bytes) {
-    var spreadsheet = excel.Excel.decodeBytes(bytes);
+  void _processExcelFile() {
+    if (_selectedFileBytes == null) {
+      _setError('Please select a file to upload.');
+      return;
+    }
 
+    var spreadsheet = excel.Excel.decodeBytes(_selectedFileBytes!);
     List<Map<String, dynamic>> data = [];
     errorMessage = null;
 
     for (var table in spreadsheet.tables.keys) {
       if (spreadsheet.tables[table]!.rows.isNotEmpty) {
-        for (int rowIndex = 1; rowIndex < spreadsheet.tables[table]!.rows.length; rowIndex++) {
+        for (int rowIndex = 1;
+            rowIndex < spreadsheet.tables[table]!.rows.length;
+            rowIndex++) {
           var row = spreadsheet.tables[table]!.rows[rowIndex];
 
           String birthdate = row[2]?.value?.toString() ?? '';
@@ -54,7 +71,8 @@ class _BatchUploadState extends State<BatchUpload> {
           String bodyNumber = row[4]?.value?.toString() ?? '';
           String phoneNumber = row[6]?.value?.toString() ?? '';
           String email = row[7]?.value?.toString() ?? '';
-          String tag = row[8]?.value?.toString() ?? '';
+          String codingScheme = row[8]?.value?.toString() ?? '';
+          String tag = row[9]?.value?.toString() ?? '';
 
           final driverData = {
             'uid': '',
@@ -67,6 +85,8 @@ class _BatchUploadState extends State<BatchUpload> {
             'phoneNumber': phoneNumber,
             'email': email,
             'driverPhoto': '',
+            'status': "unblock",
+            'codingScheme' : codingScheme ,
             'tag': tag,
             'totalRatings': {
               'averageRating': 5,
@@ -82,10 +102,16 @@ class _BatchUploadState extends State<BatchUpload> {
     _createUserAccountsAndUploadData(context, data);
   }
 
-  Future<void> _createUserAccountsAndUploadData(BuildContext context, List<Map<String, dynamic>> data) async {
+  Future<void> _createUserAccountsAndUploadData(
+      BuildContext context, List<Map<String, dynamic>> data) async {
+    setState(() {
+      _isUploading = true;
+    });
+
     for (var driverData in data) {
       try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
           email: driverData['email'],
           password: driverData['birthdate'],
         );
@@ -98,13 +124,18 @@ class _BatchUploadState extends State<BatchUpload> {
 
         _setError(null);
 
-        await _addAuditLogEntry("Batch uploaded driver data for ${driverData['firstName']} ${driverData['lastName']}");
+        await _addAuditLogEntry(
+            "Batch uploaded driver data for ${driverData['firstName']} ${driverData['lastName']}");
       } on FirebaseAuthException catch (e) {
         _setError(e.message ?? 'An error occurred during user creation.');
       } catch (e) {
         _setError('An unknown error occurred.');
       }
     }
+
+    setState(() {
+      _isUploading = false;
+    });
   }
 
   Future<void> _addAuditLogEntry(String action) async {
@@ -126,78 +157,70 @@ class _BatchUploadState extends State<BatchUpload> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _pickFileAndUpload(context);
-      },
-      child: DragTarget<html.File>(
-        onWillAcceptWithDetails: (data) {
-          setState(() {
-            _isDragging = true;
-          });
-          return true;
-        },
-        onLeave: (data) {
-          setState(() {
-            _isDragging = false;
-          });
-        },
-        onAccept: (html.File data) async {
-          setState(() {
-            _isDragging = false;
-            _selectedFileName = data.name;
-          });
-
-          final reader = html.FileReader();
-          reader.readAsArrayBuffer(data);
-
-          reader.onLoadEnd.listen((event) {
-            if (reader.result != null) {
-              Uint8List bytes = reader.result as Uint8List;
-              _processExcelFile(bytes);
-            }
-          });
-        },
-        builder: (context, candidateData, rejectedData) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _isDragging ? Colors.blue.shade50 : Colors.white,
-              border: Border.all(
-                color: _isDragging ? Colors.blue : Colors.grey,
-                style: BorderStyle.solid,
-                width: 2,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Important: Download the export template and follow its format.',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
               ),
-              borderRadius: BorderRadius.circular(10),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.file_upload, size: 50, color: Colors.blue),
-                const Text(
-                  'Click here to submit files (Use only Excel file .xlsx)',
-                  style: TextStyle(color: Colors.blue),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: () {
+                ExcelTemplateDownloader.downloadExcelTemplate(context);
+              },
+              child: const Text('Export Template'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: () {
+                _pickFile(context);
+              },
+              child: const Text('Import File'),
+            ),
+            if (_selectedFileName != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                'File: $_selectedFileName (${_selectedFileSize!.toStringAsFixed(2)} MB)',
+                style: const TextStyle(color: Colors.green),
+              ),
+            ],
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: _selectedFileBytes != null && !_isUploading
+                  ? _processExcelFile
+                  : null,
+              child: _isUploading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Upload'),
+            ),
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
                 ),
-                if (_selectedFileName != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Text(
-                      'Selected file: $_selectedFileName',
-                      style: const TextStyle(color: Colors.green),
-                    ),
-                  ),
-                if (errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
+              ),
+          ],
+        ),
       ),
     );
   }

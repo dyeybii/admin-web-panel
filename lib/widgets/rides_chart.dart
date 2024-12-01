@@ -10,7 +10,7 @@ class RidesChart extends StatefulWidget {
 }
 
 class _RidesChartState extends State<RidesChart> {
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime _endDate = DateTime.now();
   late Future<List<Map<String, dynamic>>> tripsDataFuture;
 
@@ -73,32 +73,31 @@ class _RidesChartState extends State<RidesChart> {
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(15), 
+            borderRadius: BorderRadius.circular(15),
           ),
-          titlePadding: EdgeInsets.zero, 
+          titlePadding: EdgeInsets.zero,
           title: Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             decoration: const BoxDecoration(
-              color: Color(0xFF2E3192), 
+              color: Color(0xFF2E3192),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15),
-              ), 
+              ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start, // Align to the left
               children: [
                 const Text(
                   'Select Date Range',
                   style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 18, 
+                    color: Colors.white,
+                    fontSize: 18,
                   ),
                 ),
+                Spacer(), // Pushes close button to the right
                 IconButton(
-                  icon: const Icon(Icons.close,
-                      color: Colors.white), 
+                  icon: const Icon(Icons.close, color: Colors.white),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -107,20 +106,27 @@ class _RidesChartState extends State<RidesChart> {
             ),
           ),
           content: Container(
-            color: Colors.white, 
+            color: Colors.white,
             child: SizedBox(
               width: 300,
               height: 400,
               child: SfDateRangePicker(
                 selectionMode: DateRangePickerSelectionMode.range,
-                maxDate: DateTime.now(), 
-                selectionColor:
-                    Color(0xFF2E3192), 
+                maxDate: DateTime.now(),
+                selectionColor: const Color(0xFF2E3192),
                 onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
                   setState(() {
                     if (args.value is PickerDateRange) {
-                      _startDate = args.value.startDate!;
-                      _endDate = args.value.endDate ?? _startDate;
+                      DateTime startDate = args.value.startDate!;
+                      DateTime endDate = args.value.endDate ?? startDate;
+
+                      // Limit end date to a maximum of 7 days from start date
+                      if (endDate.difference(startDate).inDays > 7) {
+                        endDate = startDate.add(const Duration(days: 7));
+                      }
+
+                      _startDate = startDate;
+                      _endDate = endDate;
                       tripsDataFuture = getTripData();
                     }
                   });
@@ -131,12 +137,8 @@ class _RidesChartState extends State<RidesChart> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                    color:
-                        Color(0xFF2E3192)), 
-              ),
+              child:
+                  const Text('OK', style: TextStyle(color: Color(0xFF2E3192))),
             ),
           ],
         );
@@ -172,7 +174,7 @@ class _RidesChartState extends State<RidesChart> {
             barRods: [
               BarChartRodData(
                 toY: chartData[date]!.toDouble(),
-                color: Color(0xFF2E3192),
+                color: const Color(0xFF2E3192),
                 width: 16,
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -220,68 +222,53 @@ class _RidesChartState extends State<RidesChart> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: const Color.fromARGB(255, 255, 255, 255),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade300,
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          color: Colors.white,
         ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Total Completed Rides',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                TextButton(
-                  onPressed: () => _showDateRangePicker(context),
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStateProperty.all(Color(0xFF2E3192)),
-                    padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-                    ),
-                    minimumSize: WidgetStateProperty.all(
-                        Size(120, 40)), 
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  child: const Text(
-                    'Select Date Range',
-                    style: TextStyle(
-                      color: Colors.white, 
-                      fontSize: 14, 
-                    ),
-                  ),
-                )
-              ],
+            const Text(
+              'Total Completed Rides',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            // Display selected date range
             Text(
               'Selected Range: ${DateFormat('MM/dd/yyyy').format(_startDate)} - ${DateFormat('MM/dd/yyyy').format(_endDate)}',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             SizedBox(
               height: 300,
               child: tripsData.isEmpty
                   ? const Center(
-                      child: Text('No data available',
-                          style:
-                              TextStyle(fontSize: 16, color: Colors.redAccent)))
+                      child: Text(
+                        'No data available',
+                        style: TextStyle(fontSize: 16, color: Colors.redAccent),
+                      ),
+                    )
                   : buildBarChart(tripsData),
+            ),
+            const Spacer(), // Pushes the button to the bottom
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => _showDateRangePicker(context),
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all(const Color(0xFF2E3192)),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                child: const Text(
+                  'Select Date Range',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ),
           ],
         ),

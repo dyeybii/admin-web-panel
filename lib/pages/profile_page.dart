@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/admin_create.dart';
+import 'package:admin_web_panel/widgets/admin_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,9 +12,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfilePage extends StatefulWidget {
-
   const ProfilePage({Key? key}) : super(key: key);
-  
+
   @override
   _profilePageState createState() => _profilePageState();
 }
@@ -25,6 +25,8 @@ class _profilePageState extends State<ProfilePage> {
   String profileImage = "";
   File? selectedAdminImage;
   Uint8List? selectedImageBytes;
+  String role = "";
+  List<Map<String, dynamic>> adminList = [];
 
   final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
@@ -51,19 +53,26 @@ class _profilePageState extends State<ProfilePage> {
             email = doc['email'] ?? '';
             fullName = doc['fullName'] ?? '';
             profileImage = doc['profileImage'] ?? '';
-          });
-        } else {
-          print('Admin document does not exist for uid: $uid');
-          setState(() {
-            contactNumber = '';
-            email = '';
-            fullName = '';
-            profileImage = '';
+            role = doc['role'] ?? ''; // Initialize the role
           });
         }
       } catch (e) {
         print('Error fetching admin data: $e');
       }
+    }
+  }
+
+  Future<void> _addAuditLog({
+    required String action,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('audit_logs').add({
+        'fullName': fullName,
+        'action': action,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error adding audit log: $e');
     }
   }
 
@@ -118,6 +127,8 @@ class _profilePageState extends State<ProfilePage> {
         selectedAdminImage = null;
         selectedImageBytes = null;
       });
+
+      await _addAuditLog(action: 'Updated profile image');
     }
   }
 
@@ -132,7 +143,7 @@ class _profilePageState extends State<ProfilePage> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(15),
             child: Container(
-              width: 400, 
+              width: 400,
               color: Colors.white,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -237,6 +248,8 @@ class _profilePageState extends State<ProfilePage> {
 
         oldPasswordController.clear();
         newPasswordController.clear();
+
+        await _addAuditLog(action: 'Changed password');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Password change failed: $e')),
@@ -251,24 +264,21 @@ class _profilePageState extends State<ProfilePage> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(15),
           ),
-          backgroundColor:
-              Color(0xFF2E3192), 
+          backgroundColor: Color(0xFF2E3192),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Delete Account',
                 style: TextStyle(
-                  color: Colors.white, 
-                  fontSize: 20, 
+                  color: Colors.white,
+                  fontSize: 20,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close,
-                    color: Colors.white), 
+                icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -277,17 +287,14 @@ class _profilePageState extends State<ProfilePage> {
           ),
           content: Text(
             'Are you sure you want to delete your account? This action cannot be undone.',
-            style: TextStyle(
-                color: Colors.white),
+            style: TextStyle(color: Colors.white),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
-                style: TextStyle(
-                    color: Colors
-                        .white), 
+                style: TextStyle(color: Colors.white),
               ),
             ),
             ElevatedButton(
@@ -295,14 +302,10 @@ class _profilePageState extends State<ProfilePage> {
                 await _deleteAccount();
                 Navigator.pop(context);
               },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Colors.red), 
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text(
                 'Delete',
-                style: TextStyle(
-                    color: Colors
-                        .white), 
+                style: TextStyle(color: Colors.white),
               ),
             ),
           ],
@@ -322,8 +325,9 @@ class _profilePageState extends State<ProfilePage> {
           SnackBar(content: Text('Account deleted successfully')),
         );
 
-        Navigator.of(context).pushReplacementNamed(
-            '/login'); 
+        await _addAuditLog(action: 'Deleted account');
+
+        Navigator.of(context).pushReplacementNamed('/login');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Account deletion failed: $e')),
@@ -334,43 +338,61 @@ class _profilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (role.isEmpty) {
+      return const Center(child: CircularProgressIndicator()); // Loading state
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
         actions: [
-          ElevatedButton(
-            style: CustomButtonStyles.elevatedButtonStyle,
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return Dialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Container(
-                        width: 400,
-                        height: 600,
-                        child: AdminCreatePage(),
+          // Show +Create Admin button only for Super Admin
+          if (role == 'Super Admin') 
+            ElevatedButton(
+              style: CustomButtonStyles.elevatedButtonStyle,
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-            child: const Text('+ Create Admin'),
-          ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Container(
+                          width: 400,
+                          height: 600,
+                          child: AdminCreatePage(),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              child: const Text('+ Create Admin'),
+            ),
+          const SizedBox(width: 10),
+          // Show View Admin List button only for Super Admin
+          if (role == 'Super Admin') 
+            IconButton(
+              icon: const Icon(Icons.list_alt),
+              tooltip: 'View Admin List',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminListPage()),
+                );
+              },
+            ),
           const SizedBox(width: 10),
         ],
       ),
+      // Rest of your ProfilePage UI
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Container(
             width: 500,
-            
             padding: const EdgeInsets.all(50.0),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -387,6 +409,7 @@ class _profilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Display Profile Image
                 CachedNetworkImage(
                   imageUrl: profileImage,
                   imageBuilder: (context, imageProvider) => CircleAvatar(
@@ -398,12 +421,12 @@ class _profilePageState extends State<ProfilePage> {
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
                 const SizedBox(height: 10),
+                // Change Profile Image Button
                 ElevatedButton(
                   style: CustomButtonStyles.elevatedButtonStyle,
                   onPressed: () async {
                     await _pickAdminImage();
-                    if (selectedAdminImage != null ||
-                        selectedImageBytes != null) {
+                    if (selectedAdminImage != null || selectedImageBytes != null) {
                       String downloadURL = await _uploadImage('admin_images/');
                       if (downloadURL.isNotEmpty) {
                         await _updateProfileImage(downloadURL);
@@ -428,7 +451,7 @@ class _profilePageState extends State<ProfilePage> {
                     Text(
                       contactNumber.isNotEmpty
                           ? contactNumber
-                          : 'Contact Number', maxLines: 11,
+                          : 'Contact Number',
                       style: const TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                   ],
@@ -443,13 +466,12 @@ class _profilePageState extends State<ProfilePage> {
                 ElevatedButton(
                   onPressed: _showDeleteAccountDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Color.fromARGB(255, 244, 0, 0), 
+                    backgroundColor: Color.fromARGB(255, 244, 0, 0),
                   ),
                   child: const Text(
                     'Delete Account',
                     style: TextStyle(
-                      color: Colors.white, 
+                      color: Colors.white,
                     ),
                   ),
                 ),

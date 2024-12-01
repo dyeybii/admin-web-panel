@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:admin_web_panel/Data_service.dart';
-import 'package:admin_web_panel/Style/appstyle.dart';
-import 'package:admin_web_panel/widgets/drivers_account.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class BlacklistDialog extends StatefulWidget {
   @override
@@ -10,138 +8,194 @@ class BlacklistDialog extends StatefulWidget {
 }
 
 class _BlacklistDialogState extends State<BlacklistDialog> {
-  final DataService _dataService = DataService();
-  bool _isLoading = false;
+  final DatabaseReference _driversRef = FirebaseDatabase.instance.ref().child('driversAccount');
+  List<Map<String, dynamic>> _drivers = [];
+  List<Map<String, dynamic>> _filteredDrivers = [];
+  bool _isProcessing = false;
+  final TextEditingController _searchController = TextEditingController();
 
-  // Method to toggle the driver status between 'blocked' and 'unblocked'
-  void _toggleDriverStatus(DriversAccount driver) async {
-    setState(() {
-      _isLoading = true;
-    });
+  @override
+  void initState() {
+    super.initState();
+    fetchDrivers();
+    _searchController.addListener(_filterDrivers);
+  }
 
-    final newStatus = driver.status == 'blocked' ? 'unblocked' : 'blocked';
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
+  Future<void> fetchDrivers() async {
     try {
-      // Update the driver's status in the Firebase Realtime Database
-      await _dataService.updateDriverStatus(driver.driverId, newStatus);
-
-      // After the update, refresh the UI
-      setState(() {
-        driver.status = newStatus;
-        _isLoading = false;
-      });
+      final snapshot = await _driversRef.get();
+      if (snapshot.exists) {
+        final data = snapshot.value as Map<dynamic, dynamic>;
+        setState(() {
+          _drivers = data.entries
+              .where((entry) =>
+                  (entry.value as Map<dynamic, dynamic>).containsKey('firstName'))
+              .map((entry) {
+            final value = Map<String, dynamic>.from(entry.value);
+            return {
+              'driverId': entry.key,
+              'uid': value['uid'], // Ensure 'uid' field exists in Firebase data
+              'fullName': '${value['firstName']} ${value['lastName'] ?? ''}',
+              'driverPhoto': value['driverPhoto'] ?? '', // Add driver photo field
+              'status': value['status'] ?? 'active', // Default to active if not defined
+            };
+          }).toList();
+          _filteredDrivers = List.from(_drivers);
+        });
+      }
     } catch (e) {
-      print("Error updating driver status: $e");
+      print('Error fetching drivers: $e');
+    }
+  }
+
+  void _filterDrivers() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredDrivers = _drivers
+          .where((driver) => driver['fullName'].toLowerCase().contains(query))
+          .toList();
+    });
+  }
+
+  Future<void> blockOrUnblockDriver(String driverId, bool disable) async {
+    setState(() {
+      _isProcessing = true;
+    });
+    try {
+      // Assuming 'uid' is stored in the driver data
+      final driver = _drivers.firstWhere((d) => d['driverId'] == driverId);
+      final uid = driver['uid']; // Ensure the `uid` field exists.
+
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('blockUser');
+      await callable.call({'uid': uid, 'disable': disable});
+
+      await _driversRef.child(driverId).update({'status': disable ? 'blocked' : 'active'});
+
+      fetchDrivers(); // Refresh the list after status update
+    } catch (e) {
+      print('Error blocking/unblocking driver: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to ${disable ? 'block' : 'unblock'} the driver')),
+      );
+    } finally {
       setState(() {
-        _isLoading = false;
+        _isProcessing = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      titlePadding: EdgeInsets.zero,
-      title: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF2E3192),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(15),
-            topRight: Radius.circular(15),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.7, // Adjusted width
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Blacklist',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              decoration: const BoxDecoration(
+                color: Color(0xFF2E3192),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Blacklist',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.of(context).pop(),
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by name...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _filteredDrivers.isEmpty
+                    ? const Center(child: Text('No drivers found'))
+                    : ListView.builder(
+                        itemCount: _filteredDrivers.length,
+                        itemBuilder: (context, index) {
+                          final driver = _filteredDrivers[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: driver['driverPhoto'].isNotEmpty
+                                  ? NetworkImage(driver['driverPhoto'])
+                                  : null,
+                              child: driver['driverPhoto'].isEmpty
+                                  ? const Icon(Icons.person)
+                                  : null,
+                            ),
+                            title: Text(driver['fullName']),
+                            subtitle: Text(
+                                'Driver ID: ${driver['driverId']}\nStatus: ${driver['status']}'),
+                            trailing: ElevatedButton(
+                              onPressed: _isProcessing
+                                  ? null
+                                  : () {
+                                      final disable = driver['status'] != 'blocked';
+                                      blockOrUnblockDriver(driver['driverId'], disable);
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: driver['status'] == 'blocked'
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                              child: Text(driver['status'] == 'blocked' ? 'Unblock' : 'Block'),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ),
+            // Footer Actions
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16, right: 16),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Close'),
+                ),
+              ),
             ),
           ],
         ),
       ),
-      content: SizedBox(
-        height: 400,
-        width: 400,
-        child: StreamBuilder<DatabaseEvent>(
-          stream: _dataService.getDriversStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-            if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-              return const Center(child: Text('No drivers found.'));
-            }
-
-            final data = snapshot.data!.snapshot.value;
-            if (data is Map<dynamic, dynamic>) {
-              final driversList = data.entries
-                  .map((entry) {
-                    final driverData = Map<String, dynamic>.from(entry.value);
-                    if (driverData.containsKey('firstName') &&
-                        driverData.containsKey('lastName') &&
-                        driverData.containsKey('status')) {
-                      return DriversAccount.fromJson(driverData);  // Fixed constructor call
-                    }
-                    return null;
-                  })
-                  .whereType<DriversAccount>()
-                  .toList();
-
-              if (driversList.isEmpty) {
-                return const Center(child: Text('No valid driver data.'));
-              }
-
-              return ListView.builder(
-                itemCount: driversList.length,
-                itemBuilder: (context, index) {
-                  final driver = driversList[index];
-                  return ListTile(
-                    title: Text('${driver.firstName} ${driver.lastName}'),
-                    trailing: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: driver.status == 'blocked'
-                            ? Colors.red
-                            : Colors.green,
-                      ),
-                      onPressed: _isLoading ? null : () {
-                        _toggleDriverStatus(driver);
-                      },
-                      child: _isLoading
-                          ? CircularProgressIndicator()
-                          : Text(driver.status == 'blocked' ? 'Unblock' : 'Block'),
-                    ),
-                  );
-                },
-              );
-            } else {
-              return const Center(child: Text('Unexpected data format.'));
-            }
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          style: CustomButtonStyles.elevatedButtonStyle,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Done'),
-        ),
-      ],
     );
   }
 }

@@ -3,8 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
-
-class Appstyle{
+class Appstyle {
   static Color bgColor = const Color(0xFFe2e2ff);
   static Color mainColor = const Color(0xFF000633);
   static Color accentColor = const Color(0xFF0065FF);
@@ -16,31 +15,28 @@ class Appstyle{
     Colors.green.shade100,
     Colors.blue.shade100,
     Colors.blueGrey.shade100,
-Colors.blueGrey.shade100,
+    Colors.blueGrey.shade100,
   ];
 
+  static TextStyle mainTitle =
+      GoogleFonts.poppins(fontSize: 25.0, fontWeight: FontWeight.bold);
 
-  static TextStyle mainTitle = 
-          GoogleFonts.poppins(fontSize: 25.0,fontWeight:FontWeight .bold);
+  static TextStyle dateTitle =
+      GoogleFonts.poppins(fontSize: 15.0, fontWeight: FontWeight.normal);
 
-  
-  static TextStyle dateTitle = 
-          GoogleFonts.poppins(fontSize: 15.0,fontWeight:FontWeight .normal); 
-
-  static TextStyle mainContent = 
-          GoogleFonts.poppins(fontSize: 18.0,fontWeight:FontWeight .w500);
+  static TextStyle mainContent =
+      GoogleFonts.poppins(fontSize: 18.0, fontWeight: FontWeight.w500);
 }
-
 
 class CustomButtonStyles {
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.white, backgroundColor: const Color(0xFF2E3192), // Text color
+    foregroundColor: Colors.white,
+    backgroundColor: const Color(0xFF2E3192),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(5),
     ),
   );
 }
-
 
 class AppColors {
   static const Color primary = contentColorCyan;
@@ -66,8 +62,6 @@ class AppColors {
   static const Color contentColorCyan = Color(0xFF50E4FF);
 }
 
-
-
 class FareTableStyle {
   static final TextStyle headerTextStyle = TextStyle(
     fontWeight: FontWeight.bold,
@@ -82,6 +76,20 @@ class FareTableStyle {
   );
 }
 
-  Color get specialColor {
-    return Color(0xFF2E3192); // Return the desired color
-  }
+Color get specialColor {
+  return Color(0xFF2E3192); // Return the desired color
+}
+
+Map<int, Color> color = {
+  50: Color.fromRGBO(46, 49, 146, .1),
+  100: Color.fromRGBO(46, 49, 146, .2),
+  200: Color.fromRGBO(46, 49, 146, .3),
+  300: Color.fromRGBO(46, 49, 146, .4),
+  400: Color.fromRGBO(46, 49, 146, .5),
+  500: Color.fromRGBO(46, 49, 146, .6),
+  600: Color.fromRGBO(46, 49, 146, .7),
+  700: Color.fromRGBO(46, 49, 146, .8),
+  800: Color.fromRGBO(46, 49, 146, .9),
+  900: Color.fromRGBO(46, 49, 146, 1),
+};
+MaterialColor customColor = MaterialColor(0xFF2E3192, color);

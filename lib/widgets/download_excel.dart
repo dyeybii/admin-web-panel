@@ -1,4 +1,5 @@
 import 'package:admin_web_panel/widgets/drivers_account.dart';
+import 'package:admin_web_panel/widgets/log_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
@@ -11,18 +12,20 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 
 class ExcelDownloader {
-
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static Future<void> downloadExcel(
-      BuildContext context, List<DriversAccount> allDrivers, List<DriversAccount> selectedDrivers) async {
-
-    List<DriversAccount> driversToDownload = selectedDrivers.isNotEmpty ? selectedDrivers : allDrivers;
+      BuildContext context,
+      List<DriversAccount> allDrivers,
+      List<DriversAccount> selectedDrivers) async {
+    List<DriversAccount> driversToDownload =
+        selectedDrivers.isNotEmpty ? selectedDrivers : allDrivers;
 
     final Workbook workbook = Workbook();
     final Worksheet sheet = workbook.worksheets[0];
 
+    // Adding headers
     sheet.getRangeByName('A1').setText('First Name');
     sheet.getRangeByName('B1').setText('Last Name');
     sheet.getRangeByName('C1').setText('Date of Birth');
@@ -54,6 +57,7 @@ class ExcelDownloader {
     final List<int> bytes = workbook.saveAsStream();
     workbook.dispose();
 
+    // Save or download the Excel file
     if (kIsWeb) {
       AnchorElement(
           href:
@@ -62,8 +66,9 @@ class ExcelDownloader {
         ..click();
     } else {
       final String path = (await getApplicationSupportDirectory()).path;
-      final String fileName =
-          Platform.isWindows ? '$path\\Drivers Information.xlsx' : '$path/drivers_data.xlsx';
+      final String fileName = Platform.isWindows
+          ? '$path\\Drivers Information.xlsx'
+          : '$path/drivers_data.xlsx';
       final File file = File(fileName);
       await file.writeAsBytes(bytes, flush: true);
       OpenFile.open(file.path);
@@ -75,17 +80,44 @@ class ExcelDownloader {
       ),
     );
 
+    // Log the action
     await _addAuditLogEntry("Downloaded drivers data file");
   }
 
+  // Log entry method
   static Future<void> _addAuditLogEntry(String action) async {
     final user = _auth.currentUser;
     if (user != null) {
-      await _firestore.collection('audit_logs').add({
-        'adminId': user.uid,
-        'action': action,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      try {
+        // Query Firestore to fetch the admin document
+        final querySnapshot = await _firestore
+            .collection('admin')
+            .where('email',
+                isEqualTo: user.email) // Alternatively, match by UID
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          final adminDoc = querySnapshot.docs.first;
+
+          // Log the action using LogEntry.add
+          await LogEntry.add(
+            action: action,
+            adminId: adminDoc.id,
+            fullName: adminDoc.data()['fullName'] ?? 'Unknown',
+            profileImage: adminDoc.data()['profileImage'] ?? '',
+          );
+        } else {
+          // Handle the case where admin data isn't found
+          await LogEntry.add(
+            action: action,
+            adminId: user.uid,
+            fullName: 'Unknown Admin',
+            profileImage: '',
+          );
+        }
+      } catch (e) {
+        print('Error adding audit log entry: $e');
+      }
     }
   }
 }

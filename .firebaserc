@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "passenger-signuplogin"
-  }
+    "default": "capstone-ca5d5",
+    "trico": "capstone-ca5d5"
+  },
+  "targets": {},
+  "etags": {}
 }

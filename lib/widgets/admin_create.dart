@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:admin_web_panel/Style/appstyle.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -17,12 +17,14 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   File? _selectedAdminImage;
   Uint8List? _selectedImageBytes;
   bool _isUploading = false;
-  
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _contactNumberController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _newPasswordAdminController = TextEditingController();
+
+  String _selectedRole = 'Admin'; // Default role
 
   Future<void> _pickAdminImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
@@ -87,6 +89,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           'contactNumber': _contactNumberController.text,
           'email': _emailController.text,
           'fullName': _fullNameController.text,
+          'role': _selectedRole,
           'profileImage': newAdminImageUrl,
         });
 
@@ -106,6 +109,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     setState(() {
       _selectedAdminImage = null;
       _selectedImageBytes = null;
+      _selectedRole = 'Admin';
     });
   }
 
@@ -185,7 +189,7 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
               _buildTextField(_contactNumberController, 'Contact Number', (value) {
                 if (value == null || value.isEmpty) return 'Contact Number is required';
                 if (!RegExp(r'^\d{11}$').hasMatch(value)) {
-                  return 'Enter a valid 10-digit number';
+                  return 'Enter a valid 11-digit number';
                 }
                 return null;
               }),
@@ -195,6 +199,8 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
                 if (value.length < 6) return 'Password must be at least 6 characters';
                 return null;
               }, obscureText: true),
+              const SizedBox(height: 10),
+              _buildRoleDropdown(),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: CustomButtonStyles.elevatedButtonStyle,
@@ -223,6 +229,38 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           ),
           obscureText: obscureText,
           validator: validator,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return Center(
+      child: SizedBox(
+        width: 250,
+        child: DropdownButtonFormField<String>(
+          value: _selectedRole,
+          decoration: const InputDecoration(
+            labelText: 'Role',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
+          ),
+          items: ['Admin', 'Super Admin'].map((role) {
+            return DropdownMenuItem<String>(
+              value: role,
+              child: Text(role),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedRole = value!;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Role is required';
+            return null;
+          },
         ),
       ),
     );

@@ -1,6 +1,8 @@
+import 'package:admin_web_panel/widgets/log_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   static const String id = '/login';
@@ -14,12 +16,30 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _showPassword = false;
   bool _loading = false;
   String _errorMessage = '';
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberMePreference();
+  }
+
+  Future<void> _loadRememberMePreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _rememberMe = prefs.getBool('rememberMe') ?? false;
+    });
+  }
+
+  Future<void> _setRememberMePreference(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool('rememberMe', value);
+  }
 
   @override
   void dispose() {
@@ -28,123 +48,138 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void _triggerSignIn() {
+    if (!_loading) {
+      _signInWithEmailAndPassword();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: Center(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            double padding = constraints.maxWidth * 0.1;
-            double containerSize = constraints.maxWidth - (padding * 6);
-            bool isSmallScreen = constraints.maxWidth < 600;
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isSmallScreen =
+                    constraints.maxWidth < 600; 
+                String backgroundImage = isSmallScreen
+                    ? 'images/bg_mobile.jpg' 
+                    : 'images/bg.jpg'; 
 
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(padding),
-                child: Stack(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Container(
-                            width: isSmallScreen ? double.infinity : containerSize,
-                            padding: const EdgeInsets.all(20.0),
-                            child: SingleChildScrollView(
-                              child: _buildLoginForm(isSmallScreen),
-                            ),
+                return Image.asset(
+                  backgroundImage,
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
+          // Content Overlay
+          Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isSmallScreen = constraints.maxWidth < 600;
+                double containerWidth = isSmallScreen
+                    ? constraints.maxWidth * 0.95
+                    : 450; // Adjust for mobile/web
+
+                return SingleChildScrollView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+                  child: Center(
+                    child: Container(
+                      width: containerWidth,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 30),
+                      decoration: BoxDecoration(
+                        color: Colors.white
+                            .withOpacity(0.9), // Semi-transparent for overlay
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
                           ),
-                        ),
-                        if (!isSmallScreen) const SizedBox(width: 20.0),
-                        if (!isSmallScreen)
-                          Flexible(
-                            child: Image.asset(
-                              'images/LOGO.png',
-                              fit: BoxFit.contain,
-                            ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // TRI.CO Logo and Text at the top-center
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'TRI.CO',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 70,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF2E3192),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Image.asset(
+                                    'images/LOGO.png',
+                                    width: 70,
+                                    height: 70,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Administration Login',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2E3192),
+                                ),
+                              ),
+                            ],
                           ),
-                      ],
+                          const SizedBox(height: 30),
+                          _buildLoginForm(),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLoginForm(bool isSmallScreen) {
+  Widget _buildLoginForm() {
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'TRI.CO',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: isSmallScreen ? 40 : 74,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2E3192),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Administration',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: isSmallScreen ? 20 : 30,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 176, 176, 176),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    Text(
-                      'Panel',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: isSmallScreen ? 20 : 30,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 176, 176, 176),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20.0),
           _buildTextField(
             controller: _usernameController,
-            labelText: 'Log in using Email',
+            labelText: 'Email',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
               }
               return null;
             },
-            onFieldSubmitted: (_) => _signInWithEmailAndPassword(),
           ),
           const SizedBox(height: 20.0),
-          _buildPasswordField(onFieldSubmitted: (_) => _signInWithEmailAndPassword()),
+          _buildPasswordField(),
+          const SizedBox(height: 20.0),
+          _buildRememberMeCheckbox(),
           const SizedBox(height: 20.0),
           _buildLoginButton(),
           if (_errorMessage.isNotEmpty)
@@ -167,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
     required TextEditingController controller,
     required String labelText,
     FormFieldValidator<String>? validator,
-    void Function(String)? onFieldSubmitted,
   }) {
     return TextFormField(
       controller: controller,
@@ -176,11 +210,11 @@ class _LoginPageState extends State<LoginPage> {
         border: const OutlineInputBorder(),
       ),
       validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
+      textInputAction: TextInputAction.next, // Move to next field when Enter is pressed
     );
   }
 
-  Widget _buildPasswordField({void Function(String)? onFieldSubmitted}) {
+  Widget _buildPasswordField() {
     return TextFormField(
       controller: _passwordController,
       obscureText: !_showPassword,
@@ -202,20 +236,52 @@ class _LoginPageState extends State<LoginPage> {
         }
         return null;
       },
-      onFieldSubmitted: onFieldSubmitted,
+      textInputAction: TextInputAction.done, 
+      onFieldSubmitted: (_) => _triggerSignIn(), 
+    );
+  }
+
+  Widget _buildRememberMeCheckbox() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Checkbox(
+          value: _rememberMe,
+          onChanged: (value) {
+            setState(() {
+              _rememberMe = value ?? false;
+            });
+            _setRememberMePreference(_rememberMe);
+          },
+        ),
+        const Text(
+          'Remember me',
+          style: TextStyle(fontSize: 16),
+        ),
+      ],
     );
   }
 
   Widget _buildLoginButton() {
-    return ElevatedButton(
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(
-            const Color.fromARGB(255, 46, 49, 146)),
-        foregroundColor: MaterialStateProperty.all<Color>(
-            const Color.fromARGB(255, 255, 255, 255)),
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: const Color(0xFF2E3192),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: _loading ? null : _signInWithEmailAndPassword,
+        child: _loading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Sign In',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
       ),
-      onPressed: _loading ? null : _signInWithEmailAndPassword,
-      child: _loading ? const CircularProgressIndicator() : const Text('Login'),
     );
   }
 
@@ -232,16 +298,22 @@ class _LoginPageState extends State<LoginPage> {
           password: _passwordController.text,
         );
 
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore.instance
-            .collection('admin')
-            .where('email', isEqualTo: _usernameController.text)
-            .get();
+        QuerySnapshot<Map<String, dynamic>> querySnapshot =
+            await FirebaseFirestore.instance
+                .collection('admin')
+                .where('email', isEqualTo: _usernameController.text)
+                .get();
 
         if (querySnapshot.docs.isNotEmpty) {
-          // Log the login action to Firestore
-          await _addLogEntry("Login", userCredential.user!.uid);
+          final adminDoc = querySnapshot.docs.first;
+          // Use the LogEntry class to log the action
+          await LogEntry.add(
+            action: "Login",
+            adminId: adminDoc.id,
+            fullName: adminDoc.data()['fullName'] ?? 'Unknown',
+            profileImage: adminDoc.data()['profileImage'] ?? '',
+          );
 
-          print('Admin user found in Firestore');
           Navigator.pushReplacementNamed(context, '/dashboard');
         } else {
           setState(() {
@@ -250,30 +322,17 @@ class _LoginPageState extends State<LoginPage> {
           });
           await _auth.signOut();
         }
-      } on FirebaseAuthException catch (e) {
+      } on FirebaseAuthException {
         setState(() {
           _loading = false;
-          _errorMessage =
-              'Please check your password and account name and try again.';
+          _errorMessage = 'Please check your email and password and try again.';
         });
-        print('Error signing in: $e');
-      } catch (e) {
+      } catch (_) {
         setState(() {
           _loading = false;
-          _errorMessage =
-              'An unexpected error occurred. Please try again later.';
+          _errorMessage = 'An unexpected error occurred.';
         });
-        print('Error signing in: $e');
       }
     }
-  }
-
-  Future<void> _addLogEntry(String action, String adminId) async {
-    final logEntry = {
-      'adminId': adminId,
-      'action': action,
-      'timestamp': FieldValue.serverTimestamp(),
-    };
-    await FirebaseFirestore.instance.collection('audit_logs').add(logEntry);
   }
 }

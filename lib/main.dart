@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/dashboard/side_navigation_drawer.dart';
 import 'package:admin_web_panel/login.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'TRI.CO',
       theme: ThemeData(
         fontFamily: 'Poppins',
-        primarySwatch: Colors.blue,
+        primarySwatch: customColor,
       ),
       initialRoute: '/login',
       routes: {

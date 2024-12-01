@@ -1,4 +1,4 @@
-import 'package:admin_web_panel/Data_service.dart';
+import 'package:admin_web_panel/data_service.dart';
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/fare_table.dart';
 import 'package:flutter/material.dart';

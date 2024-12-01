@@ -85,7 +85,7 @@ class _BatchUploadState extends State<BatchUpload> {
             'phoneNumber': phoneNumber,
             'email': email,
             'driverPhoto': '',
-            'status': "unblock",
+            'status': "active",
             'codingScheme' : codingScheme ,
             'tag': tag,
             'totalRatings': {

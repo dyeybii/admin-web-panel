@@ -41,10 +41,7 @@ class DashboardDesktopView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       children: [
         const SizedBox(height: 20),
-        Text(
-          'Welcome Back!',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        
         const Divider(thickness: 2),
         const SizedBox(height: 20),
         GridView.count(

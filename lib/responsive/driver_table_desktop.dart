@@ -221,29 +221,33 @@ class _DriverTableDesktopState extends State<DriverTableDesktop> {
     return filteredList.sublist(start, end);
   }
 
-  void _showEditDialog(BuildContext context, DriversAccount driver) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final screenSize = MediaQuery.of(context).size;
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+void _showEditDialog(BuildContext context, DriversAccount driver) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final screenSize = MediaQuery.of(context).size;
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15), // Apply border radius to Dialog
+        ),
+        child: Container(
+          width: screenSize.width * 0.6,
+          height: screenSize.height * 0.9,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15), // Ensure border radius is applied
           ),
-          child: Container(
-            width: screenSize.width * 0.6,
-            height: screenSize.height * 0.9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15), // Clip content to rounded borders
             child: Column(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                   decoration: const BoxDecoration(
                     color: Color(0xFF2E3192),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(15),
                       topRight: Radius.circular(15),
-                    ),
+                    ), // Apply border radius to the top corners of the header
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,23 +277,24 @@ class _DriverTableDesktopState extends State<DriverTableDesktop> {
                     idNumber: driver.idNumber,
                     bodyNumber: driver.bodyNumber,
                     email: driver.email,
-                    birthdate:
-                        driver.birthdate.isNotEmpty ? driver.birthdate : '',
+                    birthdate: driver.birthdate.isNotEmpty ? driver.birthdate : '',
                     address: driver.address.isNotEmpty ? driver.address : '',
                     phoneNumber: driver.phoneNumber,
                     tag: driver.tag,
                     codingScheme: driver.codingScheme,
-                    driverPhoto:
-                        driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
+                    driverPhoto: driver.driverPhoto.isNotEmpty ? driver.driverPhoto : '',
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
+
 
   List<Widget> _buildRatingWithStar(double? averageRating) {
     double rating = averageRating ?? 0.0;

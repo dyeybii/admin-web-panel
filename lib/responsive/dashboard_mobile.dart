@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/widgets/pie_chart_mobile.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_web_panel/widgets/rides_chart.dart';
 import 'package:admin_web_panel/widgets/pie_chart.dart';
@@ -41,13 +42,7 @@ class DashboardMobileView extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       children: [
         const SizedBox(height: 20),
-        Text(
-          'Welcome Back!',
-          style: TextStyle(
-            fontSize: 20.0, // Adjust the font size as needed for mobile
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        
         const Divider(thickness: 2),
         const SizedBox(height: 20),
         Column(
@@ -68,7 +63,7 @@ class DashboardMobileView extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               height: 450,
-              child: ResponsivePieChart(
+              child: ResponsivePieChartMobile(
                 totalUsers: totalMembers,
                 onlineUsers: totalOnlineRiders,
               ),

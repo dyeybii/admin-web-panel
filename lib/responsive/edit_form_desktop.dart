@@ -15,7 +15,6 @@ class EditDriverFormDesktop extends StatefulWidget {
   final String codingScheme;
   final String tag;
   final String driverPhoto;
-  
 
   EditDriverFormDesktop({
     required this.driverId,
@@ -30,7 +29,6 @@ class EditDriverFormDesktop extends StatefulWidget {
     required this.codingScheme,
     required this.tag,
     required this.driverPhoto,
-    
   });
 
   @override
@@ -45,7 +43,7 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
   late TextEditingController _bodyNumberController;
   late TextEditingController _addressController;
   late TextEditingController _phoneNumberController;
-  late TextEditingController _codingSchemeController;
+  late String _selectedCodingScheme;
   late String _selectedTag;
   late String _driverPhotoUrl;
   bool _isLoading = false;
@@ -60,12 +58,26 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
     _bodyNumberController = TextEditingController(text: widget.bodyNumber);
     _addressController = TextEditingController(text: widget.address);
     _phoneNumberController = TextEditingController(text: widget.phoneNumber);
-    _codingSchemeController = TextEditingController(text: widget.codingScheme);
-    _selectedTag = widget.tag;
+
+    // Ensure codingScheme is valid; default to "Monday" if invalid
+    _selectedCodingScheme = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday'
+    ].contains(widget.codingScheme)
+        ? widget.codingScheme
+        : 'Monday';
+
+    // Ensure tag is valid; default to "Member" if invalid
+    _selectedTag =
+        ['Member', 'Operator'].contains(widget.tag) ? widget.tag : 'Member';
+
     _driverPhotoUrl = widget.driverPhoto.isEmpty
         ? 'images/default_avatar.png'
         : widget.driverPhoto;
-   
+
     _fetchDriverByUID();
   }
 
@@ -112,8 +124,7 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
           'phoneNumber': _phoneNumberController.text,
           'tag': _selectedTag,
           'driverPhoto': _driverPhotoUrl,
-          'codingScheme': _codingSchemeController.text,
-
+          'codingScheme': _selectedCodingScheme,
         });
 
         setState(() {
@@ -121,33 +132,15 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
           _isEditing = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Driver updated successfully!')),
-        );
+        
         Navigator.pop(context);
       } catch (e) {
         setState(() {
           _isLoading = false;
         });
-        print('Error updating driver: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating driver: $e')),
-        );
+       
       }
     }
-  }
-
-  Widget buildTextField(TextEditingController controller, String labelText,
-      {int? maxLength, bool isEditable = true}) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: labelText,
-        border: const OutlineInputBorder(),
-      ),
-      maxLength: maxLength,
-      enabled: isEditable && _isEditing,
-    );
   }
 
   Widget buildFormFields() {
@@ -195,46 +188,56 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
                 enabled: false,
               ),
               const SizedBox(height: 10.0),
-              buildTextField(_codingSchemeController, 'Coding Scheme',
-                  maxLength: 4),
+              DropdownButtonFormField<String>(
+                value: _selectedCodingScheme,
+                decoration: const InputDecoration(
+                  labelText: 'Coding Scheme',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+                    .map((day) => DropdownMenuItem(
+                          value: day,
+                          child: Text(day),
+                        ))
+                    .toList(),
+                onChanged: _isEditing
+                    ? (value) => setState(() => _selectedCodingScheme = value!)
+                    : null,
+              ),
               const SizedBox(height: 10.0),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Tag',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile(
-                          title: const Text('Member'),
-                          value: 'Member',
-                          groupValue: _selectedTag,
-                          onChanged: _isEditing
-                              ? (value) =>
-                                  setState(() => _selectedTag = value as String)
-                              : null,
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile(
-                          title: const Text('Operator'),
-                          value: 'Operator',
-                          groupValue: _selectedTag,
-                          onChanged: _isEditing
-                              ? (value) =>
-                                  setState(() => _selectedTag = value as String)
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              DropdownButtonFormField<String>(
+                value: _selectedTag,
+                decoration: const InputDecoration(
+                  labelText: 'Tag',
+                  border: OutlineInputBorder(),
+                ),
+                items: ['Member', 'Operator']
+                    .map((tag) => DropdownMenuItem(
+                          value: tag,
+                          child: Text(tag),
+                        ))
+                    .toList(),
+                onChanged: _isEditing
+                    ? (value) => setState(() => _selectedTag = value!)
+                    : null,
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget buildTextField(TextEditingController controller, String labelText,
+      {int? maxLength, bool isEditable = true}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: const OutlineInputBorder(),
+      ),
+      maxLength: maxLength,
+      enabled: isEditable && _isEditing,
     );
   }
 
@@ -259,14 +262,14 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         ElevatedButton(
-                           style: CustomButtonStyles.elevatedButtonStyle,
+                          style: CustomButtonStyles.elevatedButtonStyle,
                           onPressed: () {
                             setState(() => _isEditing = false);
                           },
                           child: const Text('Cancel'),
                         ),
                         ElevatedButton(
-                           style: CustomButtonStyles.elevatedButtonStyle,
+                          style: CustomButtonStyles.elevatedButtonStyle,
                           onPressed: () async {
                             String? driverKey = await _fetchDriverByUID();
                             if (driverKey != null) {
@@ -278,7 +281,7 @@ class _EditDriverFormDesktopState extends State<EditDriverFormDesktop> {
                       ],
                     )
                   : ElevatedButton(
-                     style: CustomButtonStyles.elevatedButtonStyle,
+                    style: CustomButtonStyles.elevatedButtonStyle,
                       onPressed: () => setState(() => _isEditing = true),
                       child: const Text('Edit Information'),
                     ),

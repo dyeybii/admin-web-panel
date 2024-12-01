@@ -8,11 +8,31 @@ class BlacklistDialog extends StatefulWidget {
 }
 
 class _BlacklistDialogState extends State<BlacklistDialog> {
-  final DatabaseReference _driversRef = FirebaseDatabase.instance.ref().child('driversAccount');
+  final DatabaseReference _driversRef =
+      FirebaseDatabase.instance.ref().child('driversAccount');
   List<Map<String, dynamic>> _drivers = [];
   List<Map<String, dynamic>> _filteredDrivers = [];
   bool _isProcessing = false;
   final TextEditingController _searchController = TextEditingController();
+
+  static InputDecoration searchBarDecoration = InputDecoration(
+    labelText: 'Search by Name',
+    prefixIcon: const Icon(Icons.search),
+    border: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xFF2E3192), width: 2.0),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xFF2E3192), width: 2.0),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: const BorderSide(color: Color(0xFF2E3192), width: 2.0),
+      borderRadius: BorderRadius.circular(5),
+    ),
+    filled: true,
+    fillColor: Colors.white,
+  );
 
   @override
   void initState() {
@@ -34,15 +54,16 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
         final data = snapshot.value as Map<dynamic, dynamic>;
         setState(() {
           _drivers = data.entries
-              .where((entry) =>
-                  (entry.value as Map<dynamic, dynamic>).containsKey('firstName'))
+              .where((entry) => (entry.value as Map<dynamic, dynamic>)
+                  .containsKey('firstName'))
               .map((entry) {
             final value = Map<String, dynamic>.from(entry.value);
             return {
               'driverId': entry.key,
               'uid': value['uid'], // Ensure 'uid' field exists in Firebase data
               'fullName': '${value['firstName']} ${value['lastName'] ?? ''}',
-              'driverPhoto': value['driverPhoto'] ?? '', // Add driver photo field
+              'driverPhoto':
+                  value['driverPhoto'] ?? '', // Add driver photo field
               'status': value['status'] ?? 'active', // Default to active if not defined
             };
           }).toList();
@@ -68,20 +89,24 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
       _isProcessing = true;
     });
     try {
-      // Assuming 'uid' is stored in the driver data
       final driver = _drivers.firstWhere((d) => d['driverId'] == driverId);
       final uid = driver['uid']; // Ensure the `uid` field exists.
 
-      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('blockUser');
+      final HttpsCallable callable =
+          FirebaseFunctions.instance.httpsCallable('blockUser');
       await callable.call({'uid': uid, 'disable': disable});
 
-      await _driversRef.child(driverId).update({'status': disable ? 'blocked' : 'active'});
+      await _driversRef
+          .child(driverId)
+          .update({'status': disable ? 'blocked' : 'active'});
 
       fetchDrivers(); // Refresh the list after status update
     } catch (e) {
       print('Error blocking/unblocking driver: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to ${disable ? 'block' : 'unblock'} the driver')),
+        SnackBar(
+            content:
+                Text('Failed to ${disable ? 'block' : 'unblock'} the driver')),
       );
     } finally {
       setState(() {
@@ -92,10 +117,14 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size for responsiveness
+    double width = MediaQuery.of(context).size.width;
+    double dialogWidth = width < 600 ? width * 0.9 : 400; // Adjust dialog width based on screen size
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.7, // Adjusted width
+        width: dialogWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -127,21 +156,18 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
                 ],
               ),
             ),
-            // Search Bar
+            SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search by name...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              child: Container(
+                width: double.infinity, // Ensure the search bar takes full width
+                child: TextField(
+                  controller: _searchController,
+                  decoration: searchBarDecoration,
                 ),
               ),
             ),
-            // Content
+            // List of drivers
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -167,30 +193,23 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
                               onPressed: _isProcessing
                                   ? null
                                   : () {
-                                      final disable = driver['status'] != 'blocked';
-                                      blockOrUnblockDriver(driver['driverId'], disable);
+                                      final disable =
+                                          driver['status'] != 'blocked';
+                                      blockOrUnblockDriver(
+                                          driver['driverId'], disable);
                                     },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: driver['status'] == 'blocked'
                                     ? Colors.green
                                     : Colors.red,
                               ),
-                              child: Text(driver['status'] == 'blocked' ? 'Unblock' : 'Block'),
+                              child: Text(driver['status'] == 'blocked'
+                                  ? 'Unblock'
+                                  : 'Block'),
                             ),
                           );
                         },
                       ),
-              ),
-            ),
-            // Footer Actions
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16, right: 16),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
-                ),
               ),
             ),
           ],

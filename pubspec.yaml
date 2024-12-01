@@ -58,6 +58,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^27.1.56
   csv: ^6.0.0
   shared_preferences: ^2.3.3
+  flutter_speed_dial: ^7.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

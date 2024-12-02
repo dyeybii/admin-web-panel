@@ -64,7 +64,8 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
               'fullName': '${value['firstName']} ${value['lastName'] ?? ''}',
               'driverPhoto':
                   value['driverPhoto'] ?? '', // Add driver photo field
-              'status': value['status'] ?? 'active', // Default to active if not defined
+              'status': value['status'] ??
+                  'active', // Default to active if not defined
             };
           }).toList();
           _filteredDrivers = List.from(_drivers);
@@ -117,9 +118,8 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // Get screen size for responsiveness
     double width = MediaQuery.of(context).size.width;
-    double dialogWidth = width < 600 ? width * 0.9 : 400; // Adjust dialog width based on screen size
+    double dialogWidth = width < 600 ? width * 0.9 : 600; //screen size
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -158,9 +158,11 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
             ),
             SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(
-                width: double.infinity, // Ensure the search bar takes full width
+                width:
+                    300, // Ensure the search bar takes full width
                 child: TextField(
                   controller: _searchController,
                   decoration: searchBarDecoration,
@@ -187,8 +189,6 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
                                   : null,
                             ),
                             title: Text(driver['fullName']),
-                            subtitle: Text(
-                                'Driver ID: ${driver['driverId']}\nStatus: ${driver['status']}'),
                             trailing: ElevatedButton(
                               onPressed: _isProcessing
                                   ? null

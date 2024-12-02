@@ -63,11 +63,9 @@ class _LoginPageState extends State<LoginPage> {
           Positioned.fill(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                bool isSmallScreen =
-                    constraints.maxWidth < 600; 
-                String backgroundImage = isSmallScreen
-                    ? 'images/bg_mobile.jpg' 
-                    : 'images/bg.jpg'; 
+                bool isSmallScreen = constraints.maxWidth < 600;
+                String backgroundImage =
+                    isSmallScreen ? 'images/bg_mobile.jpg' : 'images/bg.jpg';
 
                 return Image.asset(
                   backgroundImage,
@@ -159,44 +157,50 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildLoginForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildTextField(
-            controller: _usernameController,
-            labelText: 'Email',
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter your email';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20.0),
-          _buildPasswordField(),
-          const SizedBox(height: 20.0),
-          _buildRememberMeCheckbox(),
-          const SizedBox(height: 20.0),
-          _buildLoginButton(),
-          if (_errorMessage.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                _errorMessage,
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
+Widget _buildLoginForm() {
+  return Form(
+    key: _formKey,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildTextField(
+          controller: _usernameController,
+          labelText: 'Email',
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter your email';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 20.0),
+        _buildPasswordField(),
+        const SizedBox(height: 20.0),
+        _buildRememberMeCheckbox(),
+        const SizedBox(height: 20.0),
+        _buildLoginButton(),
+        if (_errorMessage.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              _errorMessage,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
               ),
             ),
-        ],
-      ),
-    );
-  }
+          ),
+        const SizedBox(height: 20.0),
+        // Center the Forgot Password link
+        
+        _buildForgotPasswordLink(),
+      ],
+    ),
+  );
+}
+
+
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -210,7 +214,8 @@ class _LoginPageState extends State<LoginPage> {
         border: const OutlineInputBorder(),
       ),
       validator: validator,
-      textInputAction: TextInputAction.next, // Move to next field when Enter is pressed
+      textInputAction:
+          TextInputAction.next, // Move to next field when Enter is pressed
     );
   }
 
@@ -236,8 +241,8 @@ class _LoginPageState extends State<LoginPage> {
         }
         return null;
       },
-      textInputAction: TextInputAction.done, 
-      onFieldSubmitted: (_) => _triggerSignIn(), 
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _triggerSignIn(),
     );
   }
 
@@ -283,6 +288,55 @@ class _LoginPageState extends State<LoginPage> {
               ),
       ),
     );
+  }
+
+  Widget _buildForgotPasswordLink() {
+    return Align(
+      alignment: Alignment.center,
+      child: TextButton(
+        onPressed: _resetPassword,
+        child: const Text(
+          'Forgot Password?',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF2E3192),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _resetPassword() async {
+    String email = _usernameController.text.trim();
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your email to reset your password.';
+      });
+      return;
+    }
+
+    try {
+      setState(() {
+        _loading = true;
+        _errorMessage = '';
+      });
+
+      await _auth.sendPasswordResetEmail(email: email);
+
+      setState(() {
+        _loading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password reset email sent to $email')),
+      );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _loading = false;
+        _errorMessage =
+            e.message ?? 'An error occurred. Please try again later.';
+      });
+    }
   }
 
   Future<void> _signInWithEmailAndPassword() async {

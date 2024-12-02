@@ -119,7 +119,10 @@ class DriversAccount {
       if (deviceToken != null) 'deviceToken': deviceToken,
     };
   }
-
+ @override
+  String toString() {
+    return '$firstName $lastName (ID: $idNumber, Status: $status)';
+  }
   // This is an empty placeholder function for when you need a limited subset of fields
   static fromLimitedJson(Map<String, dynamic> map) {
     // Implementation for partial or limited data can go here

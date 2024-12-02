@@ -22,11 +22,10 @@ class DataService {
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
         driversList = data.entries
-            .map((entry) => 
-                DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
+            .map((entry) => DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
             .where((driver) => driver != null)
             .cast<DriversAccount>()
-            .where((driver) => 
+            .where((driver) =>
                 driver.firstName.isNotEmpty &&
                 driver.lastName.isNotEmpty &&
                 driver.status.isNotEmpty)
@@ -37,6 +36,11 @@ class DataService {
       rethrow;
     }
     return driversList;
+  }
+
+  // New method to fetch drivers from Realtime Database
+  Future<List<DriversAccount>> fetchDrivers() async {
+    return await getDriversFromRealtimeDatabase();
   }
 
   // Stream for real-time updates on driver data

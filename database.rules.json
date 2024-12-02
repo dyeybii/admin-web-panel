@@ -1,10 +1,10 @@
-    {
+{
   "rules": {
-"driversAccount": {
- ".read": true,
-  ".write": true,
-  ".indexOn": ["uid", "email"]
-},
+    "driversAccount": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["uid", "email"]
+    },
     "driversLocation": {
       ".read": "auth != null",
       ".write": "auth != null && data.child('uid').val() === auth.uid"
@@ -20,10 +20,10 @@
         ".write": "$uid === auth.uid"
       }
     },
-"tripRequests": {
-  ".read": true,
-  ".write": true
-},
+    "tripRequests": {
+      ".read": true,
+      ".write": true
+    },
     "userData": {
       ".read": "auth != null",
       ".write": false
@@ -32,6 +32,12 @@
       ".read": "auth != null",
       ".write": "auth != null"
     },
-
+    // Admin access rule
+    "admin": {
+      "$uid": {
+        ".read": "auth != null && root.child('admin').child($uid).val() === true",
+        ".write": "auth != null && root.child('admin').child($uid).val() === true"
+      }
+    }
   }
 }

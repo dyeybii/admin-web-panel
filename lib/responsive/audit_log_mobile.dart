@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:csv/csv.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -53,8 +54,9 @@ class _AuditLogPageMobileState extends State<AuditLogPageMobile> {
       _applyTimeFilter(); // Apply the selected time range filter
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching logs: $e')),
-      );
+  CustomSnackBarStyles.error('Error fetching logs: $e'),
+);
+
     } finally {
       setState(() => isLoading = false);
     }
@@ -137,33 +139,59 @@ class _AuditLogPageMobileState extends State<AuditLogPageMobile> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Audit Logs'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: _exportToCSV,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: DropdownButton<String>(
-                value: selectedTimeRange,
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedTimeRange = newValue!;
-                    _applyTimeFilter();
-                  });
-                },
-                items: <String>['All Time', 'Current', 'Last Week', 'Last Month']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
+  title: const Text('Audit Logs'),
+  actions: [
+    // Refresh Button with spacing
+    Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E3192),  // Purple background
+        borderRadius: BorderRadius.circular(15),  // Rounded corners
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.refresh, color: Colors.white),
+        onPressed: _fetchAuditLogs,  // Refresh button functionality
+      ),
+    ),
+    // Add space between the refresh button and download button
+    SizedBox(width: 16), // Adjust width for desired spacing
+    
+    // Download Button
+    Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E3192),  // Purple background
+        borderRadius: BorderRadius.circular(15),  // Rounded corners
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.download, color: Colors.white),  // White icon
+        onPressed: _exportToCSV,
+      ),
+    ),
+    // Add space between the download button and the dropdown
+    SizedBox(width: 16), // Adjust width for desired spacing
+    
+    // Dropdown for Time Filter
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: DropdownButton<String>(
+        value: selectedTimeRange,
+        onChanged: (newValue) {
+          setState(() {
+            selectedTimeRange = newValue!;
+            _applyTimeFilter();
+          });
+        },
+        items: <String>['All Time', 'Current', 'Last Week', 'Last Month']
+            .map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+      ),
+    ),
+  ],
+),
+
         body: Stack(
           children: [
             if (isLoading)

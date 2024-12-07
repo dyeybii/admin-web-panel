@@ -88,7 +88,7 @@ class DriversAccount {
       tag: json['tag'] ?? '',
       driverPhoto: json['driverPhoto'] ?? '',
       driverId: json['driverId'] ?? '',
-      status: json['status'] ?? 'unblocked',
+      status: json['status'] ?? 'active',
       codingScheme: json['codingScheme'] ?? '',
       totalRatings: json['totalRatings'] != null
           ? TotalRatings.fromJson(Map<String, dynamic>.from(json['totalRatings']))

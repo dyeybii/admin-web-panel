@@ -32,7 +32,7 @@ class _ResponsivePieChartState extends State<ResponsivePieChart> {
 
     // Dynamically calculate the radius based on screen size
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double radius = screenWidth < 600 ? screenWidth * 0.1 : screenWidth * 0.10;
+    final double radius = screenWidth < 600 ? screenWidth * 0.1 : screenWidth * 0.07;
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -81,7 +81,7 @@ class _ResponsivePieChartState extends State<ResponsivePieChart> {
                         ),
                         borderData: FlBorderData(show: false),
                         sectionsSpace: 0,
-                        centerSpaceRadius: 0,
+                        centerSpaceRadius: 50, // Add this line to create the donut shape
                         sections: showingSections(
                           clampedOnlinePercentage * value,
                           clampedOfflinePercentage * value,

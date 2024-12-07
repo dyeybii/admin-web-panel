@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:csv/csv.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,7 @@ class _AuditLogPageDesktopState extends State<AuditLogPageDesktop> {
       }).toList();
 
       setState(() {
+        _auditLogs.clear(); // Clear existing logs before adding new ones
         _auditLogs.addAll(logs);
         _filteredLogs = List.from(logs);
       });
@@ -53,7 +55,7 @@ class _AuditLogPageDesktopState extends State<AuditLogPageDesktop> {
       _applyTimeFilter(); // Apply the selected time range filter
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching logs: $e')),
+        CustomSnackBarStyles.error('Error fetching logs: $e'),
       );
     } finally {
       setState(() => isLoading = false);
@@ -98,8 +100,7 @@ class _AuditLogPageDesktopState extends State<AuditLogPageDesktop> {
     });
   }
 
-  void _sort<T>(
-      String column, Comparable<T> Function(AuditLogEntry log) getField) {
+  void _sort<T>(String column, Comparable<T> Function(AuditLogEntry log) getField) {
     setState(() {
       isAscending = sortColumn == column ? !isAscending : true;
       sortColumn = column;
@@ -137,69 +138,96 @@ class _AuditLogPageDesktopState extends State<AuditLogPageDesktop> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              const Expanded(child: Text('Audit Logs')),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width > 600
-                      ? 250
-                      : 180,
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Color(0xFF2E3192), width: 2.0),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Color(0xFF2E3192), width: 2.0),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Color(0xFF2E3192), width: 2.0),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                ),
+  title: Row(
+    children: [
+      const Expanded(child: Text('Audit Logs')),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width > 600
+              ? 250
+              : 180,
+          child: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              labelText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderSide: const BorderSide(
+                    color: Color(0xFF2E3192), width: 2.0),
+                borderRadius: BorderRadius.circular(5),
               ),
-            ],
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                    color: Color(0xFF2E3192), width: 2.0),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(
+                    color: Color(0xFF2E3192), width: 2.0),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.download),
-              onPressed: _exportToCSV,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: DropdownButton<String>(
-                value: selectedTimeRange,
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedTimeRange = newValue!;
-                    _applyTimeFilter();
-                  });
-                },
-                items: <String>['All Time', 'Current', 'Last Week', 'Last Month']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
         ),
+      ),
+    ],
+  ),
+  actions: [
+    // Refresh Button
+    Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF2E3192),  // Purple background
+        borderRadius: BorderRadius.circular(15),  // Border radius of 15
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.refresh, color: Colors.white),
+        onPressed: _fetchAuditLogs,  // Refresh button functionality
+      ),
+    ),
+    // Add space between the refresh button and download button
+    SizedBox(width: 16), // Adjust width for desired spacing
+    
+    // Download Button
+    Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF2E3192),  // Purple background
+        borderRadius: BorderRadius.circular(15),  // Rounded corners
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.download, color: Colors.white),  // White icon
+        onPressed: _exportToCSV,
+      ),
+    ),
+    // Add space between the download button and the dropdown
+    SizedBox(width: 16), // Adjust width for desired spacing
+    
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: DropdownButton<String>(
+        value: selectedTimeRange,
+        onChanged: (newValue) {
+          setState(() {
+            selectedTimeRange = newValue!;
+            _applyTimeFilter();
+          });
+        },
+        items: <String>['All Time', 'Current', 'Last Week', 'Last Month']
+            .map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+      ),
+    ),
+  ],
+),
+
+
+
         body: Stack(
           children: [
             if (isLoading)

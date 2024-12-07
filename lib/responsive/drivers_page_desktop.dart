@@ -2,6 +2,8 @@ import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/data_service.dart';
 import 'package:admin_web_panel/responsive/driver_form_desktop.dart';
 import 'package:admin_web_panel/widgets/blacklist.dart';
+import 'package:admin_web_panel/widgets/log_entry.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -338,7 +340,7 @@ class _DriversPageDesktopState extends State<DriversPageDesktop> {
     );
   }
 
-  Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
+    Future<void> _addMemberToFirebaseAndRealtimeDatabase() async {
     final String email = _emailController.text.trim();
     final String birthdate = _birthdateController.text.trim();
     final String firstName = _firstNameController.text.trim();
@@ -349,8 +351,9 @@ class _DriversPageDesktopState extends State<DriversPageDesktop> {
     final String phoneNumber = _phoneNumberController.text.trim();
     final String tag = _tagController.text.trim();
     final String codingScheme = _codingSchemeController.text.trim();
-    final String status = _statusController.text.trim();
-
+    final String status = _statusController.text.trim().isEmpty
+        ? "active"
+        : _statusController.text.trim();
     final String driverPhoto = _driverPhotoController.text.trim();
 
     try {
@@ -377,16 +380,17 @@ class _DriversPageDesktopState extends State<DriversPageDesktop> {
         codingScheme: codingScheme,
         status: status,
         driverPhoto: driverPhoto,
-        driverId: driverId,
+        driverId: driverId, 
       );
 
+    
       await newDriverRef.set(newDriver.toJson());
 
-      // Send email verification
-      await _sendEmailVerification(userCredential.user!);
+       // Send email verification
+    await _sendEmailVerification(userCredential.user!);
 
-      _fetchDriversData();
-      Navigator.of(context).pop();
+      _fetchDriversData(); 
+      Navigator.of(context).pop(); 
     } catch (e) {
       print('Error adding driver: $e');
       showDialog(
@@ -409,16 +413,19 @@ class _DriversPageDesktopState extends State<DriversPageDesktop> {
     }
   }
 
+  
   Future<void> _sendEmailVerification(User user) async {
     try {
       await user.sendEmailVerification();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Verification email sent!')),
+        CustomSnackBarStyles.success('Verification email sent!'),
       );
     } catch (e) {
       print('Error sending email verification: $e');
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending verification email: $e')),
+        CustomSnackBarStyles.error('Error sending verification email: $e'),
       );
     }
   }

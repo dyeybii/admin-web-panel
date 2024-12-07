@@ -1,6 +1,8 @@
 import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:admin_web_panel/widgets/form_validation.dart';
+import 'package:admin_web_panel/widgets/log_entry.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -375,8 +377,40 @@ class _DriversFormDesktopState extends State<DriversFormDesktop> {
     return Center(
       child: ElevatedButton(
         style: CustomButtonStyles.elevatedButtonStyle,
-        onPressed: widget.onAddPressed,
-        child: const Text('Add Toda Driver'),
+        onPressed: () async {
+          if (widget.formKey.currentState?.validate() ?? false) {
+            try {
+              // Perform the add driver logic.
+              if (widget.onAddPressed != null) {
+                widget.onAddPressed!();
+              }
+
+              // Log the action with a fallback for missing fields.
+              String fullName =
+                  "${widget.firstNameController.text} ${widget.lastNameController.text}"
+                      .trim();
+              if (fullName.isEmpty) {
+                fullName = "Unknown Driver";
+              }
+
+              await AuditLog.addLog("Added a new driver with name: $fullName");
+
+              resetFormFields();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                CustomSnackBarStyles.success("Driver added successfully!"),
+              );
+            } catch (e) {
+              print("Error adding driver: $e");
+              _showAlertDialog("Failed to add driver. Please try again.");
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              CustomSnackBarStyles.info("Please fill out all required fields."),
+            );
+          }
+        },
+        child: const Text('Add Driver'),
       ),
     );
   }

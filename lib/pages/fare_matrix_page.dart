@@ -10,10 +10,10 @@ class FareMatrixPage extends StatefulWidget {
   const FareMatrixPage({Key? key}) : super(key: key);
 
   @override
-  _FareMatrixPageState createState() => _FareMatrixPageState();
+  _FareMatrixDesktopState createState() => _FareMatrixDesktopState();
 }
 
-class _FareMatrixPageState extends State<FareMatrixPage> {
+class _FareMatrixDesktopState extends State<FareMatrixPage> {
   final TextEditingController basefareController = TextEditingController();
   final TextEditingController addedkmController = TextEditingController();
   final TextEditingController totalfareFareController = TextEditingController();
@@ -167,139 +167,19 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
                     ),
                   if (isEditing) ...[
                     ElevatedButton(
+                     
                       onPressed: _saveFareParameters,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.green,
-                      ),
-                      child: const Text('Save changes'),
+                      style: CustomButtonStyles.elevatedButtonStyle,
+                      child: const Text('Save Fare'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: _cancelEdit,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.redAccent,
-                      ),
+                      style: CustomButtonStyles.elevatedButtonStyle,
                       child: const Text('Cancel'),
                     ),
                   ],
                 ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildFareTableContainer(Color primaryColor) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF2E3192), 
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const Text(
-                'Fare Table',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Color(0xFF2E3192), 
-                ),
-              ),
-              const SizedBox(height: 15),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 20.0,
-                  headingRowHeight: 56.0,
-                  dataRowMinHeight: 48.0,
-                  dataRowMaxHeight: 60.0,
-                  columns: <DataColumn>[
-                    DataColumn(
-                      label: Text(
-                        'From',
-                        style: FareTableStyle.headerTextStyle.copyWith(
-                          color: const Color(
-                              0xFF2E3192),
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'To',
-                        style: FareTableStyle.headerTextStyle.copyWith(
-                          color: const Color(
-                              0xFF2E3192), 
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Distance',
-                        style: FareTableStyle.headerTextStyle.copyWith(
-                          color: const Color(
-                              0xFF2E3192), 
-                        ),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Special',
-                        style: FareTableStyle.headerTextStyle.copyWith(
-                          color: const Color(
-                              0xFF2E3192), 
-                        ),
-                      ),
-                    ),
-                  ],
-                  rows: fareTable.map((fare) {
-                    return DataRow(cells: [
-                      DataCell(Text(
-                        fare.from.isEmpty ? ' ' : fare.from,
-                        style: FareTableStyle.cellTextStyle.copyWith(
-                          color:
-                              const Color(0xFF2E3192),
-                        ),
-                      )),
-                      DataCell(Text(
-                        fare.to,
-                        style: FareTableStyle.cellTextStyle.copyWith(
-                          color: const Color(0xFF2E3192), 
-                        ),
-                      )),
-                      DataCell(Text(
-                        '${fare.distance} km',
-                        style: FareTableStyle.cellTextStyle.copyWith(
-                          color: const Color(
-                              0xFF2E3192), 
-                        ),
-                      )),
-                      DataCell(Text(
-                        '${fare.special}',
-                        style: FareTableStyle.cellTextStyle.copyWith(
-                          color: fare.specialColor, 
-                        ),
-                      )),
-                    ]);
-                  }).toList(),
-                ),
               ),
             ],
           ),
@@ -316,19 +196,182 @@ class _FareMatrixPageState extends State<FareMatrixPage> {
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      enabled: enabled,
       decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: primaryColor),
         border: OutlineInputBorder(
           borderSide: BorderSide(color: primaryColor),
         ),
-        labelText: label,
-        labelStyle: TextStyle(color: primaryColor),
-        enabledBorder: OutlineInputBorder(
+        focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: primaryColor),
         ),
       ),
-      enabled: enabled,
-      style: const TextStyle(color: Colors.black),
+      keyboardType: TextInputType.number,
     );
   }
+
+  Widget _buildFareTableContainer(Color primaryColor) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 600;
+
+        return Column(
+          children: [
+            if (isMobile) ...[
+              _buildSingleFareTable(
+                title: 'Coloong 1 Fare Table',
+                fareList: coloong1,
+                primaryColor: primaryColor,
+              ),
+              const SizedBox(height: 20),
+              _buildSingleFareTable(
+                title: 'Coloong 2 Fare Table',
+                fareList: coloong2,
+                primaryColor: primaryColor,
+              ),
+            ]
+            else ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _buildSingleFareTable(
+                      title: 'Coloong 1 Fare Table',
+                      fareList: coloong1,
+                      primaryColor: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: _buildSingleFareTable(
+                      title: 'Coloong 2 Fare Table',
+                      fareList: coloong2,
+                      primaryColor: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+Widget _buildSingleFareTable({
+  required String title,
+  required List<Fare> fareList,
+  required Color primaryColor,
+}) {
+  return Card(
+    elevation: 5,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: primaryColor,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(2),
+              2: FlexColumnWidth(2),
+            },
+            border: TableBorder.all(
+              color: primaryColor,
+              width: 1,
+            ),
+            children: [
+              TableRow(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                ),
+                children: const [
+                  TableCell(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'From',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'To',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'Distance',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'Special',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              for (var fare in fareList)
+                TableRow(
+                  children: [
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(fare.from.isEmpty ? ' ' : fare.from),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(fare.to),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text('${fare.distance} km'),
+                      ),
+                    ),
+                    TableCell(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text('${fare.special}'),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 }

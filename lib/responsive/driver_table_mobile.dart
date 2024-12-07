@@ -1,9 +1,11 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/data_service.dart';
 import 'package:admin_web_panel/responsive/driver_form_mobile.dart';
 import 'package:admin_web_panel/responsive/edit_form_mobile.dart';
 import 'package:admin_web_panel/widgets/blacklist.dart';
 import 'package:admin_web_panel/widgets/download_excel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
@@ -30,7 +32,6 @@ class _DriverTableMobileState extends State<DriverTableMobile> {
   late List<DriversAccount> filteredList;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _idNumberController = TextEditingController();
@@ -44,142 +45,144 @@ class _DriverTableMobileState extends State<DriverTableMobile> {
   final TextEditingController _uidController = TextEditingController();
   final TextEditingController _codingSchemeController = TextEditingController();
   final TextEditingController _statusController = TextEditingController();
-  final TextEditingController _driverIdController = TextEditingController();
 
   bool isAllSelected = false;
 
-@override
-void initState() {
-  super.initState();
-  
-  filteredList = widget.driversAccountList
-      .where((driver) => driver.firstName.isNotEmpty)
-      .toList();
-  isAllSelected = widget.selectedDrivers.length == filteredList.length;
-  _fetchDriversData();
-}
+  @override
+  void initState() {
+    super.initState();
 
-Future<void> _fetchDriversData() async {
-  try {
-    // Fetch data from service
-    List<DriversAccount> driversList = await widget._dataService.fetchDrivers();
-    if (mounted) {
-      setState(() {
-        filteredList = driversList.where((driver) => driver.firstName.isNotEmpty).toList();
-      });
-    }
-  } catch (e) {
-    print('Error fetching drivers: $e');
+    filteredList = widget.driversAccountList
+        .where((driver) => driver.firstName.isNotEmpty)
+        .toList();
+    isAllSelected = widget.selectedDrivers.length == filteredList.length;
+    _fetchDriversData();
   }
-}
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      
-      actions: [
-        Checkbox(
-          value: isAllSelected,
-          onChanged: (bool? value) {
-            setState(() {
-              isAllSelected = value!;
-              if (isAllSelected) {
-                widget.selectedDrivers.clear();
-                widget.selectedDrivers.addAll(filteredList);
-              } else {
-                widget.selectedDrivers.clear();
-              }
-              widget.onSelectedDriversChanged(widget.selectedDrivers);
-            });
-          },
-        ),
-        const Text("Select All"),
-      ],
-    ),
-    body: filteredList.isEmpty
-        ? Center(child: Text('No drivers available'))
-        : ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: filteredList.length,
-            itemBuilder: (context, index) {
-              final driver = filteredList[index];
-              final isSelected = widget.selectedDrivers.contains(driver);
-              final textColor = driver.tag == 'Operator' ? Colors.red : Colors.blue;
+  Future<void> _fetchDriversData() async {
+    try {
+      List<DriversAccount> driversList =
+          await widget._dataService.fetchDrivers();
+      if (mounted) {
+        setState(() {
+          filteredList = driversList
+              .where((driver) => driver.firstName.isNotEmpty)
+              .toList();
+        });
+      }
+    } catch (e) {
+      print('Error fetching drivers: $e');
+    }
+  }
 
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                child: ListTile(
-                  leading: Checkbox(
-                    value: isSelected,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value!) {
-                          widget.selectedDrivers.add(driver);
-                        } else {
-                          widget.selectedDrivers.remove(driver);
-                        }
-                        widget.onSelectedDriversChanged(widget.selectedDrivers);
-                        isAllSelected =
-                            widget.selectedDrivers.length == filteredList.length;
-                      });
-                    },
-                  ),
-                  title: Text(
-                    "${driver.firstName} ${driver.lastName}",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: _buildDriverDetails(driver, textColor),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.grey),
-                    onPressed: () => _showEditDialog(context, driver),
-                  ),
-                ),
-              );
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        actions: [
+          Checkbox(
+            value: isAllSelected,
+            onChanged: (bool? value) {
+              setState(() {
+                isAllSelected = value!;
+                if (isAllSelected) {
+                  widget.selectedDrivers.clear();
+                  widget.selectedDrivers.addAll(filteredList);
+                } else {
+                  widget.selectedDrivers.clear();
+                }
+                widget.onSelectedDriversChanged(widget.selectedDrivers);
+              });
             },
           ),
-    floatingActionButton: _buildSpeedDial(), // Add SpeedDial here
-  );
-}
-
-
- Widget _buildDriverDetails(DriversAccount driver, Color textColor) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          // Check if driverPhoto is not empty or null
-          if (driver.driverPhoto.isNotEmpty)
-            Image.network(driver.driverPhoto, height: 50, width: 50)
-          else
-            // If driverPhoto is empty or null, use the default avatar
-            Image.asset('images/default_avatar.png', height: 50, width: 50),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("ID No: ${driver.idNumber}"),
-                Text("Body No: ${driver.bodyNumber}"),
-                Text(
-                  "Tag: ${driver.tag}",
-                  style: TextStyle(color: textColor),
-                ),
-                Text("Status: ${driver.status}"),
-                Row(
-                  children: _buildRatingWithStar(driver.totalRatings?.averageRating),
-                ),
-              ],
-            ),
-          ),
+          const Text("Select All"),
         ],
       ),
-    ],
-  );
-}
+      body: filteredList.isEmpty
+          ? const Center(child: Text('No drivers available'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(8.0),
+              itemCount: filteredList.length,
+              itemBuilder: (context, index) {
+                final driver = filteredList[index];
+                final isSelected = widget.selectedDrivers.contains(driver);
+                final cardColor =
+                    Appstyle.cardsColor[index % Appstyle.cardsColor.length];
 
+                return Card(
+                  color: cardColor,
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 25,
+                      backgroundImage: driver.driverPhoto.isNotEmpty
+                          ? NetworkImage(driver.driverPhoto)
+                          : const AssetImage('images/default_avatar.png')
+                              as ImageProvider,
+                    ),
+                    title: Text(
+                      "${driver.firstName} ${driver.lastName}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle:
+                        Text("Tag: ${driver.tag} | Status: ${driver.status}"),
+                    trailing: Checkbox(
+                      value: isSelected,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          if (value == true) {
+                            widget.selectedDrivers.add(driver);
+                          } else {
+                            widget.selectedDrivers.remove(driver);
+                          }
+                          widget
+                              .onSelectedDriversChanged(widget.selectedDrivers);
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: _buildSpeedDial(), // Add SpeedDial here
+    );
+  }
+
+  Widget _buildDriverDetails(DriversAccount driver, Color textColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            // Check if driverPhoto is not empty or null
+            if (driver.driverPhoto.isNotEmpty)
+              Image.network(driver.driverPhoto, height: 50, width: 50)
+            else
+              // If driverPhoto is empty or null, use the default avatar
+              Image.asset('images/default_avatar.png', height: 50, width: 50),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Tag: ${driver.tag}",
+                    style: TextStyle(color: textColor),
+                  ),
+                  Text("Status: ${driver.status}"),
+                  Row(
+                    children: _buildRatingWithStar(
+                        driver.totalRatings?.averageRating),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
   SpeedDial _buildSpeedDial() {
     return SpeedDial(
@@ -219,16 +222,13 @@ Widget build(BuildContext context) {
         ),
         SpeedDialChild(
           child: const Icon(Icons.info),
-          label: 'Add TODA Driver',
+          label: 'Add Driver',
           onTap: _showAddMemberDialog,
           backgroundColor: Colors.purple,
         ),
       ],
     );
   }
-
-
-
 
   void _showAddMemberDialog() {
     showDialog(
@@ -466,6 +466,23 @@ Widget build(BuildContext context) {
     }
   }
 
+  Future<void> _sendEmailVerification(User user) async {
+    try {
+  await user.sendEmailVerification();
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    CustomSnackBarStyles.success('Verification email sent!'),
+  );
+} catch (e) {
+  print('Error sending email verification: $e');
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    CustomSnackBarStyles.error('Error sending verification email: $e'),
+  );
+}
+
+  }
+
   List<Widget> _buildRatingWithStar(double? averageRating) {
     double rating = averageRating ?? 0.0;
 
@@ -476,19 +493,4 @@ Widget build(BuildContext context) {
       const Icon(Icons.star, color: Colors.yellow),
     ];
   }
-
-  Future<void> _sendEmailVerification(User user) async {
-    try {
-      await user.sendEmailVerification();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Verification email sent!')),
-      );
-    } catch (e) {
-      print('Error sending email verification: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending verification email: $e')),
-      );
-    }
-  }
-  // Other methods like `_showAddMemberDialog`, `_showEditDialog`, and `_addMemberToFirebaseAndRealtimeDatabase` remain unchanged.
 }

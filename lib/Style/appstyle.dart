@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class Appstyle {
   static Color bgColor = const Color(0xFFe2e2ff);
   static Color mainColor = const Color(0xFF000633);
   static Color accentColor = const Color(0xFF0065FF);
-  static List<Color> cardsColor = [
-    Colors.red.shade100,
-    Colors.pink.shade100,
-    Colors.orange.shade100,
-    Colors.yellow.shade100,
-    Colors.green.shade100,
-    Colors.blue.shade100,
-    Colors.blueGrey.shade100,
-    Colors.blueGrey.shade100,
-  ];
+static List<Color> cardsColor = [
+  Colors.white, // Default white background for normal items
+  Colors.blueGrey.shade50, // Light grey for alternate rows or non-selected items
+  Colors.blue.shade100, // A soft blue to provide a subtle emphasis
+  Colors.grey.shade200, // Soft grey background for a clean look
+];
+
+
 
   static TextStyle mainTitle =
       GoogleFonts.poppins(fontSize: 25.0, fontWeight: FontWeight.bold);
@@ -36,6 +32,59 @@ class CustomButtonStyles {
       borderRadius: BorderRadius.circular(5),
     ),
   );
+}
+
+class CustomSnackBarStyles {
+  static SnackBar success(String message) {
+    return SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: Colors.green,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
+
+  static SnackBar error(String message) {
+    return SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: Colors.red,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
+
+  static SnackBar info(String message) {
+    return SnackBar(
+      content: Text(
+        message,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      backgroundColor: Colors.blue,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+  }
 }
 
 class AppColors {

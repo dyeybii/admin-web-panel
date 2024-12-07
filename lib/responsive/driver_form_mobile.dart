@@ -1,6 +1,8 @@
 import 'package:admin_web_panel/Style/appstyle.dart';
+
 import 'package:admin_web_panel/widgets/batch_upload.dart';
 import 'package:admin_web_panel/widgets/form_validation.dart';
+import 'package:admin_web_panel/widgets/log_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -357,8 +359,44 @@ class _DriversFormMobileState extends State<DriversFormMobile> {
     return Center(
       child: ElevatedButton(
         style: CustomButtonStyles.elevatedButtonStyle,
-        onPressed: widget.onAddPressed,
-        child: const Text('Add Toda Driver'),
+        onPressed: () async {
+          if (widget.formKey.currentState?.validate() ?? false) {
+            // Extract driver's full name
+            String fullName =
+                '${widget.firstNameController.text} ${widget.lastNameController.text}'
+                    .trim();
+
+            if (fullName.isEmpty) {
+              fullName = "Unknown Driver";
+            }
+
+            try {
+              // Call the driver adding logic
+              widget.onAddPressed?.call();
+
+              // Add audit log
+              await AuditLog.addLog('Added Driver: $fullName');
+
+              // Notify the user of success
+              ScaffoldMessenger.of(context).showSnackBar(
+                CustomSnackBarStyles.success(
+                    'Driver added and logged successfully: $fullName'),
+              );
+            } catch (e) {
+              // Handle and log error
+              print('Error adding audit log: $e');
+              ScaffoldMessenger.of(context).showSnackBar(
+                CustomSnackBarStyles.error(
+                    'Failed to log the action. Please try again.'),
+              );
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              CustomSnackBarStyles.info('Please fill out all required fields.'),
+            );
+          }
+        },
+        child: const Text('Add Driver'),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
+import 'package:admin_web_panel/widgets/log_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -101,13 +103,19 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
           .child(driverId)
           .update({'status': disable ? 'blocked' : 'active'});
 
+      // Log the action
+      final action = disable
+          ? 'Blocked driver ${driver['fullName']}'
+          : 'Unblocked driver ${driver['fullName']}';
+      await AuditLog.addLog(action);
+
       fetchDrivers(); // Refresh the list after status update
     } catch (e) {
       print('Error blocking/unblocking driver: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Failed to ${disable ? 'block' : 'unblock'} the driver')),
+        CustomSnackBarStyles.error(
+          'Failed to ${disable ? 'block' : 'unblock'} the driver',
+        ),
       );
     } finally {
       setState(() {
@@ -161,8 +169,7 @@ class _BlacklistDialogState extends State<BlacklistDialog> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Container(
-                width:
-                    300, // Ensure the search bar takes full width
+                width: 300, // Ensure the search bar takes full width
                 child: TextField(
                   controller: _searchController,
                   decoration: searchBarDecoration,

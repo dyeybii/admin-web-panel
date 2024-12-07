@@ -1,5 +1,7 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/drivers_account.dart';
 import 'package:admin_web_panel/widgets/log_entry.dart';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart';
@@ -75,9 +77,7 @@ class ExcelDownloader {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Excel file downloaded.'),
-      ),
+      CustomSnackBarStyles.info('Excel file downloaded.'),
     );
 
     // Log the action
@@ -104,7 +104,8 @@ class ExcelDownloader {
             action: action,
             adminId: adminDoc.id,
             fullName: adminDoc.data()['fullName'] ?? 'Unknown',
-            profileImage: adminDoc.data()['profileImage'] ?? '',
+            profileImage:
+                adminDoc.data()['profileImage'] ?? '', // Include profileImage
           );
         } else {
           // Handle the case where admin data isn't found
@@ -112,7 +113,8 @@ class ExcelDownloader {
             action: action,
             adminId: user.uid,
             fullName: 'Unknown Admin',
-            profileImage: '',
+            profileImage:
+                '', // Default to an empty string if no profileImage is available
           );
         }
       } catch (e) {

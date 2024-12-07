@@ -35,7 +35,8 @@ class _ResponsivePieChartMobileState extends State<ResponsivePieChartMobile> {
     // Dynamically calculate the radius based on screen size (further adjusted for mobile)
     final double screenWidth = MediaQuery.of(context).size.width;
     // Adjusting radius scaling factor for a better fit on mobile
-    final double radius = screenWidth < 600 ? screenWidth * 0.25 : screenWidth * 0.15;
+    final double radius =
+        screenWidth < 600 ? screenWidth * 0.15 : screenWidth * 0.01;
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -59,7 +60,9 @@ class _ResponsivePieChartMobileState extends State<ResponsivePieChartMobile> {
           ),
           const SizedBox(height: 10),
           SizedBox(
-            height: screenWidth < 600 ? 300 : 379, // Adjust height based on screen width
+            height: screenWidth < 600
+                ? 300
+                : 379, // Adjust height based on screen width
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
               duration: const Duration(seconds: 2),
@@ -69,7 +72,8 @@ class _ResponsivePieChartMobileState extends State<ResponsivePieChartMobile> {
                     PieChart(
                       PieChartData(
                         pieTouchData: PieTouchData(
-                          touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                          touchCallback:
+                              (FlTouchEvent event, pieTouchResponse) {
                             setState(() {
                               if (!event.isInterestedForInteractions ||
                                   pieTouchResponse == null ||
@@ -84,7 +88,7 @@ class _ResponsivePieChartMobileState extends State<ResponsivePieChartMobile> {
                         ),
                         borderData: FlBorderData(show: false),
                         sectionsSpace: 0,
-                        centerSpaceRadius: 0,
+                        centerSpaceRadius: 50,
                         sections: showingSections(
                           clampedOnlinePercentage * value,
                           clampedOfflinePercentage * value,

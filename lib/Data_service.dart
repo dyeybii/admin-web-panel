@@ -22,7 +22,8 @@ class DataService {
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
         driversList = data.entries
-            .map((entry) => DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
+            .map((entry) =>
+                DriversAccount.fromJson(Map<String, dynamic>.from(entry.value)))
             .where((driver) => driver != null)
             .cast<DriversAccount>()
             .where((driver) =>
@@ -58,46 +59,6 @@ class DataService {
     } catch (e) {
       print('Error updating driver status for driverId $driverId: $e');
       rethrow;
-    }
-  }
-
-  // Add a driver to Realtime Database, with optional photo upload to Firebase Storage
-  Future<void> addDriverToRealtimeDatabase(
-      DriversAccount newDriver, Uint8List? imageBytes, String? imageFileName) async {
-    try {
-      String? driverPhotoUrl;
-
-      if (imageBytes != null && imageFileName != null) {
-        driverPhotoUrl = await uploadImage(imageBytes, imageFileName);
-      }
-
-      if (driverPhotoUrl != null) {
-        newDriver.driverPhoto = driverPhotoUrl;
-      }
-
-      await getDriversDatabaseReference()
-          .child(newDriver.driverId)
-          .set(newDriver.toJson());
-    } catch (e) {
-      print('Error adding driver: $e');
-      rethrow;
-    }
-  }
-
-  // Helper function to upload driver image to Firebase Storage
-  Future<String?> uploadImage(Uint8List imageData, String fileName) async {
-    try {
-      Reference ref =
-          FirebaseStorage.instance.ref().child('driver_photos/$fileName');
-      UploadTask uploadTask = ref.putData(
-        imageData,
-        SettableMetadata(contentType: 'image/${fileName.split('.').last}'),
-      );
-      TaskSnapshot snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
     }
   }
 

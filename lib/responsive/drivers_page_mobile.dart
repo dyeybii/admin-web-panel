@@ -1,10 +1,7 @@
-import 'package:admin_web_panel/responsive/driver_form_mobile.dart';
-import 'package:admin_web_panel/widgets/drivers_account.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:admin_web_panel/data_service.dart';
 import 'package:admin_web_panel/widgets/driver_table.dart';
+import 'package:admin_web_panel/data_service.dart';
+import 'package:admin_web_panel/widgets/drivers_account.dart';
 
 class DriversPageMobile extends StatefulWidget {
   const DriversPageMobile({Key? key}) : super(key: key);
@@ -15,7 +12,6 @@ class DriversPageMobile extends StatefulWidget {
 
 class _DriversPageMobileState extends State<DriversPageMobile> {
   bool isLoading = false;
-  bool noResultsFound = false;
   final DataService _dataService = DataService();
   List<DriversAccount> _driversAccountList = [];
   List<DriversAccount> _filteredDriversList = [];
@@ -26,7 +22,7 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
   @override
   void initState() {
     super.initState();
-    searchController.addListener(_filterDrivers); // Filter when search text changes
+    searchController.addListener(_filterDrivers); // Apply filter when search text changes
     _loadDrivers();
   }
 
@@ -38,7 +34,7 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
       final driversList = await _dataService.fetchDrivers();
       setState(() {
         _driversAccountList = driversList;
-        _filteredDriversList = driversList; // Initialize filtered list with all drivers
+        _filteredDriversList = driversList; // Initialize filtered list
         isLoading = false;
       });
     } catch (e) {
@@ -49,27 +45,27 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
     }
   }
 
-  // Updated filter function
   void _filterDrivers() {
     setState(() {
-      String query = searchController.text.toLowerCase();
+      String query = searchController.text.trim().toLowerCase();
       _filteredDriversList = _driversAccountList.where((driver) {
-        // Filter by search query
+        // Match search query
         final matchesSearch = driver.firstName.toLowerCase().contains(query) ||
             driver.lastName.toLowerCase().contains(query);
-        // Filter by tag selection
-        final matchesTag =
-            selectedTagFilter == 'All' || driver.tag == selectedTagFilter;
+
+        // Match tag selection (handle null or missing tags gracefully)
+        final matchesTag = selectedTagFilter == 'All' ||
+            (driver.tag?.toLowerCase() ?? '') == selectedTagFilter.toLowerCase();
+
         return matchesSearch && matchesTag;
       }).toList();
     });
   }
 
-  // Handle tag filtering
   void _filterByTag(String? tag) {
     setState(() {
       selectedTagFilter = tag ?? 'All';
-      _filterDrivers();  // Re-filter drivers whenever the tag changes
+      _filterDrivers(); // Reapply filter with updated tag
     });
   }
 
@@ -78,7 +74,7 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Member Management'),
+          title: const Text('Driver Management'),
         ),
         body: Column(
           children: [
@@ -105,9 +101,17 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
                   DropdownButton<String>(
                     value: selectedTagFilter,
                     items: ['All', 'Operator', 'Member'].map((String value) {
-                      return DropdownMenuItem<String>(value: value, child: Text(value));
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: const TextStyle(color: Color(0xFF2E3192)),
+                        ),
+                      );
                     }).toList(),
-                    onChanged: _filterByTag, // Filter by tag when changed
+                    onChanged: _filterByTag,
+                    underline: Container(),
+                    iconEnabledColor: const Color(0xFF2E3192),
                   ),
                 ],
               ),
@@ -132,6 +136,11 @@ class _DriversPageMobileState extends State<DriversPageMobile> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    searchController.removeListener(_filterDrivers);
+    searchController.dispose();
+    super.dispose();
+  }
 }
-
-

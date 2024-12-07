@@ -19,15 +19,18 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   bool _isUploading = false;
 
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _contactNumberController = TextEditingController();
+  final TextEditingController _contactNumberController =
+      TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _newPasswordAdminController = TextEditingController();
+  final TextEditingController _newPasswordAdminController =
+      TextEditingController();
 
   String _selectedRole = 'Admin'; // Default role
 
   Future<void> _pickAdminImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null) {
       if (kIsWeb) {
@@ -73,14 +76,16 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
   Future<void> _createAdmin() async {
     if (_formKey.currentState!.validate()) {
       try {
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text,
           password: _newPasswordAdminController.text,
         );
 
-        String newAdminImageUrl = _selectedAdminImage != null || _selectedImageBytes != null
-            ? await _uploadImage('adminProfile/')
-            : '';
+        String newAdminImageUrl =
+            _selectedAdminImage != null || _selectedImageBytes != null
+                ? await _uploadImage('adminProfile/')
+                : '';
 
         await FirebaseFirestore.instance
             .collection('admin')
@@ -93,11 +98,33 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           'profileImage': newAdminImageUrl,
         });
 
+        // Log the admin creation
+        await logAction('Created Admin', {
+          'adminId': userCredential.user?.uid,
+          'email': _emailController.text,
+          'fullName': _fullNameController.text,
+          'role': _selectedRole,
+        });
+
         _clearForm();
         _showSuccessDialog();
       } catch (e) {
         print('Error creating admin: $e');
       }
+    }
+  }
+
+  Future<void> logAction(String action, Map<String, dynamic> details) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      await FirebaseFirestore.instance.collection('audit_logs').add({
+        'action': action,
+        'performedBy': user?.uid ?? 'Unknown',
+        'details': details,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error logging action: $e');
     }
   }
 
@@ -139,7 +166,8 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text("Create Admin", style: TextStyle(color: Colors.white)),
+        title:
+            const Text("Create Admin", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF2E3192),
         actions: [
           IconButton(
@@ -155,13 +183,17 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (_selectedAdminImage != null || _selectedImageBytes != null) ...[
+              if (_selectedAdminImage != null ||
+                  _selectedImageBytes != null) ...[
                 const SizedBox(height: 10),
                 _selectedAdminImage != null
                     ? Image.file(_selectedAdminImage!, height: 150, width: 150)
-                    : Image.memory(_selectedImageBytes!, height: 150, width: 150),
+                    : Image.memory(_selectedImageBytes!,
+                        height: 150, width: 150),
                 const SizedBox(height: 10),
-                _isUploading ? const CircularProgressIndicator() : const SizedBox.shrink(),
+                _isUploading
+                    ? const CircularProgressIndicator()
+                    : const SizedBox.shrink(),
               ],
               ElevatedButton(
                 style: CustomButtonStyles.elevatedButtonStyle,
@@ -174,20 +206,24 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
               ),
               const SizedBox(height: 20),
               _buildTextField(_fullNameController, 'Full Name', (value) {
-                if (value == null || value.isEmpty) return 'Full Name is required';
+                if (value == null || value.isEmpty)
+                  return 'Full Name is required';
                 return null;
               }),
               const SizedBox(height: 10),
               _buildTextField(_emailController, 'Email', (value) {
                 if (value == null || value.isEmpty) return 'Email is required';
-                if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$')
+                    .hasMatch(value)) {
                   return 'Enter a valid email address';
                 }
                 return null;
               }),
               const SizedBox(height: 10),
-              _buildTextField(_contactNumberController, 'Contact Number', (value) {
-                if (value == null || value.isEmpty) return 'Contact Number is required';
+              _buildTextField(_contactNumberController, 'Contact Number',
+                  (value) {
+                if (value == null || value.isEmpty)
+                  return 'Contact Number is required';
                 if (!RegExp(r'^\d{11}$').hasMatch(value)) {
                   return 'Enter a valid 11-digit number';
                 }
@@ -195,8 +231,10 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
               }),
               const SizedBox(height: 10),
               _buildTextField(_newPasswordAdminController, 'Password', (value) {
-                if (value == null || value.isEmpty) return 'Password is required';
-                if (value.length < 6) return 'Password must be at least 6 characters';
+                if (value == null || value.isEmpty)
+                  return 'Password is required';
+                if (value.length < 6)
+                  return 'Password must be at least 6 characters';
                 return null;
               }, obscureText: true),
               const SizedBox(height: 10),
@@ -214,7 +252,8 @@ class _AdminCreatePageState extends State<AdminCreatePage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, String? Function(String?) validator,
+  Widget _buildTextField(TextEditingController controller, String label,
+      String? Function(String?) validator,
       {bool obscureText = false}) {
     return Center(
       child: SizedBox(

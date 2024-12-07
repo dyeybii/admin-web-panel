@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/Style/appstyle.dart';
 import 'package:admin_web_panel/widgets/log_entry.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -157,50 +158,48 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-Widget _buildLoginForm() {
-  return Form(
-    key: _formKey,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildTextField(
-          controller: _usernameController,
-          labelText: 'Email',
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your email';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 20.0),
-        _buildPasswordField(),
-        const SizedBox(height: 20.0),
-        _buildRememberMeCheckbox(),
-        const SizedBox(height: 20.0),
-        _buildLoginButton(),
-        if (_errorMessage.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              _errorMessage,
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+  Widget _buildLoginForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTextField(
+            controller: _usernameController,
+            labelText: 'Email',
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter your email';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20.0),
+          _buildPasswordField(),
+          const SizedBox(height: 20.0),
+          _buildRememberMeCheckbox(),
+          const SizedBox(height: 20.0),
+          _buildLoginButton(),
+          if (_errorMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                _errorMessage,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-        const SizedBox(height: 20.0),
-        // Center the Forgot Password link
-        
-        _buildForgotPasswordLink(),
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 20.0),
+          // Center the Forgot Password link
 
-
+          _buildForgotPasswordLink(),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -328,8 +327,9 @@ Widget _buildLoginForm() {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Password reset email sent to $email')),
-      );
+  CustomSnackBarStyles.info('Password reset email sent to $email'),
+);
+
     } on FirebaseAuthException catch (e) {
       setState(() {
         _loading = false;

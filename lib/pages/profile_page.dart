@@ -242,8 +242,10 @@ class _profilePageState extends State<ProfilePage> {
         await user.reauthenticateWithCredential(credential);
 
         await user.updatePassword(newPasswordController.text);
+
+        // Success SnackBar with custom style
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Password changed successfully')),
+          CustomSnackBarStyles.success('Password changed successfully'),
         );
 
         oldPasswordController.clear();
@@ -251,8 +253,9 @@ class _profilePageState extends State<ProfilePage> {
 
         await _addAuditLog(action: 'Changed password');
       } catch (e) {
+        // Error SnackBar with custom style
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Password change failed: $e')),
+          CustomSnackBarStyles.error('Password change failed: $e'),
         );
       }
     }
@@ -321,16 +324,19 @@ class _profilePageState extends State<ProfilePage> {
         String uid = user.uid;
         await FirebaseFirestore.instance.collection('admin').doc(uid).delete();
         await user.delete();
+
+        // Success SnackBar with custom style
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account deleted successfully')),
+          CustomSnackBarStyles.success('Account deleted successfully'),
         );
 
         await _addAuditLog(action: 'Deleted account');
 
         Navigator.of(context).pushReplacementNamed('/login');
       } catch (e) {
+        // Error SnackBar with custom style
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account deletion failed: $e')),
+          CustomSnackBarStyles.error('Account deletion failed: $e'),
         );
       }
     }
@@ -345,8 +351,7 @@ class _profilePageState extends State<ProfilePage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          
-          if (role == 'Super Admin') 
+          if (role == 'Super Admin')
             ElevatedButton(
               style: CustomButtonStyles.elevatedButtonStyle,
               onPressed: () {
@@ -373,21 +378,25 @@ class _profilePageState extends State<ProfilePage> {
             ),
           const SizedBox(width: 10),
           // Show View Admin List button only for Super Admin
-          if (role == 'Super Admin') 
-            IconButton(
-              icon: const Icon(Icons.list_alt),
-              tooltip: 'View Admin List',
+          if (role == 'Super Admin')
+            ElevatedButton(
+              style: CustomButtonStyles
+                  .elevatedButtonStyle, // Apply your custom button style
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AdminListPage()),
+                // Show the AdminListDialog as a dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AdminListDialog();
+                  },
                 );
               },
+              child: const Text('Admin List'), // Text for Admin List
             ),
+
           const SizedBox(width: 10),
         ],
       ),
-    
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -409,7 +418,6 @@ class _profilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
                 CachedNetworkImage(
                   imageUrl: profileImage,
                   imageBuilder: (context, imageProvider) => CircleAvatar(
@@ -421,12 +429,12 @@ class _profilePageState extends State<ProfilePage> {
                   errorWidget: (context, url, error) => const Icon(Icons.error),
                 ),
                 const SizedBox(height: 10),
-                
                 ElevatedButton(
                   style: CustomButtonStyles.elevatedButtonStyle,
                   onPressed: () async {
                     await _pickAdminImage();
-                    if (selectedAdminImage != null || selectedImageBytes != null) {
+                    if (selectedAdminImage != null ||
+                        selectedImageBytes != null) {
                       String downloadURL = await _uploadImage('admin_images/');
                       if (downloadURL.isNotEmpty) {
                         await _updateProfileImage(downloadURL);
